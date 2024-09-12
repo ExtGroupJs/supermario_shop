@@ -1,0 +1,656 @@
+{% extends "index.html" %} {% load static %} {% block head-extra %}
+<link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}" />
+<link rel="stylesheet" href="{% static 'assets/dist/css/load.css' %}" />
+<link
+  rel="stylesheet"
+  href="{% static 'assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'assets/plugins/bs-stepper/css/bs-stepper.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'assets/plugins/toastr/toastr.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'assets/plugins/ion-rangeslider/css/ion.rangeSlider.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'assets/plugins/bootstrap-slider/css/bootstrap-slider.min.css' %}"
+/>
+
+<link
+  rel="stylesheet"
+  href="{% static 'assets/plugins/jqvmap/jqvmap.css' %}"
+/>
+<script src="{% static 'assets/dist/js/3Dmol-min.js' %}"></script>
+<script src="{% static 'assets/dist/js/3Dmol.ui-min.js' %}"></script>
+
+{% endblock %} {% block content %}
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header"></section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-outline card-primary col-12 row">
+            <div class="card-header">
+              <h3 class="card-title">Tools</h3>
+              <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+              </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+              <div class="row">
+                <div
+                  class="input-group col-12 col-lg-4 border-right"
+                  style="padding-top: 5px"
+                >
+                  <div class="input-group-prepend">
+                    <button
+                      type="button"
+                      class="btn btn-danger form-control"
+                      title="load"
+                      onclick="selectUrl()"
+                    >
+                      Load
+                    </button>
+                  </div>
+                  <!-- /btn-group -->
+                  <select
+                    class="form-control select2"
+                    id="selectfile"
+                    name="selectfile"
+                    tabindex="-1"
+                    onchange="selectPdbContainer()"
+                  ></select>
+                  <!-- poner esto arriba para llenar esta lista onchange="selectPdbContainer()" -->
+                  <select class="form-control select2" id="selectPdb" name="selectPdb" tabindex="-1">
+                  </select> 
+                </div>
+                <div
+                  class="input-group col-12 col-lg-2 border-right"
+                  id="inputGroupCopy" hidden
+                  style="padding-top: 5px"
+                >
+                  <div class="input-group-prepend">
+                    <button
+                      type="button"
+                      class="btn btn-success form-control"
+                      title="load Personal File"
+                      onclick="selectUrlPersonal()"
+                    >
+                      Load
+                    </button>
+                  </div>
+                  <select
+                    class="form-control select2"
+                    id="selectCopy"
+                    name="selectCopy"
+                    tabindex="-1"
+                  ></select>
+                </div>
+                <div
+                  class="input-group col-12 col-lg-2 border-right"
+                  style="padding-top: 5px"
+                >
+                  <div class="input-group-prepend">
+                    <button
+                      type="button"
+                      class="btn btn-warning form-control"
+                      onclick="callBuscar()"
+                    >
+                      Search
+                    </button>
+                  </div>
+                  <!-- /btn-group -->
+                  <input type="text" id="buscar" class="form-control" />
+                </div>
+                <div
+                  class="col-12 col-lg-2 border-right"
+                  style="padding-top: 5px"
+                >
+                  <div class="btn-group d-flex justify-content-center">
+                    <button
+                      type="button"
+                      class="btn btn-warning"
+                      title="Reload"
+                      onclick="selectUrl()"
+                    >
+                      <i class="nav-icon fas fa-retweet"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-success"
+                      title="Play"
+                      onclick="playStop(this)"
+                    >
+                      <i class="nav-icon fas fa-play"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="col-md-2">
+                  <div class="card card-primary collapsed-card">
+                    <div class="card-header">
+                      <h3 class="card-title">Sphere Radius</h3>
+
+                      <div class="card-tools">
+                        <button
+                          type="button"
+                          class="btn btn-tool"
+                          data-card-widget="collapse"
+                        >
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </div>
+                      <!-- /.card-tools -->
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body" style="display: none">
+                      <input
+                        type="range"
+                        class="custom-range"
+                        id="customRange1"
+                        min="1"
+                        step="0.01"
+                        max="5"
+                        value="1"
+                      />
+                    </div>
+                    <!-- /.card-body -->
+                  </div>
+                  <!-- /.card -->
+                </div>
+              </div>
+            </div>
+          </div>
+        
+
+          <div class="card col-12 row">
+            <div class="overlay" id="load" hidden>
+              <!-- <i class="fas fa-2x fa-sync fa-spin"></i> -->
+
+              <div class="card card-widget widget-user">
+                <!-- Add the bg color to the header using any of the bg-* classes -->
+                <div class="widget-user-header bg-info">
+                  <h3 class="widget-user-username">Generating graphic</h3>
+                  <h5 class="widget-user-desc">This may take a moment</h5>
+                </div>
+                <div class="widget-user-image">
+                  <img
+                    class="img-circle elevation-2"
+                    src="{% static 'assets/dist/img/adn36.gif' %}"
+                    alt="User Avatar"
+                  />
+                </div>
+                <div class="card-footer bg-warning">
+                  <div class="row">
+                    The creation of 3D graphics is extremely computationally
+                    expensive,<br />
+                    this action may take some time, apologies for the
+                    inconvenience
+                  </div>
+                  <!-- /.row -->
+                </div>
+              </div>
+            </div>
+
+            <div class="card-header">
+              <h3 class="card-title">Allele Viewer</h3>
+              <div class="card-tools">
+                <button
+                  type="button"
+                  class="btn btn-tool"
+                  data-toggle="modal"
+                  title="Map"
+                  id="MapModalShowBotton"
+                  data-target="#modal-map"
+                >
+                  <i class="fas fa-map text-warning"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-tool"
+                  data-toggle="modal"
+                  title="xyz Expand"
+                  disabled
+                  hidden
+                  id="ExpandModalShowBotton"
+                  data-target="#modal-xyz"
+                >
+                  <i class="fas fa-expand-alt text-success"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-tool"
+                  data-toggle="modal"
+                  title="SNP"
+                  disabled
+                  hidden
+                  id="snpModalShowBotton"
+                  data-target="#modal-xl"
+                >
+                  <i class="fas fa-sliders-h text-primary"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-tool"
+                  title="Actions"
+                  data-widget="control-sidebar"
+                  data-controlsidebar-slide="true"
+                >
+                  <i class="fas fa-th-large text-danger"></i>
+                </button>
+              </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="modal-body">
+              <div
+                id="container"
+                style="width: 100%; height: 600px; position: relative"
+                data-style="stick"
+                data-ui="true"
+              ></div>
+            </div>
+            <!-- /.card-body -->
+          </div>
+          <!-- /.card -->
+        </div>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+    </div>
+    <!-- /.container-fluid -->
+  </section>
+  <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+<aside class="control-sidebar control-sidebar-dark">
+  <!-- Control sidebar content goes here -->
+  <div class="p-3 d-flex flex-column">
+    <div class="d-flex align-items-center">
+      <h5 class="mr-3">Actions</h5>
+      <a
+        class="nav-link ml-auto"
+        data-widget="control-sidebar"
+        data-controlsidebar-slide="true"
+        href="#"
+        role="button"
+      >
+        <i class="fas fa-times"></i>
+      </a>
+    </div>
+    <p class="mt-3">Configuration</p>
+    <div class="mb-1">
+      <input type="checkbox" value="0" id="show_axes" class="mr-1" /><span
+        >Axes</span
+      >
+    </div>
+    <div class="mb-1">
+      <input type="checkbox" value="0" id="show_plane" class="mr-1" /><span
+        >Plane</span
+      >
+    </div>
+    <br class="mb-3" />
+    <h6>View Family Options</h6>
+    <div class="mb-1">
+      <input type="checkbox" value="0" id="sphere_hidden" class="mr-1" /><span
+        >Sphere hidden</span
+      >
+    </div>
+    <div class="mb-1">
+      <input type="checkbox" value="0" id="stick_hidden" class="mr-1" /><span
+        >Stick hidden</span
+      >
+    </div>
+    <button
+      type="button"
+      class="btn btn-success"
+      title="Apply"
+      onclick="loadFamilyClean()"
+    >
+      <i class="nav-icon fas fa-check"> Apply</i>
+    </button>
+  </div>
+</aside>
+<!-- snp -->
+<div class="modal fade" id="modal-xl" style="display: none" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header btn-primary">
+        <h4 class="modal-title">SNP</h4>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body modal-body-snp">
+        <table class="table" id="snptable"></table>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+          Close
+        </button>
+        <button type="button" id="addchangessnp" class="btn btn-primary">
+          Add changes
+        </button>
+      </div>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+
+<!-- XYZ-expand -->
+<div class="modal fade" id="modal-xyz" style="display: none" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header btn-success">
+        <h4 class="modal-title">X Y Z Expand</h4>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <div>
+            <label for="myRangeX">Expand X</label>
+            <input
+              id="myRangeX"
+              min="0.5"
+              max="3"
+              step="0.5"
+              value="0.5"
+              type="range"
+              class="custom-range"
+            />
+
+            <h6>
+              Current Value:
+              <span id="currX">0.5</span>
+            </h6>
+            <hr />
+          </div>
+          <div>
+            <label for="myRangeY">Expand Y</label>
+            <input
+              id="myRangeY"
+              min="0.5"
+              max="3"
+              step="0.5"
+              value="0.5"
+              type="range"
+              class="custom-range custom-range-orange"
+            />
+
+            <h6>
+              Current Value:
+              <span id="currY">0.5</span>
+            </h6>
+            <hr />
+          </div>
+          <div>
+            <label for="myRangeZ">Expand Z</label>
+            <input
+              id="myRangeZ"
+              min="0.5"
+              max="3"
+              step="0.5"
+              value="0.5"
+              type="range"
+              class="custom-range custom-range-teal"
+            />
+
+            <h6>
+              Current Value:
+              <span id="currZ">0.5</span>
+            </h6>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+          Close
+        </button>
+        <button type="button" id="ExpandAplicateButton" class="btn btn-primary">
+          Expand
+        </button>
+      </div>
+    </div>
+    <!-- /.modal-content esto es un test -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+
+<!-- map modal -->
+<div class="modal fade" id="modal-map" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-indigo">
+        <h4 class="modal-title">Map Zone</h4>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+    
+      <div class="modal-body" style="overflow: auto; ">
+        <div id="world-map" style="width: 750px; height: 500px; margin: 0 auto; background-color: #fff;"></div>
+        <!-- Map card -->
+      </div>
+      
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+          Close
+        </button>
+        <button type="button" id="ExpandAplicateButton" class="btn btn-primary">
+          Expand
+        </button>
+      </div>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+</div>
+
+
+  <!-- /.modal-dialog -->
+</div>
+
+<!-- ------------------------------------------------------------------------------------------------------------------------------ -->
+{% endblock %} {% block script %}
+<!-- DataTables & Plugins -->
+<script src="{% static 'assets/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jszip/jszip.min.js' %}"></script>
+<script src="{% static 'assets/plugins/pdfmake/pdfmake.min.js' %}"></script>
+<script src="{% static 'assets/plugins/pdfmake/vfs_fonts.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+<script src="{% static 'assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jquery-validation/jquery.validate.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jquery-validation/additional-methods.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
+<script src="{% static 'assets/plugins/toastr/toastr.min.js' %}"></script>
+<script src="{% static 'assets/plugins/bs-stepper/js/bs-stepper.min.js' %}"></script>
+<script src="{% static 'assets/plugins/ion-rangeslider/js/ion.rangeSlider.min.js' %}"></script>
+<script src="{% static 'assets/plugins/bootstrap-slider/bootstrap-slider.min.js' %}"></script>
+<script src="{% static 'assets/plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+<!-- JQVMap -->
+<script src="{% static 'assets/plugins/jqvmap/jquery.vmap.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jqvmap/maps/jquery.vmap.world.js' %}"></script>
+<!-- /JQVMap -->
+<script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+<script src="{% static 'assets/dist/js/alleleviewer.js' %}"></script>
+<script src="{% static 'assets/dist/js/tools.js' %}"></script>
+<script>
+const africanCountries = [
+    "dz", "ao", "bj", "bw", "bf", "bi", "cm", "cv", "cf", "td",
+    "km", "cd", "dj", "eg", "gq", "er", "sz", "et", "ga", "gm",
+    "gh", "gn", "gw", "ke", "ls", "lr", "mg", "mw", "ml", "mr",
+    "mu", "ma", "mz", "na", "ne", "ng", "rw", "st", "sn", "sc",
+    "sl", "so", "za", "ss", "sd", "tz", "tg", "tn", "ug", "zm", "zw"
+];
+
+
+
+  jQuery('#world-map').vectorMap({ map: 'world_en',
+    backgroundColor: '#a5bfdd',
+    borderColor: '#818181',
+    borderOpacity: 0.25,
+    borderWidth: 1,
+    color: '#f4f3f0',
+    enableZoom: true,
+    hoverColor: '#f9f37a',
+    hoverOpacity: null,
+    normalizeFunction: 'linear',
+    scaleColors: ['#b6d6ff', '#005ace'],
+    selectedColor: '#c9dfaf',
+    
+    showTooltip: true, 
+    multiSelectRegion: false,  
+    // Otras configuraciones del mapa
+    selectedRegions: africanCountries, // Selecciona todos los países africanos
+
+    // Establecer colores
+    series: {
+        regions: [{
+            values: { 
+                // Puedes establecer colores específicos aquí si lo deseas
+            },
+            attribute: 'fill' // Asegúrate de que el atributo sea el correcto
+        }]
+    },
+    
+    onRegionClick: function(element, code, region)
+    {
+        var message = 'You clicked "'
+            + region
+            + '" which has the code: '
+            + code.toUpperCase();
+
+        alert(message);
+    },
+
+
+    });
+  
+
+
+jQuery('#world-map').on('drag', function(event)
+{
+    console.log('The map is being dragged');
+    //Do something
+});
+
+function allelereg(id) {
+ const pais=getRandomCountryCode();
+    jQuery('#world-map').vectorMap( 
+  'set', 'colors', {[pais]: '#0000ff'}
+   );
+
+// Configurar el mapa vectorial
+
+
+
+
+
+
+   $('#modal-map').modal('show');
+}
+
+
+
+
+// Códigos de países africanos en minúsculas
+
+
+
+
+
+
+const countries = [
+    "ae", "af", "ag", "al", "am", "ao", "ar", "at", "au", "az",
+    "ba", "bb", "bd", "be", "bf", "bg", "bi", "bj", "bn", "bo",
+    "br", "bs", "bt", "bw", "by", "bz", "ca", "cd", "cf", "cg",
+    "ch", "ci", "cl", "cm", "cn", "co", "cr", "cu", "cv", "cy",
+    "cz", "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg",
+    "er", "es", "et", "fi", "fj", "fk", "fr", "ga", "gb", "gd",
+    "ge", "gf", "gh", "gl", "gm", "gn", "gq", "gr", "gt", "gw",
+    "gy", "hn", "hr", "ht", "hu", "id", "ie", "il", "in", "iq",
+    "ir", "is", "it", "jm", "jo", "jp", "ke", "kg", "kh", "km",
+    "kn", "kp", "kr", "kw", "kz", "la", "lb", "lc", "lk", "lr",
+    "ls", "lt", "lv", "ly", "ma", "md", "mg", "mk", "ml", "mm",
+    "mn", "mr", "mt", "mu", "mv", "mw", "mx", "my", "mz", "na",
+    "nc", "ne", "ng", "ni", "nl", "no", "np", "nz", "om", "pa",
+    "pe", "pf", "pg", "ph", "pk", "pl", "pt", "py", "qa", "re",
+    "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "si",
+    "sk", "sl", "sn", "so", "sr", "st", "sv", "sy", "sz", "td",
+    "tg", "th", "tj", "tl", "tm", "tn", "tr", "tt", "tw", "tz",
+    "ua", "ug", "us", "uy", "uz", "ve", "vn", "vu", "ye", "za",
+    "zm", "zw"
+];
+
+
+let usedIndices = new Set();
+
+function getRandomCountryCode() {
+    if (usedIndices.size === countries.length) {
+        return "No quedan más siglas disponibles.";
+    }
+
+    let index;
+    do {
+        index = Math.floor(Math.random() * countries.length);
+    } while (usedIndices.has(index));
+
+    usedIndices.add(index);
+    return countries[index];
+}
+
+
+
+
+</script>
+<!-- Page specific script -->
+<!-- Page specific script -->
+
+{% endblock %}

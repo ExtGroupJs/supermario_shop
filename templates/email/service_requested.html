@@ -1,0 +1,13 @@
+<!-- {% extends 'email/base.html' %} -->
+{% block content %}
+<p style="font-size: 14px; line-height: 200%;"><span style="font-family: Cabin, sans-serif; font-size: 16px; line-height: 32px;">Estimado, {{user.username}} </span></p>
+<!-- <p style="text-align: justify;">Estimado {{user.first_name}} {{user.last_name}}<br> -->
+
+Este correo se le envía para confirmarle que ha comprado un servicio de 
+{{service}} de forma satisfactoria. En breve comenzará el proceso de 
+configuración y puesta a punto de su servicio contratado, que debe 
+durar un máximo de {{time_to_complete}} horas.
+<br><br>
+Por favor, acceda al sitio  <a href="https://amazonqva.com">amazonqva.com</a> para mayor información.
+ </p>
+{% endblock %}

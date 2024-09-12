@@ -1,0 +1,287 @@
+{% extends "index.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block head-extra %}
+    <link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+    <style>
+        .icon-cell {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+        }
+
+        .circular-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .circular-icon-preview {
+            width: 70px;
+            height: 70px;
+            border-radius: 20%;
+            object-fit: cover;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1>{% blocktranslate %}Eventos{% endblocktranslate %}</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="#">Home</a></li>
+                            <li class="breadcrumb-item active">{% blocktranslate %}Eventos{% endblocktranslate %}</li>
+                        </ol>
+                    </div>
+                </div>
+            </div><!-- /.container-fluid -->
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Gestionar Eventos</h3>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <table id="example1" class="table table-bordered table-striped">
+                                    <div class="dt-buttons btn-group flex-wrap">
+                                        <button class="btn btn-primary btn-info" data-toggle="modal"
+                                                data-target="#modal-add-event" tabindex="0"
+                                                aria-controls="example1" type="button"><span>Agregar</span></button>
+                                        <!-- Modal-add- Event -->
+                                        <div class="modal fade" id="modal-add-event">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title">Adicionar Evento</h4>
+                                                        <button type="button" class="close" data-dismiss="modal"
+                                                                aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form id="add-event-form" method="post">
+                                                            <div class="form-group">
+                                                                <label for="event-name">Nombre del Evento:</label>
+                                                                <input type="text" class="form-control" id="event-name"
+                                                                       name="event_name" required>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="event-icon">Icono del Evento:</label>
+                                                                <input type="file" class="form-control" id="event-icon"
+                                                                       name="event_icon" required>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                    <div class="modal-footer justify-content-between">
+                                                        <button type="button" class="btn btn-default"
+                                                                data-dismiss="modal">
+                                                            Cerrar
+                                                        </button>
+                                                        <button type="button" class="btn btn-primary"
+                                                                onclick="submitEventForm()">Enviar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <!-- /.modal-content -->
+                                            </div>
+                                            <!-- /.modal-dialog -->
+                                        </div>
+                                        <!-- End /.modal-add-Event -->
+                                    </div>
+                                    <thead>
+                                    <tr>
+                                        <th>Nro.</th>
+                                        <th>Nombre</th>
+                                        <th>Ícono</th>
+                                        <div class="float-right">
+                                            <th class="float-right">Acciones</th>
+                                        </div>
+
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for event in events %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ event.event_name }}</td>
+                                            <td class="icon-cell">
+                                                <img src="{{ event.event_icon.url }}" alt="Icono del evento"
+                                                     class="circular-icon">
+                                            </td>
+                                            <td>
+                                                <div class="float-right">
+                                            <span class="input-group-append">
+
+                                            <a href="#" class="btn bg-olive active btn-edit" data-toggle="modal"
+                                               data-target="#modal-edit-event" data-event-id="{{ event.id }}"
+                                               data-event-name="{{ event.event_name }}"
+                                               data-event-icon="{{ event.event_icon }}"> <i class="fa fa-edit"></i> </a>
+
+                                            <a href="#" class="btn bg-olive" data-toggle="modal"
+                                               data-target="#modal-delete-event">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                            </span>
+
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Modal- Edit- Event -->
+                                        <div class="modal fade" id="modal-edit-event">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title">Editar Evento</h4>
+                                                        <button type="button" class="close" data-dismiss="modal"
+                                                                aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form id="edit-event-form" method="post">
+                                                            <div class="form-group">
+                                                                <label for="event-name">Nombre del Evento:</label>
+                                                                <input type="text" class="form-control" id="event-name"
+                                                                       name="event_name" required>
+                                                            </div>
+                                                            <input type="hidden" id="event-icon-url"
+                                                                   name="event_icon_url">
+                                                            <div class="form-group">
+                                                                <label for="event-icon">Icono del Evento:</label>
+                                                                <img id="event-icon-preview" class="form-control circular-icon-preview"
+                                                                     alt="Icono del evento" src="">
+                                                                <input type="file" class="form-control" id="event-icon"
+                                                                       name="event_icon">
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                    <div class="modal-footer justify-content-between">
+                                                        <button type="button" class="btn btn-default"
+                                                                data-dismiss="modal">
+                                                            Cerrar
+                                                        </button>
+                                                        <button type="button" class="btn btn-primary"
+                                                                id="btn-edit-event"
+                                                                data-event-id="{{ event.id }}">
+                                                            Enviar
+                                                        </button>
+                                                       
+                                                    </div>
+                                                </div>
+                                                <!-- /.modal-content -->
+                                            </div>
+                                            <!-- /.modal-dialog -->
+                                        </div>
+
+                                        <!-- End /.modal-Edit-Event -->
+
+                                        <!-- Modal- Delete- Event -->
+                                        <div class="modal fade" id="modal-delete-event">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content bg-danger">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title">Eliminar Evento</h4>
+                                                        <button type="button" class="close" data-dismiss="modal"
+                                                                aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>¿Desea eliminar el evento? </p>
+                                                    </div>
+                                                    <div class="modal-footer justify-content-between">
+                                                        <button type="button" class="btn btn-outline-light"
+                                                                data-dismiss="modal">Cerrar
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-light" onclick="deleteEvent({{ event.id }})">Eliminar</button>
+                                                    </div>
+                                                </div>
+                                                <!-- /.modal-content -->
+                                            </div>
+                                            <!-- /.modal-dialog -->
+                                        </div>
+                                        <!-- End /.modal-Delete-Event -->
+                                    {% endfor %}
+
+
+                                </table>
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                        <!-- /.card -->
+                    </div>
+                    <!-- /.col -->
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.container-fluid -->
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+
+
+{% endblock %}
+{% block script %} <!-- DataTables & Plugins -->
+    <script>
+        $(function () {
+            $("#example1").DataTable({
+                "responsive": true, "lengthChange": false, "autoWidth": false,
+            });
+            $('#example2').DataTable({
+                "paging": true,
+                "lengthChange": false,
+                "searching": false,
+                "ordering": true,
+                "info": true,
+                "autoWidth": false,
+                "responsive": true,
+            });
+        });
+    </script>
+    <script src="{% static 'assets/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/jszip/jszip.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/pdfmake/pdfmake.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/pdfmake/vfs_fonts.js' %}"></script>
+    <script src="{% static 'assets/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/jquery-validation/jquery.validate.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/jquery-validation/additional-methods.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
+    <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+    {#<script src="{% static 'assets/dist/js/createuser.js' %}"></script>#}
+    <script src="{% static 'assets/dist/js/event.markers.js' %}"></script>
+    <script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
+
+    <!-- Page specific script -->
+
+
+{% endblock %}

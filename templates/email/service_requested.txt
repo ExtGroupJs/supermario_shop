@@ -1,0 +1,7 @@
+Estimado {{user.first_name}} {{user.last_name}}
+
+Este correo se le envía para confirmarle que ha comprado un servicio de 
+{{service}} de forma satisfactoria. En breve comenzará el proceso de 
+configuración y puesta a punto de su servicio contratado.
+
+Por favor, acceda al sitio https://amazonqva.com para mayor información.

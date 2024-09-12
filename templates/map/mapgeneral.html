@@ -1,0 +1,1312 @@
+{% extends "index.html" %}
+{% load static %}
+{% load i18n %}
+{% block head-extra %}
+    <script src="{% static 'assets/dist/Leaflet/libs/leaflet-src.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'assets/dist/Leaflet/libs/leaflet.css' %}"/>
+    <script src="{% static 'assets/dist/Leaflet/src/Leaflet.draw.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/Leaflet.Draw.Event.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'assets/dist/Leaflet/src/leaflet.draw.css' %}"/>
+    <script src="{% static 'assets/dist/Leaflet/src/Toolbar.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/Tooltip.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/ext/GeometryUtil.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/ext/LatLngUtil.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/ext/LineUtil.Intersect.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/ext/Polygon.Intersect.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/ext/Polyline.Intersect.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/ext/TouchEvents.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/DrawToolbar.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Feature.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.SimpleShape.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Polyline.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Marker.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Circle.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.CircleMarker.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Polygon.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Rectangle.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/EditToolbar.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/EditToolbar.Edit.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/EditToolbar.Delete.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/Control.Draw.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.Poly.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.SimpleShape.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.Rectangle.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.Marker.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.CircleMarker.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.Circle.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/DrawToolbar.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Feature.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.SimpleShape.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Polyline.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Marker.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Circle.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.CircleMarker.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Polygon.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/draw/handler/Draw.Rectangle.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/EditToolbar.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/EditToolbar.Edit.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/EditToolbar.Delete.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/Control.Draw.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.Poly.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.SimpleShape.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.Rectangle.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.Marker.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.CircleMarker.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/src/edit/handler/Edit.Circle.js' %}"></script>
+    <!--End Draw Ref-->
+    <link rel="stylesheet" href="{% static 'assets/dist/Leaflet/lib/MarkerCluster.css' %}"/>
+    <link rel="stylesheet" href="{% static 'assets/dist/Leaflet/lib/MarkerCluster.Default.css' %}"/>
+    <script src="{% static 'assets/dist/Leaflet/lib/leaflet.markercluster-src.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/lib/jquery.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'assets/dist/Leaflet/leaflet.shapefile-gh-pages/gh-pages.css' %}"/>
+    <script src="{% static 'assets/dist/Leaflet/leaflet.shapefile-gh-pages/catiline.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/Leaflet.timeline/leaflet.timeline.js' %}"></script>
+    <script src="{% static 'assets/dist/Leaflet/leaflet.shapefile-gh-pages/leaflet.shpfile.js' %}"></script>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 150px;
+            top: 258px;
+            width: 345px;
+            height: 277px;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 13px;
+            border: 1px solid #888;
+            border-radius: 10px;
+        }
+
+        .buttonmarker {
+            background-color: #333; /* Color de fondo */
+            color: white; /* Color del texto */
+            padding: 1px 20px; /* Espaciado interno */
+            border: none; /* Sin borde */
+            border-radius: 5px; /* Bordes redondeados */
+            text-align: center; /* Alineación del texto */
+            text-decoration: none; /* Sin subrayado */
+            display: inline-block; /* Mostrar como bloque en línea */
+            font-size: 16px; /* Tamaño de fuente */
+            cursor: pointer; /* Cambiar cursor al pasar por encima */
+        }
+
+        .container {
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .buttonmarker:hover {
+            background-color: #111; /* Cambiar color de fondo al pasar por encima */
+        }
+
+        .leaflet-bottom.leaflet-left {
+            width: 100%;
+        }
+
+        .leaflet-control-layers .leaflet-control-layers-expanded .leaflet-timeline-control .leaflet-control {
+            background: #F33;
+        }
+
+        .leaflet-control-container .leaflet-timeline-controls {
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            margin-bottom: 15px;
+        }
+
+        .leaflet-control-layers-expanded {
+            padding: 6px 10px 6px 6px;
+            color: #FFF;
+            background: #080708;
+        }
+
+        #map {
+            height: 580px;
+            border-radius: 5px;
+        }
+
+        /* container */
+        .right-sidebar {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        /* columns */
+        .right-sidebar > * {
+            width: 100%;
+            padding: 1rem;
+        }
+
+        /* tablet breakpoint */
+        @media (min-width: 768px) {
+            .right-sidebar > *:nth-child(1) {
+                width: calc(100% / 60 * 55);
+            }
+
+            .right-sidebar > *:nth-child(2) {
+                width: calc(100% / 4);
+            }
+        }
+
+        #info {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+        }
+
+        #info h5 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+        }
+
+        #displayed-list {
+            list-style-type: none;
+            padding-left: 10px;
+            font-size: 14px;
+            background-color: #444;
+            color: white;
+        }
+
+        #displayed-list li::before {
+            content: "\2713";
+            padding-right: 5px;
+
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!--Modals Create, Edit and modal for Inicial Create-->
+    <div id="modalTypeEventMarker" class="modal" style="height: 60px;">
+        <div class="modal-content" id="draggablefirtmodal">
+            <div>
+                <label for="tipoeventolbfirtmodal">Event Type:</label>
+                <select id="tipoeventofirtmodal">
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalMarker" class="modal">
+        <div class="modal-content" id="draggable">
+            <div>
+                <label for="tipoeventolb">Event Type:</label>
+                <select id="tipoevento">
+                </select>
+            </div>
+            <div>
+                <label for="beginlb">Begin:</label>
+                <input type="text" id="fechaini" name="fechaini" size="5">
+                <label for="fechainiyearslb">Years</label>
+                <select name="selectDateTypeBegin" id="selectDateTypeBegin" style="width: 129px;">
+                    <option value="Before Present (YBP)">Before Present (YBP)</option>
+                    <option value="Before Christ (BC)">Before Christ (BC)</option>
+                    <option selected value="After Christ (AC)">After Christ (AC)</option>
+                </select>
+            </div>
+            <div>
+                &nbsp;&nbsp;&nbsp; <label for="endlb">End:</label>
+                <input type="text" id="fechafin" name="fechafin" size="5">
+                <label for="fechainiyearslb">Years</label>
+                <select name="selectDateTypeEnd" id="selectDateTypeEnd" style="width: 129px;">
+                    <option value="Before Present (YBP)">Before Present (YBP)</option>
+                    <option value="Before Christ (BC)">Before Christ (BC)</option>
+                    <option selected value="After Christ (AC)">After Christ (AC)</option>
+                </select>
+            </div>
+            <div>
+                <label for="descripcionlb">Description:</label>
+                <textarea id="descripcion" name="memo" rows="2" cols="21"></textarea>
+            </div>
+            <div>
+                <label for="latlnglb">Latitude-Longitude:</label>
+                <input type="text" id="latitudid" name="latitud" size="7" disabled>
+                <input type="text" id="longitudid" name="longitud" size="8" disabled>
+            </div>
+            <div class="container">
+                <button id="BtnSaveMarker" type="button" class="buttonmarker" title="Save">Save</button>
+            </div>
+        </div>
+    </div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+        </section>
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Map</h3>
+                                <div class="card-tools">
+								  <button type="button" class="btn btn-tool" title="Human Migrations" data-widget="control-sidebar"
+								  data-controlsidebar-slide="true">
+								  <i class="fas fa-walking"></i>
+								</button>
+
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="right-sidebar" style="padding: 10px 100px;">
+                                        <div id="map"></div>
+                                </div>
+                                <script>
+                                    //Scripts for read a shapefile
+                                    L.Shapefile = L.GeoJSON.extend({
+                                        options: {
+                                            importUrl: "{% static 'assets/dist/Leaflet/leaflet.shapefile-gh-pages/shp.js' %}"
+                                        },
+                                        initialize: function (file, options) {
+                                            L.Util.setOptions(this, options);
+                                            if (typeof cw !== 'undefined') {
+
+                                                if (!options.isArrayBuffer) {
+                                                    this.worker = cw(new Function('data', 'cb', 'importScripts("' + this.options.importUrl + '");shp(data).then(cb);'));
+                                                } else {
+                                                    this.worker = cw(new Function('data', 'importScripts("' + this.options.importUrl + '"); return shp.parseZip(data);'));
+                                                }
+                                            }
+                                            L.GeoJSON.prototype.initialize.call(this, {
+                                                features: []
+                                            }, options);
+                                            this.addFileData(file);
+                                        },
+
+                                        addFileData: function (file) {
+                                            var self = this;
+                                            this.fire('data:loading');
+                                            if (typeof file !== 'string' && !('byteLength' in file)) {
+                                                var data = this.addData(file);
+                                                this.fire('data:loaded');
+                                                return data;
+                                            }
+                                            if (!this.worker) {
+                                                shp(file).then(function (data) {
+                                                    self.addData(data);
+                                                    self.fire('data:loaded');
+                                                }).catch(function (err) {
+                                                    self.fire('data:error', err);
+                                                })
+                                                return this;
+                                            }
+
+                                            var promise;
+                                            if (this.options.isArrayBufer) {
+                                                promise = this.worker.data(file, [file]);
+                                            } else {
+                                                promise = this.worker.data(cw.makeUrl(file));
+                                            }
+
+                                            promise.then(function (data) {
+                                                self.addData(data);
+                                                self.fire('data:loaded');
+                                                self.worker.close();
+                                            }).then(function () {
+                                            }, function (err) {
+                                                self.fire('data:error', err);
+                                            })
+                                            return this;
+                                        }
+                                    });
+
+                                    L.shapefile = function (a, b, c) {
+                                        return new L.Shapefile(a, b, c);
+                                    };
+                                    ////Fin de: Este javascript es para el trabajo con el formato shape
+
+                                    //Base Layers
+                                    var countriesLayers = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";  //"http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png";
+                                    var osmAttrib = "Human Migrations";
+                                    var osmcountriesLayers = L.tileLayer(countriesLayers, {
+                                        //maxZoom: 18,
+										minZoom: 2,
+                                        attribution: osmAttrib,
+                                        //noWrap: true,
+                                    });
+
+                                    var satelitalLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                                        minZoom: 2,
+										attribution: 'Allele-Viewer'
+                                    });
+
+                                    var oceanLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {minZoom: 2, attribution: 'Allele-Viewer'});
+
+                                    var LandLGMShapefile = new L.Shapefile("{% static 'assets/dist/Leaflet/Last-Glacial-Maximum/landmassLGMPolygon2.zip' %}", {
+                                        style: function (feature) {
+                                            return {
+                                                color: '#2D2', //'#DA2',
+                                                fillColor: '#2D2',
+                                                fillOpacity: 0.5,
+                                                weight: 2,
+                                                opacity: 1,
+                                            };
+                                        }
+                                    });
+
+                                    //Map
+                                    var map = L.map("map", {
+                                        layers: [satelitalLayer],
+                                        center: new L.LatLng(-3, 20),
+                                        zoom: 4,                                        
+                                        //zoom: 2.4,
+                                        maxBounds: [
+                                            [90, -50], //-25
+                                            [-90, 335],
+                                        ],
+                                    });
+
+                                    //Layer for Marker	  
+                                    markerLayer = new L.featureGroup().addTo(map);
+                                    var markerMigrationPointLayer = new L.featureGroup().addTo(map);
+                                    var labeled = false;
+
+                                    //For Update TimeLine Description in the right panel
+                                    function updateList(timeline) {
+
+                                    if (timeline.time < -70000) 
+                                      { map.setView(new L.LatLng(23, 120), 2);} //155
+                                    else
+                                    if ((timeline.time >= -70000) && (timeline.time <= -61051)) 
+                                      { map.setView(new L.LatLng(-3, 20), 4);}
+                                    else
+                                    if (timeline.time > -61051) 
+                                      { map.setView(new L.LatLng(23, 120), 2);} //155
+
+                                      if (timeline.time <= -64864 && labeled == true)
+                                         {
+                                            markerMigrationPointLayer.clearLayers();
+                                            labeled = false;
+                                         }
+
+                                        if (timeline.time > -64864 && labeled == false)
+                                         {
+                                            labeled = true;
+                                               // quake.feature.geometry.openPopup();
+                                               const popup = L.popup({
+                                               //recommend set 'false'.
+                                                closeOnClick: false, autoClose:false
+                                               }).setContent("*4.001: *1.058, *39 ILU, *10 ILU, *4.004, *4.012, ");
+
+                                              // L.circleMarker([37.75,140.47]).addTo(map).bindPopup(popup).openPopup();
+                                             var migrationPointMarkLabel = new L.circleMarker([14.5368,1.6875],{
+                                                    radius: 1, //quake.feature.properties.id
+                                                    color: "#050400", //"#000000",
+                                                    fillColor: "#f5d843",//"#000000",
+                                                    fillOpacity: 0.7,
+                                                    weight: 3,
+                                                    opacity: 0.8,
+                                                }).addTo(map).bindPopup(popup).openPopup();
+
+                                                markerMigrationPointLayer.addLayer(migrationPointMarkLabel); 
+                                            }
+
+                                        var displayed = timeline.getLayers();
+                                        var list = document.getElementById("displayed-list");
+                                        list.innerHTML = "";
+                                        displayed.forEach(function (quake) {
+
+                                            var li = document.createElement("li");
+                                            if (quake.feature.properties.title != null) {
+                                                li.innerHTML = quake.feature.properties.title;
+                                                list.appendChild(li);
+                                            }
+                                        });
+                                    }
+
+                                    // eqfeed_callback is called once the earthquake geojsonp file below loads
+                                    function eqfeed_callback(data) {
+
+                                        var getInterval = function (quake) {
+
+                                            if ((quake.properties.id == 100) || (quake.properties.id == 160) || (quake.properties.id == 220) || (quake.properties.id == 280) || (quake.properties.id == 340) || (quake.properties.id == 400) || (quake.properties.id == 480) || (quake.properties.id == 560) || (quake.properties.id == 640) || (quake.properties.id == 700) || (quake.properties.id == 750) || ((quake.properties.id >= 1000) && (quake.properties.id <= 4500))) {
+                                                return {
+                                                    start: quake.properties.timefinal, //quake.properties.time,
+                                                    end: quake.properties.time
+                                                };
+                                            }
+                                             else {
+                                                return {
+                                                    start: quake.properties.timefinal, //quake.properties.time,
+                                                    end: -1//-15000 //851				   
+                                                };
+                                            }
+                                        };
+                                        
+                                        var getShortInterval = function (quake) {
+
+                                            if (quake.properties.id == 10) {
+                                                return {
+                                                    start: quake.properties.timefinal,
+                                                    end: -1//-15000 //quake.properties.timefinal + (-15000 - quake.properties.timefinal)  //851
+                                                };
+                                            } 
+                                            /* else {
+                                                return {
+                                                    start: quake.properties.timefinal,
+                                                    end: quake.properties.timefinal + 74
+                                                };
+                                            } */
+                                        };
+
+                                        var timelineControl = L.timelineSliderControl({
+                                           // formatOutput: "Human Migrations Timeline", //function (date) {
+                                                //return new Date(date).toString();
+                                                //return "Human Migrations Timeline";
+                                           // },
+                                            //steps: 200000,
+                                            duration: 200000, //50000,
+                                        });
+
+                                        var migrationTraceRoute = L.timeline(data, {
+                                            getInterval: getInterval,
+                                            style: function (feature) {
+                                                if ((feature.properties.id == 100) || (feature.properties.id == 160) || (feature.properties.id == 220) || (feature.properties.id == 280) || (feature.properties.id == 340) || (feature.properties.id == 400) || (feature.properties.id == 480) || (feature.properties.id == 560) || (feature.properties.id == 640) || (feature.properties.id == 700) || (feature.properties.id == 750)) {
+                                                    return {
+                                                        color: '#FFFFFF',
+                                                        fillColor: '#FFFFFF',
+                                                        fillOpacity: 0.9,
+                                                        weight: 2,
+                                                        opacity: 1,
+                                                    }
+                                                }
+                                                if ((feature.properties.id >= 1000) && (feature.properties.id <= 4500)) { //(((feature.properties.time == 0) || (feature.properties.time == -8000) || (feature.properties.time == -10000) || (feature.properties.time == -15000)) && ((feature.properties.id >= 1000) && (feature.properties.id <= 4000))) {
+                                                    return {
+                                                        color: feature.properties.mag, //"#6699FF", //"#6699FF", //"#556B2F"
+                                                        fillColor: feature.properties.mag, //'#6699FF',          //'#556B2F'
+                                                        fillOpacity: 1,
+                                                        weight: 2,
+                                                        opacity: 1,
+                                                    }
+                                                }
+                                              /*  else if ((feature.properties.id == 1000) || (feature.properties.id == 1100) || (feature.properties.id == 1200) || (feature.properties.id == 1300) || (feature.properties.id == 1400)) {
+                                                    return {
+                                                        color: "#556B2F", //"#6699FF",
+                                                        fillColor: '#556B2F',
+                                                        fillOpacity: 1,
+                                                        weight: 2,
+                                                        opacity: 1,
+                                                    }
+                                                } */
+
+                                                else if (feature.properties.id != 10) {
+                                                    return {
+                                                        color: "#171717", //"#2b2c27",//"#EFFF08", //"#6699FF",
+                                                        fillColor: "#171717",//"#2b2c27",//'#EFFF08',
+                                                        fillOpacity: 1,
+                                                        weight: 6,
+                                                        opacity: 1,
+                                                    }
+                                                }
+                                               /* else 
+                                                {
+                                                    return L.circleMarker([feature.geometry.coordinates[1],feature.geometry.coordinates[0]], {
+                                                    radius: feature.properties.id,
+                                                    color: "#050400", //"#000000",
+                                                    fillColor: "#f5d843",//"#000000",
+                                                    fillOpacity: 0.7,
+                                                    weight: 3,
+                                                    opacity: 0.8,
+                                                }).bindPopup(L.popup({closeOnClick: false, autoClose:false}).setContent(feature.properties.place)).openPopup();
+                                                } */
+                                            },
+                                            pointToLayer: function (data, latlng) {
+
+                                                if ((data.properties.id == 100) || (data.properties.id == 160) || (data.properties.id == 220) || (data.properties.id == 280) || (data.properties.id == 340) || (data.properties.id == 400) || (data.properties.id == 480) || (data.properties.id == 560) || (data.properties.id == 640) || (data.properties.id == 700) || (data.properties.id == 750) || (data.properties.id == 1000) || (data.properties.id == 1100) || (data.properties.id == 1200) || (data.properties.id == 1300) || (data.properties.id == 1400)) {
+                                                    return L.polyline(latlngs, {
+                                                        color: 'red'
+                                                    });
+                                                } 
+                                                else if (data.properties.id == 10) {
+                                                    return L.circleMarker(latlng, {
+                                                    radius: data.properties.id,
+                                                    color: "#050400", //"#000000",
+                                                    fillColor: "#f5d843",//"#000000",
+                                                    fillOpacity: 0.7,
+                                                    weight: 3,
+                                                    opacity: 0.8,
+                                                }).bindPopup(L.popup({closeOnClick: false, autoClose:false}).setContent(data.properties.place)); //.openPopup()
+                                                } 
+                                               /* else 
+                                                {
+                                                    var hue_min = 120;
+                                                    var hue_max = 0;
+                                                    var hue =
+                                                        (data.properties.id / 10) * (hue_max - hue_min) + hue_min;
+                                                     return L.polyline(latlng, {
+                                                   radius: data.properties.id,
+                                                         color: "#EFFF08",
+                                                         fillColor: "#EFFF08",
+                                                     });.bindPopup(data.properties.title);
+                                                } */
+                                            }, 
+                                        });
+
+                                        
+                                        var migrationPoints = L.timeline(data, {
+                                            getInterval: getShortInterval,
+                                            pointToLayer: function (data, latlng) {
+                                                return L.circleMarker(latlng, {
+                                                    radius: data.properties.id,
+                                                    color: "#050400", //"#000000",
+                                                    fillColor: "#f5d843",//"#000000",
+                                                    fillOpacity: 0.7,
+                                                    weight: 3,
+                                                    opacity: 0.8,
+                                                }).bindPopup(L.popup({closeOnClick: false, autoClose:false}).setContent(data.properties.place));//.openPopup(); //data.properties.place
+                                            },
+                                        });
+
+                                        var polygonTimeline;
+                                        var polygons;
+                                        var aFeatures = [];
+                                        var aFeaturesAll = [];
+                                        var aFeatureAll = [];
+                                        var aFeature;
+                                        $.ajax({
+                                            type: 'GET',
+                                            url: '/business-gestion/markers/',
+                                            error: function () {
+                                                Swal.fire({
+                                                icon: "error",
+                                                title: "No se pudieron cargar los datos.",
+                                                showConfirmButton: false,
+                                                timer: 1500
+                                            });
+                                            },
+                                            dataType: 'json',
+                                            success: function (response) {
+                                                var data;
+                                                data = response;
+                                                data.forEach(function (marker) {
+                                                    var descriptionLoad = marker.description;
+                                                    var latitudeLoad = marker.latitude;
+                                                    var longitudeLoad = marker.longitude;
+                                                    var typeEventLoad = marker.event_type.event_id;
+                                                    var iconUrlCurrentMarkerLoad = marker.event_type.event_icon_url;
+                                                    var starttime = marker.start_date;
+                                                    var endtime = marker.end_date;
+                                                    var astart_format = marker.start_format;
+                                                    var aend_format = marker.end_format;
+                                                    if ((astart_format == "Beforepresent") || (astart_format == "Beforechrist")) {
+                                                        starttime = -1 * starttime;
+                                                    }
+                                                    if ((aend_format == "Beforepresent") || (aend_format == "Beforechrist")) {
+                                                        endtime = -1 * endtime;
+                                                    }
+                                                    aFeature = {
+                                                        type: "Feature",
+                                                        properties: {
+                                                            description: descriptionLoad,
+                                                            event_type_id: typeEventLoad,
+                                                            iconUrlEvent: iconUrlCurrentMarkerLoad,
+                                                            start: starttime,// starttime,//100
+                                                            end: endtime,//endtime,//400
+                                                        },
+                                                        geometry: {
+                                                            type: "Point",
+                                                            coordinates:
+                                                                [longitudeLoad, latitudeLoad],
+                                                        },
+                                                    };
+                                                    aFeatures.push(aFeature);
+                                                    polygons = {
+                                                        type: "FeatureCollection",
+                                                        features: aFeatures,
+                                                    };
+                                                });
+
+                                                var getpoligonInterval = function (polygons) {
+                                                    return {
+                                                        start: polygons.properties.start,//-71000, 
+                                                        end: polygons.properties.end,//-15000
+                                                    }
+                                                };
+                                                var polygonTimeline = L.timeline(polygons, {
+                                                    getInterval: getpoligonInterval,
+                                                    pointToLayer: function (features, latlng) {
+
+                                                        return L.marker(latlng, {
+                                                            icon: //markerIconLoad
+
+                                                                L.icon({
+                                                                    iconUrl: features.properties.iconUrlEvent,
+                                                                    iconSize: [25, 41],
+                                                                    shadowSize: [41, 41],
+                                                                    shadowAnchor: [13, 20]
+                                                                })
+                                                        }).bindPopup(features.properties.description);
+                                                        
+                                                    }
+                                                });
+                                                timelineControl.addTimelines(polygonTimeline);
+                                                polygonTimeline.addTo(map);
+
+                                            }
+                                        });
+
+										AlleleGeographicZonesLayer = new L.featureGroup().addTo(map);
+
+                                        timelineControl.addTo(map);
+                                        timelineControl.addTimelines(migrationTraceRoute, migrationPoints);
+                                        migrationTraceRoute.addTo(map);
+                                        migrationPoints.addTo(map);
+                                        //markerLayer.remove();
+
+                                       // const overlays = {};
+
+
+                                       const baseLayers = {
+                                            'Countries': osmcountriesLayers,
+                                            'Satelital': satelitalLayer,
+                                            'Ocean': oceanLayer
+                                        };
+                                        
+                                        const overlays = {
+                                            'Land Last Glacial Maximum': LandLGMShapefile,
+                                            'Migration Trace Route': migrationTraceRoute,
+                                            'Migration Points': migrationPoints,
+                                            'Marker Layer': markerLayer,
+											'Allele Geographic Zones' : AlleleGeographicZonesLayer
+                                        }; 
+
+                                        const layerControl = L.control.layers(baseLayers, overlays).addTo(map);
+
+                                        $.ajax({
+                                            type: 'GET',
+                                            url: '/business-gestion/layers/',
+                                            error: function () {
+                                                Swal.fire({
+                                                icon: "error",
+                                                title: "No se pudieron cargar los datos a ver si.",
+                                                showConfirmButton: false,
+                                                timer: 1500
+                                            });
+                                            },
+                                            dataType: 'json',
+                                            success: function (response) {
+                                                var data;
+                                                data = response;
+                                                data.forEach(function (aLayer) {
+													//if ((aLayer.name == "osmcountriesLayers") && (aLayer.is_visible == false) ) {layerControl.removeLayer(osmcountriesLayers)}
+													//if ((aLayer.name == "satelitalLayer") && (aLayer.is_visible == false) ) {layerControl.removeLayer(satelitalLayer)}
+													//if ((aLayer.name == "oceanLayer") && (aLayer.is_visible == false) ) {layerControl.removeLayer(oceanLayer)}	
+													if ((aLayer.name == "LandLGMShapefile") && (aLayer.is_visible == false) ) {layerControl.removeLayer(LandLGMShapefile)}	
+													if ((aLayer.name == "migrationTraceRoute") && (aLayer.is_visible == false) ) {layerControl.removeLayer(migrationTraceRoute)}	
+													if ((aLayer.name == "migrationPoints") && (aLayer.is_visible == false) ) {layerControl.removeLayer(migrationPoints)}
+													if ((aLayer.name == "markerLayer") && (aLayer.is_visible == true) ) {layerControl.removeLayer(markerLayer)}																																																																
+                                                }); 
+                                            }
+                                        });
+
+
+                                        //map.addLayer(LandLGMShapefile);
+                                        migrationTraceRoute.on("change", function (e) {
+                                            updateList(e.target);
+                                        });
+                                        migrationPoints.on("change", function (e) {
+                                            updateList(e.target);
+                                        });
+
+                                        updateList(migrationTraceRoute);
+                                        //updateList(migrationPoints);
+
+                                    }
+
+                                    var campoTextoDescripcion = document.getElementById("descripcion");
+                                    var textDescripcion = document.getElementById("descripcion");
+                                    var datefechaini = document.getElementById("fechaini");
+                                    var datefechafin = document.getElementById("fechafin");
+                                    var selectEventTypeFirtModal = document.getElementById("tipoeventofirtmodal");
+                                    var selectEventType = document.getElementById("tipoevento");
+                                    var option = document.createElement("option");
+                                    var option1 = document.createElement("option");
+                                    option.text = "-- Select an option --";
+                                    option.value = -1;
+                                    option1.text = "-- Select an option --";
+                                    option1.value = -1;
+                                    selectEventType.add(option1);
+                                    selectEventTypeFirtModal.add(option);
+                                    var idEditMarker = 0;
+
+                                    //Get marker to map	
+                                    $.ajax({
+                                        type: 'GET',
+                                        url: '/business-gestion/markers/',
+                                        error: function () {
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "No se pudieron cargar los datos.",
+                                                showConfirmButton: false,
+                                                timer: 1500
+                                            });
+                                        },
+                                        dataType: 'json',
+                                        success: function (response) {
+                                            var data;
+                                            data = response;
+                                            data.forEach(function (marker) {
+                                                var descriptionLoad = marker.description;
+                                                var latitudeLoad = marker.latitude;
+                                                var longitudeLoad = marker.longitude;
+                                                var typeEventLoad = marker.event_type.event_id;
+                                                var iconUrlCurrentMarkerLoad = "";
+                                                if (typeEventLoad != -1) {
+                                                    $.ajax({
+                                                        type: 'GET',
+                                                        url: '/business-gestion/events/get/' + typeEventLoad + '/',
+                                                        error: function () {
+                                                            Swal.fire({
+                                                                icon: "error",
+                                                                title: "No se pudieron cargar los datos.",
+                                                                showConfirmButton: false,
+                                                                timer: 1500
+                                                            });
+                                                        },
+                                                        dataType: 'json',
+                                                        success: function (response) {
+                                                            var data;
+                                                            data = response;
+                                                            iconUrlCurrentMarkerLoad = data.event_icon;
+                                                            var markerIcon = L.icon({
+                                                                iconUrl: iconUrlCurrentMarkerLoad,
+                                                                iconSize: [25, 41],
+                                                                shadowSize: [41, 41],
+                                                                shadowAnchor: [13, 20]
+                                                            });
+                                                            var markerFromDB = L.marker([latitudeLoad, longitudeLoad], {icon: markerIcon});//.addTo(map);
+                                                            var popup = markerFromDB.bindPopup(descriptionLoad);
+                                                            markerLayer.addLayer(markerFromDB);
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    });
+                                    //Get event types and add to combobox	
+                                    $.ajax({
+                                        type: 'GET',
+                                        url: '/business-gestion/events/',
+                                        error: function () {
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "No se pudieron cargar los datos.",
+                                                showConfirmButton: false,
+                                                timer: 1500
+                                            });
+                                        },
+                                        dataType: 'json',
+                                        success: function (response) {
+                                            var data;
+                                            data = response;
+                                            data.forEach(function (eventTypeBD) {
+                                                var option = document.createElement("option");
+                                                var option1 = document.createElement("option");
+                                                option.text = eventTypeBD.event_name;
+                                                option.value = eventTypeBD.id;
+                                                option1.text = eventTypeBD.event_name;
+                                                option1.value = eventTypeBD.id;
+                                                selectEventType.add(option);
+                                                selectEventTypeFirtModal.add(option1);
+                                            });
+                                        }
+                                    });
+
+                                    var MyCustomMarker = L.Icon.extend({
+                                        options: {
+                                            shadowUrl: null,
+                                            iconSize: [25, 41],
+                                            iconAnchor: [12.5, 37],
+                                            iconUrl: "{% static 'assets/dist/Leaflet/marker_black.png' %}"
+                                        }
+                                    });
+
+                                    L.EditToolbar.Delete.include({
+                                        removeAllLayers: false
+                                    });
+
+                                    var drawControl = new L.Control.Draw({
+                                        edit: {
+                                            featureGroup: markerLayer,
+                                            poly: {
+                                                allowIntersection: false
+                                            }
+                                        },
+                                        draw: {
+                                            polyline: false,
+                                            circle: false,
+                                            polygon: false,
+                                            rectangle: false,
+                                            circlemarker: false,
+                                            marker: {
+                                                icon: new MyCustomMarker()
+                                            }
+                                        }
+                                    });
+
+                                    map.addControl(drawControl);
+
+                                    var modal = document.getElementById("modalMarker");
+                                    var modalEvent = document.getElementById("modalTypeEventMarker");
+
+                                    var buttonCreateMarker = document.getElementById("btnCreateMarker");
+                                    var buttonSaveMarker = document.getElementById("BtnSaveMarker");
+                                    var span = document.getElementsByClassName("close")[0];
+
+                                    iconUrlCurrentMarker = "{% static 'assets/dist/Leaflet/marker_black.png' %}";
+                                    
+                                    var markCreated = false;
+                                    var markSave = false;
+                                    var editStart = false;
+                                    var deleteStart = false;
+                                    var deleteSelect = false;
+                                    var editSelect = false;
+                                    var editSave = false;
+                                    var modalOpenByEdit = false;
+                                    var deleteSave = false;
+                                    var layerMarkerEdit;
+                                    var markerList = [];
+
+                                    document.getElementById("tipoeventofirtmodal").addEventListener("change", function () {
+
+                                        var ideventtype = document.getElementById("tipoeventofirtmodal").value;
+
+                                        if (ideventtype != -1) {
+                                            $.ajax({
+                                                type: 'GET',
+                                                url: '/business-gestion/events/get/' + ideventtype + '/',
+                                                error: function () {
+                                                    Swal.fire({
+                                                        icon: "error",
+                                                        title: "No se pudieron cargar los datos.",
+                                                        showConfirmButton: false,
+                                                        timer: 1500
+                                                    });
+                                                },
+                                                dataType: 'json',
+                                                success: function (response) {
+                                                    var data;
+                                                    data = response;
+                                                    iconUrlCurrentMarker = data.event_icon;
+                                                }
+                                            });
+                                        } else {
+                                            iconUrlCurrentMarker = "{% static 'assets/dist/Leaflet/marker_black.png' %}";
+                                            
+                                        }
+                                    });
+
+                                    map.on(L.Draw.Event.DRAWSTART, function (event) {
+
+                                        markCreated = true;
+                                        modalOpenByEdit = false;
+                                        if (markCreated == true) {
+                                            selectEventTypeFirtModal.value = -1
+                                            var campoTextoLat = document.getElementById("latitudid");
+                                            var campoTextoLong = document.getElementById("longitudid");
+                                            var campoTextoDescripcion = document.getElementById("descripcion");
+                                            campoTextoLat.value = '';
+                                            campoTextoLong.value = '';
+                                            campoTextoDescripcion.value = '';
+                                            modalEvent.style.display = "block";
+                                        }
+                                    });
+
+                                    map.on('draw:drawstop', function (e) {
+                                        if (markCreated == true) {
+                                            modalEvent.style.display = "none";
+                                        }
+                                    });
+
+                                    map.on('draw:editstart', function (e) {
+                                        editStart = true;
+                                        modalOpenByEdit = false;
+                                        var campoTextoLat = document.getElementById("latitudid");
+                                        var campoTextoLong = document.getElementById("longitudid");
+                                        var campoTextoDescripcion = document.getElementById("descripcion");
+                                        var datefechaini = document.getElementById("fechaini");
+                                        var datefechafin = document.getElementById("fechafin");
+                                        campoTextoLat.value = '';
+                                        campoTextoLong.value = '';
+                                        campoTextoDescripcion.value = '';
+                                        datefechaini.value = '';
+                                        datefechafin.value = '';
+                                    });
+
+                                    map.on('draw:deletestart', function (e) {
+                                        deleteStart = true;
+                                    });
+
+                                    map.on('draw:editmove', function (e) {
+                                        var layer = e.layer;
+                                        var lat = getstrLatFromLayer(layer);
+                                        var lng = getstrLngFromLayer(layer);
+                                        document.getElementById("latitudid").value = lat;
+                                        document.getElementById("longitudid").value = lng;
+                                    });
+
+                                    map.on('popupopen', function (e) {
+                                        if (editStart == true) {
+                                            var identifierMarker = e.popup._content;
+                                            layerMarkerEdit = e;
+                                            if (identifierMarker != "") {
+                                                $.ajax({
+                                                    url: '/business-gestion/markers/get/',
+                                                    method: 'POST',
+                                                    data: {
+                                                        description: identifierMarker
+                                                    },
+                                                    error: function () {
+                                                        Swal.fire({
+                                                            icon: "error",
+                                                            title: "No se pudieron cargar los datos.",
+                                                            showConfirmButton: false,
+                                                            timer: 1500
+                                                        });
+                                                    },
+                                                    success: function (response) {
+                                                        var data;
+                                                        data = response;
+                                                        document.getElementById("descripcion").value = identifierMarker;
+                                                        idEditMarker = data.id;
+                                                        document.getElementById("fechaini").value = data.start_date;
+                                                        document.getElementById("fechafin").value = data.end_date;
+                                                        document.getElementById("selectDateTypeBegin").value = data.start_format;
+                                                        document.getElementById("selectDateTypeEnd").value = data.end_format;
+                                                        document.getElementById("latitudid").value = data.latitude;
+                                                        document.getElementById("longitudid").value = data.longitude;
+                                                        document.getElementById("tipoevento").value = data.event_type_id;
+                                                        modal.style.display = "block";
+                                                        modal.style.height = "251px";
+                                                        modal.style.top = "305px";
+                                                        buttonSaveMarker.style.display = "none";
+                                                        modalOpenByEdit = true;
+                                                        editSelect = true;
+                                                        document.getElementById("descripcion").disabled = false;
+                                                        document.getElementById("fechaini").disabled = false;
+                                                        document.getElementById("fechafin").disabled = false;
+                                                    }
+                                                });
+                                            }
+                                        } else if (deleteStart == true) {
+                                            var identifierMarker = e.popup._content;
+                                            markerList.push(identifierMarker);
+                                            deleteSelect = true;
+                                        }
+                                    });
+
+                                    map.on(L.Draw.Event.CREATED, function (event) {
+
+                                        if ((markCreated == true) && (selectEventTypeFirtModal.value != -1)) {
+                                            selectEventType.value = selectEventTypeFirtModal.value;
+                                            modalEvent.style.display = "none";
+                                            document.getElementById("tipoevento").disabled = true;
+                                            document.getElementById("descripcion").disabled = false;
+                                            document.getElementById("fechaini").disabled = false;
+                                            document.getElementById("fechafin").disabled = false;
+                                            modal.style.display = "block";
+                                            modal.style.top = "258px";
+                                            modal.style.height = "277px";
+                                            buttonSaveMarker.style.display = "block";
+
+                                            var layer = event.layer;
+                                            layer.bindPopup(" ");
+
+                                            layer.options.icon.options.iconUrl = iconUrlCurrentMarker;
+
+                                            var lat = getstrLatFromLayer(layer);
+                                            var lng = getstrLngFromLayer(layer);
+
+                                            markerLayer.addLayer(layer);
+                                            layerMarkerCreate = layer;
+                                            markSave = true;
+
+                                            iconUrlCurrentMarker = "{% static 'assets/dist/Leaflet/marker_black.png' %}";
+                                            var MyCustomMarkerCustom = L.Icon.extend({
+                                                options: {
+                                                    shadowUrl: null,
+                                                    iconSize: [25, 41],
+                                                    iconAnchor: [12.5, 37],
+                                                    iconUrl: iconUrlCurrentMarker
+                                                }
+                                            });
+                                            drawControl.setDrawingOptions({
+                                                marker: {
+                                                    icon: new MyCustomMarkerCustom()
+                                                }
+                                            });
+
+                                            var campoTextoLat = document.getElementById("latitudid");
+                                            var campoTextoLong = document.getElementById("longitudid");
+                                            campoTextoLat.value = lat;
+                                            campoTextoLong.value = lng;
+                                        } else {
+                                            markCreated == false;
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "Por favor, llene el tipo de evento.",
+                                                showConfirmButton: false,
+                                                timer: 1500
+                                            });
+                                        }
+                                        editStart = false;
+                                    });
+
+                                    buttonSaveMarker.onclick = function () {
+
+                                        var fi = document.getElementById("fechaini").value;
+                                        var ff = document.getElementById("fechafin").value;
+                                        var desc = document.getElementById("descripcion").value;
+                                        var tipoEvent = document.getElementById("tipoevento").value;
+                                        if (markSave == true ) {
+                                            if ((tipoEvent != -1) && (fi != "") && (ff != "") && (desc != "")) {
+                                                $.ajax({
+                                                    url: '/business-gestion/markers/create/',
+                                                    method: 'POST',
+                                                    data: {
+                                                        latitude: document.getElementById("latitudid").value,
+                                                        longitude: document.getElementById("longitudid").value,
+                                                        start_date: fi,
+                                                        end_date: ff,
+                                                        start_format: document.getElementById("selectDateTypeBegin").value,
+                                                        end_format: document.getElementById("selectDateTypeEnd").value,
+                                                        description: desc,
+                                                        event_type: tipoEvent
+                                                    },
+                                                    success: function (response) {
+                                                        layerMarkerCreate._popup._content = desc;
+                                                    },
+                                                    error: function (xhr, status, error) {
+                                                        console.log("Error: " + error);
+                                                    }
+                                                });
+                                                markSave = false;
+                                                markCreated = false;
+                                                modal.style.display = "none";
+                                            } else {
+                                                Swal.fire({
+                                                    icon: "error",
+                                                    title: "Por favor, llene toda la información correctamente.",
+                                                    showConfirmButton: false,
+                                                    timer: 1500
+                                                });
+                                            }
+                                        }
+                                    };
+
+                                    map.on(L.Draw.Event.EDITED, function (event) {
+                                        if (editSelect == true) {
+                                            var fi = document.getElementById("fechaini").value;
+                                            var ff = document.getElementById("fechafin").value;
+                                            var desc = document.getElementById("descripcion").value;
+                                            var tipoEvent = document.getElementById("tipoevento").value;
+
+                                            if ((tipoEvent != -1) && (fi != "") && (ff != "") && (desc != "") && (idEditMarker != 0)) {
+                                                $.ajax({
+                                                    url: '/business-gestion/markers/edit/' + idEditMarker + '/',
+                                                    method: 'POST',
+                                                    data: {
+                                                        latitude: document.getElementById("latitudid").value,
+                                                        longitude: document.getElementById("longitudid").value,
+                                                        start_date: fi,
+                                                        end_date: ff,
+                                                        start_format: document.getElementById("selectDateTypeBegin").value,
+                                                        end_format: document.getElementById("selectDateTypeEnd").value,
+                                                        description: desc,
+                                                        event_type: tipoEvent
+                                                    },
+                                                    success: function (response) {
+                                                        modal.style.display = "none";
+                                                        layerMarkerEdit.popup._content = desc;
+                                                        idEditMarker = 0;
+                                                        editSave = true;
+                                                    },
+                                                    error: function (xhr, status, error) {
+                                                        editSave = false;
+                                                        modal.style.display = "block";
+                                                        idEditMarker = 0;
+                                                        console.log("Error: " + error);
+                                                    }
+                                                });
+                                                editStart = false;
+                                                editSelect = false;
+                                            } else {
+                                                Swal.fire({
+                                                icon: "error",
+                                                title: "Por favor, llene toda la información correctamente.",
+                                                showConfirmButton: false,
+                                                timer: 1500
+                                            });
+                                            }
+                                        }
+                                    });
+
+                                    map.on(L.Draw.Event.DELETED, function (event) {
+
+                                        if (deleteSelect == true) {
+                                            for (let i = 0; i < markerList.length; i++) {
+                                                var descriptionMark = markerList[i];
+                                                var idMark = 0;
+
+                                                $.ajax({
+                                                    url: '/business-gestion/markers/get/',
+                                                    method: 'POST',
+                                                    data: {
+                                                        description: descriptionMark
+                                                    },
+                                                    error: function () {
+                                                    },
+                                                    success: function (response) {
+                                                        var data;
+                                                        data = response;
+                                                        idMark = data.id;
+                                                        if (idMark != 0) {
+                                                            $.ajax({
+                                                                url: '/business-gestion/markers/delete/' + idMark + '/',
+                                                                method: 'POST',
+                                                                data: {},
+                                                                success: function (response) {
+                                                                    deleteSave = true;
+                                                                },
+                                                                error: function (xhr, status, error) {
+                                                                    deleteSave = false;
+                                                                    console.log("Error: " + error);
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                            
+                                            deleteStart = false;
+                                            deleteSelect = false;
+                                        }
+                                    });
+
+                                    map.on('draw:toolbarclosed', function (e) {
+
+                                        if ((editSave == false) && (modalOpenByEdit == true)) {
+                                            modal.style.display = "none";
+                                        }
+                                        if (editSave == true) {
+                                            editSave = false;
+                                        }
+                                        if (deleteSave == true) {
+                                            deleteSave = false;
+                                        }
+
+                                        modalOpenByEdit = false;
+                                    });
+
+                                    // Truncate value based on number of decimals
+                                    var _round = function (num, len) {
+                                        return Math.round(num * (Math.pow(10, len))) / (Math.pow(10, len));
+                                    };
+                                    // Helper method to format LatLng object (x.xxxxxx, y.yyyyyy)
+                                    var strLatLng = function (latlng) {
+                                        return "(" + _round(latlng.lat, 6) + ", " + _round(latlng.lng, 6) + ")";
+                                    };
+                                    var strLat = function (latlng) {
+                                        return _round(latlng.lat, 6);
+                                    };
+                                    var strLng = function (latlng) {
+                                        return _round(latlng.lng, 6);
+                                    };
+                                    var getstrLatFromLayer = function (layer) {
+                                        if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+                                            return strLat(layer.getLatLng());
+                                        }
+                                    };
+                                    var getstrLngFromLayer = function (layer) {
+                                        if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+                                            return strLng(layer.getLatLng());
+                                        }
+                                    };
+                                    var getPopupContent = function (layer) {
+                                        // Marker - add lat/long
+                                        if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+                                            return strLatLng(layer.getLatLng());
+                                            // Circle - lat/long, radius
+                                        } else if (layer instanceof L.Circle) {
+                                            var center = layer.getLatLng(),
+                                                radius = layer.getRadius();
+                                            return "Center: " + strLatLng(center) + "<br />"
+                                                + "Radius: " + _round(radius, 2) + " m";
+                                            // Rectangle/Polygon - area
+                                        } else if (layer instanceof L.Polygon) {
+                                            var latlngs = layer._defaultShape ? layer._defaultShape() : layer.getLatLngs(),
+                                                area = L.GeometryUtil.geodesicArea(latlngs);
+                                            return "Area: " + L.GeometryUtil.readableArea(area, true);
+                                            // Polyline - distance
+                                        } else if (layer instanceof L.Polyline) {
+                                            var latlngs = layer._defaultShape ? layer._defaultShape() : layer.getLatLngs(),
+                                                distance = 0;
+                                            if (latlngs.length < 2) {
+                                                return "Distance: N/A";
+                                            } else {
+                                                for (var i = 0; i < latlngs.length - 1; i++) {
+                                                    distance += latlngs[i].distanceTo(latlngs[i + 1]);
+                                                }
+                                                return "Distance: " + _round(distance, 2) + " m";
+                                            }
+                                        }
+                                        return null;
+                                    };
+
+
+                                    function myFunction() {
+                                     var element = document.getElementById("info");
+                                     element.classList.toggle("showSideBar");
+                                    }
+
+
+      //const popup = L.popup({ closeOnClick: false, autoClose:false}).setContent("It's Movable.\n(Draggable)");
+      //L.circleMarker([37.75,140.47]).addTo(map).bindPopup(popup).openPopup();
+
+                                </script>
+                                <script src="{% static 'assets/dist/Leaflet/Leaflet.timeline/migration-timeline.geojsonp' %}"></script>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="modal-body">
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+        </section>
+    </div>
+
+	<aside id="info" class="control-sidebar control-sidebar-dark">
+		<!-- Control sidebar content goes here -->
+		<div class="p-3 d-flex flex-column">
+		 <div class="d-flex align-items-center">
+				<h6 class="mr-3">Human Migrations</h6>
+				<a class="nav-link ml-auto" data-widget="control-sidebar" data-controlsidebar-slide="true" href="#" role="button">
+				  <i class="fas fa-times"></i>
+				</a>
+		 </div>
+		<ul id="displayed-list" style="font-size:11px;"></ul>
+		</div>
+	  </aside>
+
+{% endblock %}
+
