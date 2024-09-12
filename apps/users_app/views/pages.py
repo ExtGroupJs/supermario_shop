@@ -15,17 +15,5 @@ def first_login(request):
     return render(request, "login/login.html")
 
 
-def alleleviewer(request):
-    return render(request, "grafico/alleleviewer.html")
-
-
-def uploadfile(request):
-    return render(request, "grafico/uploadfile.html")
-
-
-def mapgeneral(request):
-    return render(request, "map/mapgeneral.html")
-
-
 def register(request):
     return render(request, "login/register.html")

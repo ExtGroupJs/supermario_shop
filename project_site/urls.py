@@ -46,17 +46,9 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
     path("usuarios/", login_required(pages.usuarios), name="usuarios"),
-    path("alleleviewer/", pages.alleleviewer, name="alleleviewer"),
-    path(
-        "uploadfile/",
-        login_required(pages.uploadfile, login_url="/login/"),
-        name="uploadfile",
-    ),
-    path("", pages.alleleviewer, name="alleleviewer"),
     path("login/", pages.first_login, name="first_login"),
     path("register/", pages.register, name="register"),
     path("index/", pages.index, name="index"),
-    path("mapgeneral/", pages.mapgeneral, name="mapgeneral"),
 ]
 
 # This is for serving media on development stages

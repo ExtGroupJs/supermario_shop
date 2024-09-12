@@ -23,7 +23,6 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "internal_status",
             "password",
-            "working_copy_of_original_file",
         ]
         extra_kwargs = {
             "password": {"write_only": True},
