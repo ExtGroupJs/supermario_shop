@@ -1,2 +1,0 @@
-Estimado, {{user.username}}
-{{textmail}}

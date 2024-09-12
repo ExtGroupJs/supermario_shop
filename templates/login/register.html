@@ -22,14 +22,14 @@
   <link rel="stylesheet" href="{% static 'assets/dist/css/load.css' %}">
 </head>
 
-<body class="hold-transition login-page">
+<body class="hold-transition login-page dark-mode">
 <div class="overlay" id="load" hidden>
     <i class="fas fa-2x fa-sync fa-spin"></i>
   </div>
-  <div class="login-box">
+  <div class="login-box dark-mode">
     <div class="login-logo">
       <a href="{% url 'index' %}"><img width="10%" src="{% static 'assets/dist/img/AdminLTELogo.png' %}" alt=""
-          title=""><b>Allele Viewer</b>2024</a>
+          title=""><b>MM Auto</b></a>
     </div>
     <div class="card">
       <div class="card-body register-card-body">
@@ -194,6 +194,12 @@
   <script src="{% static 'assets/plugins/toastr/toastr.min.js' %}"></script>
 
   <script>
+  const csrfToken = document.cookie
+  .split(";")
+  .find((c) => c.trim().startsWith("csrftoken="))
+  ?.split("=")[1];
+    var load = document.getElementById("load");
+  axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
     var Toast = Swal.mixin({
       toast: true,
       position: 'top-end',

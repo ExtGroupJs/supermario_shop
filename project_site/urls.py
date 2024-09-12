@@ -49,6 +49,7 @@ urlpatterns = [
     path("login/", pages.first_login, name="first_login"),
     path("register/", pages.register, name="register"),
     path("index/", pages.index, name="index"),
+    path("", pages.index, name="index"),
 ]
 
 # This is for serving media on development stages
