@@ -12,7 +12,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from apps.common.views import CommonOrderingFilter
-from apps.users_app.models import SystemUser
+from apps.users_app.models.system_user import SystemUser
 from apps.users_app.serializers import LoginSerializer, UserSerializer
 import logging
 
