@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 
-from apps.users_app.models import SystemUser
+from apps.users_app.models.system_user import SystemUser
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
             "get_full_name",
             "first_name",
             "last_name",
-            "internal_status",
+            # "internal_status",
             "password",
         ]
         extra_kwargs = {

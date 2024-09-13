@@ -5,7 +5,6 @@ from django.db import models
 from django.utils._os import safe_join
 from django.utils.translation import gettext_lazy as _
 
-
 # Create your models here.
 
 
@@ -23,17 +22,17 @@ class SystemUser(
     #     FEMALE = "F", _("female")
     #     OTHER = "O", _("other")
 
-    class INTERNAL_STATUS(models.TextChoices):
-        REGISTERED = "R", _("registered")
-        CONFIRMED = "C", _("confirmed")
-        PREMIUM = "P", _("premium")
+    # class INTERNAL_STATUS(models.TextChoices):
+    #     REGISTERED = "R", _("registered")
+    #     CONFIRMED = "C", _("confirmed")
+    #     PREMIUM = "P", _("premium")
 
-    internal_status = models.CharField(
-        _("internal status"),
-        choices=INTERNAL_STATUS.choices,
-        default=INTERNAL_STATUS.REGISTERED,
-        max_length=1,
-    )
+    # internal_status = models.CharField(
+    #     _("internal status"),
+    #     choices=INTERNAL_STATUS.choices,
+    #     default=INTERNAL_STATUS.REGISTERED,
+    #     max_length=1,
+    # )
 
     # identification_number = models.CharField(
     #     verbose_name=_("identification number"),
@@ -68,15 +67,3 @@ class SystemUser(
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-
-class Country(models.Model):
-    name = models.CharField(verbose_name=_("Country name"), max_length=50)
-    code = models.CharField(verbose_name=_("Country code"), max_length=2)
-    enabled = models.BooleanField(verbose_name=_("Enabled"), default=True)
-
-    class Meta(User.Meta):
-        verbose_name = _("Country")
-        verbose_name_plural = _("Countries")
-
-    def __str__(self):
-        return f"{self.name}"
