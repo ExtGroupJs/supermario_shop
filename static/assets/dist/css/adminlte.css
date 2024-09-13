@@ -36972,6 +36972,7 @@ a.disabled.mailbox-attachment-close {
 .login-box,
 .register-box {
   width: 360px;
+  background-color: #c5d6f3;
 }
 
 @media (max-width: 576px) {
