@@ -21,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
             "get_full_name",
             "first_name",
             "last_name",
-            "internal_status",
+            # "internal_status",
             "password",
         ]
         extra_kwargs = {
