@@ -21,11 +21,13 @@ class ShopProducts(BaseModel):
     cost_price = models.DecimalField(
         verbose_name="Precio de costo",
         decimal_places=2,
+        max_digits=8,
         validators=[validators.MinValueValidator(limit_value=0)],
     )
     sell_price = models.DecimalField(
         verbose_name="Precio de venta",
         decimal_places=2,
+        max_digits=8,
         validators=[validators.MinValueValidator(limit_value=0)],
     )
 

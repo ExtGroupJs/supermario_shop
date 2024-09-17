@@ -13,7 +13,7 @@ class Shop(models.Model):
         verbose_name="Información Extra", null=True, blank=True
     )
     products = models.ManyToManyField(
-        to="apps.business_app.Product", through="apps.business_app.ShopProducts"
+        to="business_app.Product", through="business_app.ShopProducts"
     )
 
     class Meta:
