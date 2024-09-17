@@ -6,6 +6,7 @@ from apps.business_app.models.brand import Brand
 from apps.business_app.models.model import Model
 from apps.business_app.models.product import Product
 from apps.business_app.models.shop import Shop
+from apps.business_app.models.shop_products import ShopProducts
 
 
 # from apps.business_app.models import (
@@ -90,6 +91,26 @@ class ShopAdmin(admin.ModelAdmin):
         "name",
         "logo",
         "extra_info",
+    ]
+
+
+@admin.register(ShopProducts)
+class ShopProductsAdmin(admin.ModelAdmin):
+    empty_value_display = "-empty-"
+    list_display = [
+        "id",
+        "shop",
+        "product",
+        "extra_info",
+        "cost_price",
+        "sell_price",
+    ]
+    fields = [
+        "shop",
+        "product",
+        "extra_info",
+        "cost_price",
+        "sell_price",
     ]
 
 
