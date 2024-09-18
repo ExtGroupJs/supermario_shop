@@ -1,4 +1,4 @@
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.business_app.models.shop_products import ShopProducts
@@ -14,12 +14,18 @@ class ShopProductsViewSet(viewsets.ModelViewSet, GenericAPIView):
         filters.SearchFilter,
         CommonOrderingFilter,
     ]
-    filterset_fields = [
-        "username",
-    ]
+    filterset_fields = {
+        "shop": ["exact"],
+        "product": ["exact"],
+        "quantity": ["gte", "lte", "exact"],
+        "cost_price": ["gte", "lte", "exact"],
+        "sell_price": ["gte", "lte", "exact"],
+        "created_timestamp": ["gte", "lte"],
+        "updated_timestamp": ["gte", "lte"],
+    }
+
     search_fields = [
-        "username",
-        "email",
-        "first_name",
-        "last_name",
+        "extra_info",
+        "shop__name",
+        "product__name",
     ]
