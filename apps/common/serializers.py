@@ -9,6 +9,4 @@ class BaseModelSerializer(serializers.ModelSerializer):
         fields = [
             "created_timestamp",
             "updated_timestamp",
-            "deleted",
-            "deleted_by_cascade",
         ]

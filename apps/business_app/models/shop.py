@@ -1,10 +1,5 @@
 from django.db import models
 
-from apps import business_app
-
-# from apps.business_app.models.product import Product
-# from apps.business_app.models.shop_products import ShopProducts
-
 
 class Shop(models.Model):
     name = models.CharField(verbose_name="Nombre", unique=True, max_length=200)

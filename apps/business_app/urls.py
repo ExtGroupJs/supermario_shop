@@ -1,6 +1,12 @@
 # from rest_framework import routers
 from rest_framework_extensions.routers import ExtendedSimpleRouter
-from django.urls import path
+
+from apps.business_app.views.brand import BrandViewSet
+from apps.business_app.views.model import ModelViewSet
+from apps.business_app.views.product import ProductViewSet
+from apps.business_app.views.shop import ShopViewSet
+from apps.business_app.views.shop_products import ShopProductsViewSet
+# from django.urls import path
 
 # from apps.business_app.views import (
 # AllowedExtensionsViewSet,
@@ -37,11 +43,31 @@ router = ExtendedSimpleRouter()
 # AllowedExtensionsViewSet,
 # basename="allowed-extensions",
 # )
-# router.register(
-# "event-configurations",
-# SiteConfigurationViewSet,
-# basename="event-configurations",
-# )
+router.register(
+    "brands",
+    BrandViewSet,
+    basename="brands",
+)
+router.register(
+    "models",
+    ModelViewSet,
+    basename="models",
+)
+router.register(
+    "products",
+    ProductViewSet,
+    basename="products",
+)
+router.register(
+    "shops",
+    ShopViewSet,
+    basename="shop",
+)
+router.register(
+    "shop-products",
+    ShopProductsViewSet,
+    basename="shop-products",
+)
 # (
 # router.register(
 # "uploaded-files",
