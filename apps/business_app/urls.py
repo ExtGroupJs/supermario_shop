@@ -2,6 +2,7 @@
 from rest_framework_extensions.routers import ExtendedSimpleRouter
 
 from apps.business_app.views.brand import BrandViewSet
+from apps.business_app.views.model import ModelViewSet
 # from django.urls import path
 
 # from apps.business_app.views import (
@@ -43,6 +44,11 @@ router.register(
     "brands",
     BrandViewSet,
     basename="brands",
+)
+router.register(
+    "models",
+    ModelViewSet,
+    basename="models",
 )
 # (
 # router.register(

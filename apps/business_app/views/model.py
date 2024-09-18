@@ -16,11 +16,9 @@ class ModelViewSet(viewsets.ModelViewSet, GenericAPIView):
         CommonOrderingFilter,
     ]
     filterset_fields = [
-        "username",
+        "brand",
     ]
     search_fields = [
-        "username",
-        "email",
-        "first_name",
-        "last_name",
+        "name",
+        "extra_info",
     ]
