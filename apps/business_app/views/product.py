@@ -1,4 +1,4 @@
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 from apps.business_app.models.product import Product
 from apps.business_app.serializers.product import ProductSerializer
@@ -15,11 +15,10 @@ class ProductViewSet(viewsets.ModelViewSet, GenericAPIView):
         CommonOrderingFilter,
     ]
     filterset_fields = [
-        "username",
+        "model",
+        "model__brand",
     ]
     search_fields = [
-        "username",
-        "email",
-        "first_name",
-        "last_name",
+        "name",
+        "description",
     ]

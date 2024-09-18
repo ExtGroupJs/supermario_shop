@@ -1,4 +1,4 @@
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 
 from apps.business_app.models.model import Model
