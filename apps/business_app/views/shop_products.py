@@ -6,12 +6,17 @@ from apps.business_app.serializers.shop_products import (
     ReadShopProductsSerializer,
     ShopProductsSerializer,
 )
-from apps.common.views import CommonOrderingFilter
+from apps.common.views import CommonOrderingFilter, SerializerMapMixin
 
 
-class ShopProductsViewSet(viewsets.ModelViewSet, GenericAPIView):
+class ShopProductsViewSet(
+    SerializerMapMixin,
+    viewsets.ModelViewSet,
+    GenericAPIView,
+):
     queryset = ShopProducts.objects.all()
     serializer_class = ShopProductsSerializer
+    list_serializer_class = ReadShopProductsSerializer
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -32,8 +37,3 @@ class ShopProductsViewSet(viewsets.ModelViewSet, GenericAPIView):
         "shop__name",
         "product__name",
     ]
-
-    def get_serializer(self, *args, **kwargs):
-        if self.action == "list":
-            self.serializer_class = ReadShopProductsSerializer
-        return super().get_serializer(*args, **kwargs)
