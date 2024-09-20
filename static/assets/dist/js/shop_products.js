@@ -72,8 +72,8 @@ $(document).ready(function () {
           });
       },
       columns: [
-        { data: "shop", title: "Tienda" },
-        { data: "product", title: "Producto" },
+        { data: "shop.name", title: "Tienda" },
+        { data: "product.name", title: "Producto" },
         { data: "quantity", title: "Cantidad" },
         { data: "cost_price", title: "Precio de Costo" },
         { data: "sell_price", title: "Precio de Venta" },
@@ -153,34 +153,35 @@ $(function () {
     rules: {
       quantity: {
         required: true,
-        digits: true // Solo números
+        digits: true, // Solo números
       },
       cost_price: {
         required: true,
-        number: true // Solo números
+        number: true, // Solo números
       },
       sell_price: {
         required: true,
         number: true, // Solo números
-        greaterThan: "#cost_price" // El precio de venta debe ser mayor que el precio de costo
+        greaterThan: "#cost_price", // El precio de venta debe ser mayor que el precio de costo
       },
       extra_info: {
-        required: false // Campo no obligatorio
+        required: false, // Campo no obligatorio
       },
     },
     messages: {
       quantity: {
         required: "Este campo es obligatorio.",
-        digits: "Por favor, introduzca solo números."
+        digits: "Por favor, introduzca solo números.",
       },
       cost_price: {
         required: "Este campo es obligatorio.",
-        number: "Por favor, introduzca un número válido."
+        number: "Por favor, introduzca un número válido.",
       },
       sell_price: {
         required: "Este campo es obligatorio.",
         number: "Por favor, introduzca un número válido.",
-        greaterThan: "El precio de venta debe ser mayor que el precio de costo."
+        greaterThan:
+          "El precio de venta debe ser mayor que el precio de costo.",
       },
     },
     submitHandler: function (form) {},
@@ -200,10 +201,13 @@ $(function () {
 });
 
 // Método para validar que el precio de venta sea mayor que el precio de costo
-$.validator.addMethod("greaterThan", function (value, element, param) {
-  return this.optional(element) || Number(value) > Number($(param).val());
-}, "El precio de venta debe ser mayor que el precio de costo.");
-
+$.validator.addMethod(
+  "greaterThan",
+  function (value, element, param) {
+    return this.optional(element) || Number(value) > Number($(param).val());
+  },
+  "El precio de venta debe ser mayor que el precio de costo."
+);
 
 // crear Entrada de Producto
 

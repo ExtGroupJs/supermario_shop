@@ -46,7 +46,7 @@ $(document).ready(function () {
       processing: true,
       ajax: function (data, callback, settings) {
         dir = "";
-      
+
         if (data.order[0].dir == "desc") {
           dir = "-";
         }
@@ -73,8 +73,8 @@ $(document).ready(function () {
       },
       columns: [
         { data: "name", title: "Nombre" },
-        { data: "brand", title: "Marca" },
-        
+        { data: "brand.name", title: "Marca" },
+
         {
           data: "",
           title: "Acciones",
@@ -126,14 +126,12 @@ $("#modal-crear-models").on("show.bs.modal", function (event) {
         console.log(models.extra_info);
         console.log(form.elements);
 
-          form.elements.name.value = models.name;           
-          console.log('✌️models.brands --->', models.brand);
-        form.elements.extra_info.value =models.extra_info;
-          form.elements.selectbrands.value = models.brand;
+        form.elements.name.value = models.name;
+        console.log("✌️models.brands --->", models.brand);
+        form.elements.extra_info.value = models.extra_info;
+        form.elements.selectbrands.value = models.brand;
 
         // document.getElementById("selectbrands").select= models.brand;
-
-       
       })
       .catch(function (error) {});
   } else {
@@ -155,7 +153,6 @@ $(function () {
       name: {
         required: true,
       },
-      
     },
     submitHandler: function (form) {},
 
@@ -189,7 +186,6 @@ form.addEventListener("submit", function (event) {
   data.append("name", document.getElementById("name").value);
   data.append("brand", document.getElementById("selectbrands").value);
   data.append("extra_info", document.getElementById("extra_info").value);
- 
 
   if (edit_models) {
     axios
