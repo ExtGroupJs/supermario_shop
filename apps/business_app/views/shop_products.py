@@ -2,7 +2,10 @@ from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.business_app.models.shop_products import ShopProducts
-from apps.business_app.serializers.shop_products import ShopProductsSerializer
+from apps.business_app.serializers.shop_products import (
+    ReadShopProductsSerializer,
+    ShopProductsSerializer,
+)
 from apps.common.views import CommonOrderingFilter
 
 
@@ -29,3 +32,8 @@ class ShopProductsViewSet(viewsets.ModelViewSet, GenericAPIView):
         "shop__name",
         "product__name",
     ]
+
+    def get_serializer(self, *args, **kwargs):
+        if self.action == "list":
+            self.serializer_class = ReadShopProductsSerializer
+        return super().get_serializer(*args, **kwargs)
