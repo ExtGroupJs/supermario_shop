@@ -199,6 +199,24 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     <p>{% blocktranslate %}Modelos{% endblocktranslate %}</p>
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a href="{% url 'shops' %}" class="nav-link">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>{% blocktranslate %}Tiendas{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'products' %}" class="nav-link">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>{% blocktranslate %}Producto{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'shop_products' %}" class="nav-link">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>{% blocktranslate %}Entrada{% endblocktranslate %}</p>
+                  </a>
+                </li>
                
 
               </ul>
