@@ -17,3 +17,14 @@ def first_login(request):
 
 def register(request):
     return render(request, "login/register.html")
+    
+def brands(request):
+    return render(request, "brands/brands.html")
+def models(request):
+    return render(request, "models/models.html")
+def shops(request):
+    return render(request, "shops/shop.html")
+def products(request):
+    return render(request, "products/products.html")
+def shop_products(request):
+    return render(request, "shop_products/shop_products.html")
