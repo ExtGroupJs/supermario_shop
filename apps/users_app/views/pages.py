@@ -17,3 +17,8 @@ def first_login(request):
 
 def register(request):
     return render(request, "login/register.html")
+    
+def brands(request):
+    return render(request, "brands/brands.html")
+def models(request):
+    return render(request, "models/models.html")
