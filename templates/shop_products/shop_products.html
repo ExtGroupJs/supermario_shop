@@ -41,10 +41,55 @@
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">Gestionar Entrada de Producto</h3>
+              <button class="btn btn-secondary float-right" id="toggle-filters"><i class="nav-icon fas fa-filter"></i> Filtros</button>
             </div>
             <!-- /.card-header -->
-            <div class="modal-body">
 
+            <!-- Filtros -->
+            <div class="card-body" id="filter-section" style="display: none;">
+              <form id="filter-form" class="mb-3">
+                <div class="row">
+                  <div class="form-group col-md-4">
+                    <label for="cost_price__gte">Precio de Costo (>=)</label>
+                    <input type="number" class="form-control" id="cost_price__gte" name="cost_price__gte">
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="cost_price__lte">Precio de Costo (<=)</label>
+                    <input type="number" class="form-control" id="cost_price__lte" name="cost_price__lte">
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="quantity__gte">Cantidad (>=)</label>
+                    <input type="number" class="form-control" id="quantity__gte" name="quantity__gte">
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="quantity__lte">Cantidad (<=)</label>
+                    <input type="number" class="form-control" id="quantity__lte" name="quantity__lte">
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="sell_price__gte">Precio de Venta (>=)</label>
+                    <input type="number" class="form-control" id="sell_price__gte" name="sell_price__gte">
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="sell_price__lte">Precio de Venta (<=)</label>
+                    <input type="number" class="form-control" id="sell_price__lte" name="sell_price__lte">
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="created_timestamp__gte">Fecha de Creación (Desde)</label>
+                    <input type="datetime-local" class="form-control" id="created_timestamp__gte" name="created_timestamp__gte">
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for="created_timestamp__lte">Fecha de Creación (Hasta)</label>
+                    <input type="datetime-local" class="form-control" id="created_timestamp__lte" name="created_timestamp__lte">
+                  </div>
+                  
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="nav-icon fas fa-check"></i> Aplicar</button>
+                <button type="button" id="reset-filters" class="btn btn-secondary"><i class="nav-icon fas fa-redo"></i> Restablecer</button>
+              </form>
+              <hr>
+            </div>
+
+            <div class="card-body">
               <table id="tabla-de-Datos" class="table table-bordered table-striped" style="width: 100%;">
               </table>
             </div>
@@ -63,8 +108,7 @@
 <!-- /.content-wrapper -->
 
 <!-- modal para crear entrada de producto -->
-<div class="modal fade" id="modal-crear-shop-products" data-backdrop="static" tabindex="-1" role="dialog"
-  aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal fade" id="modal-crear-shop-products" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -109,7 +153,6 @@
           </div>
 
         </div>
-
         <!-- /.card-body -->
         <div class="modal-footer justify-content-between">
           <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
@@ -120,7 +163,6 @@
 
     </div>
   </div>
-
 </div>
 <!-- /.modal-content -->
 </div>
@@ -129,7 +171,9 @@
 <!-- /.modal -->
 
 {% endblock %}
-{% block script %} <!-- DataTables & Plugins -->
+
+{% block script %}
+<!-- DataTables & Plugins -->
 <script src="{% static 'assets/plugins/datatables/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
@@ -147,6 +191,5 @@
 <script src="{% static 'assets/plugins/jquery-validation/additional-methods.min.js' %}"></script>
 <script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
-
 <script src="{% static 'assets/dist/js/shop_products.js' %}"></script>
 {% endblock %}
