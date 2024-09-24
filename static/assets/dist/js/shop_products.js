@@ -4,99 +4,163 @@ const csrfToken = document.cookie
   .find((c) => c.trim().startsWith("csrftoken="))
   ?.split("=")[1];
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
+
 // url del endpoint principal
 const url = "/business-gestion/shop-products/";
 
 $(function () {
   bsCustomFileInput.init();
+  $("#filter-form")[0].reset();
   poblarListas();
 });
 
+// Inicializar DataTable
 $(document).ready(function () {
-  $("table")
-    .addClass("table table-hover")
-    .DataTable({
-      dom: '<"top"l>Bfrtip',
-      buttons: [
-        {
-          text: "Crear",
-          className: "btn btn-primary btn-info",
-          action: function (e, dt, node, config) {
-            $("#modal-crear-shop-products").modal("show");
-          },
+  const table = $("#tabla-de-Datos").DataTable({
+    dom: '<"top"l>Bfrtip',
+    buttons: [
+      {
+        text: "Crear",
+        className: "btn btn-primary btn-info",
+        action: function (e, dt, node, config) {
+          $("#modal-crear-shop-products").modal("show");
         },
-        {
-          extend: "excel",
-          text: "Excel",
-        },
-        {
-          extend: "pdf",
-          text: "PDF",
-        },
-        {
-          extend: "print",
-          text: "Print",
-        },
-      ],
-      // Adding server-side processing
-      serverSide: true,
-      search: {
-        return: true,
       },
-      processing: true,
-      ajax: function (data, callback, settings) {
-        dir = "";
+      {
+        extend: "excel",
+        text: "Excel",
+      },
+      {
+        extend: "pdf",
+        text: "PDF",
+      },
+      {
+        extend: "print",
+        text: "Print",
+      },
+    ],
+    serverSide: true,
+    processing: true,
+    ajax: function (data, callback, settings) {
+      const filters = $("#filter-form").serializeArray();
 
-        if (data.order[0].dir == "desc") {
-          dir = "-";
+// if (filters[8].value!='') {
+//   const tempArray = filters[8].value.split('-');
+//   filters[6].value=convertirFecha(tempArray[0],0);
+//   filters[7].value=convertirFecha(tempArray[1],1);
+//   filters[8].remove;
+// }
+// console.log('✌️filters --->', filters);
+
+      const params = {};
+
+      filters.forEach(filter => {
+        if (filter.value) {
+           params[filter.name] = filter.value;
+
         }
+        
+      }
+    
+    );
+      // Añadir parámetros de paginación
+      params.page_size = data.length;
+      params.page = data.start / data.length + 1;
+      params.ordering = data.columns[data.order[0].column].data;
+      params.search = data.search.value;
 
-        axios
-          .get(`${url}`, {
-            params: {
-              page_size: data.length,
-              page: data.start / data.length + 1,
-              search: data.search.value,
-              ordering: dir + data.columns[data.order[0].column].data,
-            },
-          })
-          .then((res) => {
-            callback({
-              recordsTotal: res.data.count,
-              recordsFiltered: res.data.count,
-              data: res.data.results,
-            });
-          })
-          .catch((error) => {
-            alert(error);
+      axios.get(url, { params })
+        .then((res) => {
+          callback({
+            recordsTotal: res.data.count,
+            recordsFiltered: res.data.count,
+            data: res.data.results,
           });
-      },
-      columns: [
-        { data: "shop.name", title: "Tienda" },
-        { data: "product.name", title: "Producto" },
-        { data: "quantity", title: "Cantidad" },
-        { data: "cost_price", title: "Precio de Costo" },
-        { data: "sell_price", title: "Precio de Venta" },
-        { data: "extra_info", title: "Información Extra" },
-        {
-          data: "",
-          title: "Acciones",
-          render: (data, type, row) => {
-            return `<div class="btn-group">
-                        <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
-                          <i class="fas fa-edit"></i>
-                        </button>  
-                        <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product}')" >
-                          <i class="fas fa-trash"></i>
-                        </button>                                          
-                      </div>`;
-          },
+        })
+        .catch((error) => {
+          alert(error);
+        });
+    },
+    columns: [
+      { data: "shop.name", title: "Tienda" },
+      { data: "product.name", title: "Producto" },
+      { data: "quantity", title: "Cantidad" },
+      { data: "cost_price", title: "Precio de Costo" },
+      { data: "sell_price", title: "Precio de Venta" },
+      { data: "extra_info", title: "Información Extra" },
+      {
+        data: "",
+        title: "Acciones",
+        render: (data, type, row) => {
+          return `<div class="btn-group">
+                    <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product}')" >
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>`;
         },
-      ],
-      //  esto es para truncar el texto de las celdas
-      columnDefs: [],
-    });
+      },
+    ],
+    createdRow: function (row, data, dataIndex) {
+      if (data.quantity === 0) {
+        $(row).addClass('table-danger'); // Rojo
+      } else if (data.quantity === 1) {
+        $(row).addClass('table-warning'); // Amarillo
+      }
+    }
+  });
+  function convertirFecha(fecha, hora) {
+    // Dividir la fecha en partes
+    const partes = fecha.split('/');
+    
+    // Verificar que la fecha tenga el formato correcto
+    if (partes.length !== 3) {
+        throw new Error("Formato de fecha incorrecto. Debe ser DD/MM/YYYY.");
+    }
+
+    // Crear un objeto Date con el formato YYYY, MM (0-indexado), DD
+    const fechaDate = new Date(partes[2], partes[1] - 1, partes[0]);
+
+    // Establecer la hora según el valor proporcionado
+    if (hora === 0) {
+        fechaDate.setHours(0, 0); // 00:00
+    } else if (hora === 1) {
+        fechaDate.setHours(13, 0); // 13:00
+    } else {
+        throw new Error("La hora debe ser 0 o 1.");
+    }
+
+    // Formatear la fecha en el formato deseado
+    const fechaFormateada = fechaDate.toISOString().slice(0, 16);
+    
+    return fechaFormateada;
+
+}
+
+
+
+  // Manejo del formulario de filtros
+  $("#filter-form").on("submit", function (event) {
+    event.preventDefault();
+    table.ajax.reload();
+  });
+
+  // Restablecer filtros
+  $("#reset-filters").on("click", function () {
+    $("#filter-form")[0].reset();
+    table.ajax.reload();
+  });
+
+  // Mostrar/Ocultar filtros
+  $("#toggle-filters").on("click", function () {
+    $("#filter-section").toggle();
+  });
 });
+
+// Otras funciones existentes...
+
 
 let selected_id;
 

@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="{% static 'assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/daterangepicker/daterangepicker.css' %}">
 <link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
 {% endblock %}
 
@@ -41,10 +42,109 @@
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">Gestionar Entrada de Producto</h3>
+              <button class="btn btn-secondary float-right" id="toggle-filters"><i class="nav-icon fas fa-filter"></i>
+                Filtros</button>
             </div>
             <!-- /.card-header -->
-            <div class="modal-body">
 
+            <!-- Filtros -->
+            <div class="card-body" id="filter-section" style="display: none;">
+              <form id="filter-form" class="mb-2">
+                <div class="row">
+
+                  <div class="form-group col-md-2">
+                      <div class="input-group mb-3">
+                       <div class="input-group-prepend">
+                        <span class="input-group-text bg-gradient-info"><i class="nav-icon fas fa-greater-than-equal"></i></span>
+                      </div>
+                      <input type="number" class="form-control" id="cost_price__gte" min="0" name="cost_price__gte"
+                        placeholder="Costo mayor que" title="Costo mayor que">
+                    </div>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text bg-gradient-info"><i class="nav-icon fas fa-less-than-equal"></i></span>
+                      </div>
+                      <input type="number" class="form-control" id="cost_price__lte" min="0" name="cost_price__lte"
+                        placeholder="Costo menor que" title="Costo menor que">
+                    </div>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text bg-gradient-success"><i class="nav-icon fas fa-greater-than-equal"></i></span>
+                      </div>
+                      <input type="number" class="form-control" id="quantity__gte" min="0" name="quantity__gte"
+                        placeholder="Cantidad mayor que" title="Cantidad mayor que">
+                    </div>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text bg-gradient-success"><i class="nav-icon fas fa-less-than-equal"></i></span>
+                      </div>
+                      <input type="number" class="form-control" id="quantity__lte" min="0" name="quantity__lte"
+                        placeholder="Cantidad menor que" title="Cantidad menor que">
+                    </div>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text bg-gradient-warning"><i class="nav-icon fas fa-greater-than-equal"></i></span>
+                      </div>
+                      <input type="number" class="form-control" id="sell_price__gte" min="0" name="sell_price__gte"
+                        placeholder="Precio de venta mayor que" title="Precio de venta mayor que">
+                    </div>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text bg-gradient-warning"><i class="nav-icon fas fa-less-than-equal"></i></span>
+                      </div>
+                      <input type="number" class="form-control" id="sell_price__lte" min="0" name="sell_price__lte"
+                        placeholder="Precio de venta menor que" title="Precio de venta menor que">
+                    </div>
+                  </div>
+
+                  <div class="form-group col-md-6">
+                    <label for="created_timestamp__gte">Fecha de Creación (Desde)</label>
+                    <input type="datetime-local" class="form-control" id="created_timestamp__gte"
+                      name="created_timestamp__gte">
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label for="created_timestamp__lte">Fecha de Creación (Hasta)</label>
+                    <input type="datetime-local" class="form-control" id="created_timestamp__lte"
+                      name="created_timestamp__lte">
+                  </div>
+
+                 
+                    <!-- Date range -->
+                    <!-- <div class="form-group col-md-4">
+                      <label>Date range:</label>
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text">
+                            <i class="far fa-calendar-alt"></i>
+                          </span>
+                        </div>
+                        <input type="text" class="form-control" id="range_created_timestamp" name="range_created_timestamp">
+                      </div>
+                    </div> -->
+                    <!-- /.input group -->
+
+
+
+                  
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="nav-icon fas fa-check"></i> Aplicar</button>
+                <button type="button" id="reset-filters" class="btn btn-secondary"><i class="nav-icon fas fa-redo"></i>
+                  Restablecer</button>
+              </form>
+              <hr>
+            </div>
+
+            <div class="card-body">
               <table id="tabla-de-Datos" class="table table-bordered table-striped" style="width: 100%;">
               </table>
             </div>
@@ -105,11 +205,11 @@
 
           <div class="form-group">
             <label>Extra</label>
-            <textarea class="form-control" rows="3" id="extra_info" name="extra_info" placeholder="Enter ..."></textarea>
+            <textarea class="form-control" rows="3" id="extra_info" name="extra_info"
+              placeholder="Enter ..."></textarea>
           </div>
 
         </div>
-
         <!-- /.card-body -->
         <div class="modal-footer justify-content-between">
           <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
@@ -120,7 +220,6 @@
 
     </div>
   </div>
-
 </div>
 <!-- /.modal-content -->
 </div>
@@ -129,7 +228,9 @@
 <!-- /.modal -->
 
 {% endblock %}
-{% block script %} <!-- DataTables & Plugins -->
+
+{% block script %}
+<!-- DataTables & Plugins -->
 <script src="{% static 'assets/plugins/datatables/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
@@ -146,7 +247,12 @@
 <script src="{% static 'assets/plugins/jquery-validation/jquery.validate.min.js' %}"></script>
 <script src="{% static 'assets/plugins/jquery-validation/additional-methods.min.js' %}"></script>
 <script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
+<script src="{% static 'assets/plugins/moment/moment.min.js' %}"></script>
+<script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
-
 <script src="{% static 'assets/dist/js/shop_products.js' %}"></script>
+<script>
+  $('#range_created_timestamp').daterangepicker()
+
+</script>
 {% endblock %}
