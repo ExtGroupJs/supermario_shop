@@ -1,12 +1,12 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
-from django_filters.rest_framework import DjangoFilterBackend
+
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.shop_products import (
-    ReadShopProductsSerializer,
-    ShopProductsSerializer,
-)
+    ReadShopProductsSerializer, ShopProductsSerializer)
 from apps.common.views import CommonOrderingFilter, SerializerMapMixin
+from apps.users_app.models.groups import Groups
 
 
 class ShopProductsViewSet(
@@ -37,3 +37,15 @@ class ShopProductsViewSet(
         "shop__name",
         "product__name",
     ]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if (
+            self.request.user.groups
+            and self.request.user.groups.filter(
+                id__in=(Groups.SUPER_ADMIN.value,Groups.SHOP_OWNER.value,)
+            ).exists()
+        ):
+            return queryset
+        return queryset.filter(quantity__gt=0)
+

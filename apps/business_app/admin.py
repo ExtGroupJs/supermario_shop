@@ -1,13 +1,13 @@
+import logging
+
 from django.contrib import admin
 from solo.admin import SingletonModelAdmin
-import logging
 
 from apps.business_app.models.brand import Brand
 from apps.business_app.models.model import Model
 from apps.business_app.models.product import Product
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
-
 
 # from apps.business_app.models import (
 # AllowedExtensions,
@@ -102,6 +102,7 @@ class ShopProductsAdmin(admin.ModelAdmin):
         "shop",
         "product",
         "extra_info",
+        "quantity",
         "cost_price",
         "sell_price",
     ]
@@ -109,6 +110,7 @@ class ShopProductsAdmin(admin.ModelAdmin):
         "shop",
         "product",
         "extra_info",
+        "quantity",
         "cost_price",
         "sell_price",
     ]
