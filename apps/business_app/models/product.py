@@ -5,7 +5,7 @@ from apps.common.models import BaseModel
 
 
 class Product(BaseModel):
-    name = models.CharField(verbose_name="Nombre", unique=True, max_length=200)
+    name = models.CharField(verbose_name="Nombre", max_length=200)
     model = models.ForeignKey(
         to=Model, verbose_name="Modelo", on_delete=models.CASCADE, null=True, blank=True
     )
