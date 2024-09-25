@@ -40,7 +40,7 @@
         "pk": 5,
         "fields": {
             "name": "301",
-            "brand": 2,
+            "brand": 3,
             "extra_info": ""
         }
     },
