@@ -223,7 +223,13 @@ scratch. This page gets rid of all links and provides the needed markup only.
             </li>
 
             {% endif %}
-        
+        <li class="nav-item">
+                  <a href="{% url 'shop_products' %}" class="nav-link">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>{% blocktranslate %}Entrada{% endblocktranslate %}</p>
+                  </a>
+                </li>
+               
           </ul>
             
         </nav>

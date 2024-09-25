@@ -1,3 +1,7 @@
+const csrfToken = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='))?.split('=')[1];
+
+
+
 let credencial;
 let checkcredencial;
 
@@ -68,7 +72,7 @@ $(document).ready(function () {
                 {
                     data: 'internal_status', "title": "Acciones",
                     render: (data, type, row) => {
-                        if (data == 'R') {
+                        
                             return `<div class="btn-group">
                         <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-usuario" data-id="${row.id}" data-type="edit" data-name="${row.get_full_name}" id="${row.id}"  >
                           <i class="fas fa-edit"></i>
@@ -77,24 +81,12 @@ $(document).ready(function () {
                         <button type="button" title="delete" class="btn bg-olive" data-toggle="modal" data-target="#modal-eliminar-usuario" data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}">
                           <i class="fas fa-trash"></i>
                         </button>
-                        <button type="button" title="Add Premium" class="btn bg-navy"  data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}"  onclick="premium(${row.id},true)">
-                        <i class="fas fa-gem"></i>
+                        <button type="button" title="Roles" class="btn bg-olive"  data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}"  onclick="mostrarRoles(${row.id})">
+                        <i class="nav-icon fas fa-users-cog"></i>
                             </button>                    
                       </div>`;
-                        } else {
-                            return `<div class="btn-group">
-                            <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-usuario" data-id="${row.id}" data-type="edit" data-name="${row.get_full_name}" id="${row.id}"  >
-                              <i class="fas fa-edit"></i>
-                            </button>                       
-                                                 
-                            <button type="button" title="delete" class="btn bg-olive" data-toggle="modal" data-target="#modal-eliminar-usuario" data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}">
-                              <i class="fas fa-trash"></i>
-                            </button>
-                            <button type="button" title="Eliminate Premium" class="btn bg-orange"  data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}"  onclick="premium(${row.id},false)">
-                              <i class="fas fa-gem"></i>
-                                </button>
-                          </div>`;
-                        }
+                       
+                    
                     }
                 },
 
@@ -459,17 +451,63 @@ form.addEventListener('submit', function (event) {
     }
 });
 
+function mostrarRoles(id) {
+    // Obtener los datos del usuario
+    axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+    axios.get(`/user-gestion/users/${id}/`)
+        .then(userResponse => {
+            const rolesAsignados = userResponse.data.groups || []; 
+
+            // Obtener los roles del endpoint
+            return axios.get('/user-gestion/groups/').then(groupsResponse => {
+                const roles = groupsResponse.data.results;
+                const opciones = roles.map(role => {
+                    const isSelected = rolesAsignados.includes(role.id) ? 'selected' : '';
+                    return `<option value="${role.id}" ${isSelected}>${role.name}</option>`;
+                }).join('');
+
+                // Crear el HTML para el select múltiple
+                const html = `
+                    <select id="rolesSelect" class="form-control" multiple>
+                        ${opciones}
+                    </select>
+                `;
+
+                // Mostrar la alerta con la lista desplegable
+                return Swal.fire({
+                    title: 'Selecciona los roles',
+                    html: html,
+                    icon: "info",
+                    showCancelButton: true,
+                    confirmButtonText: 'Guardar',
+                    preConfirm: () => {
+                        const selectedRoles = Array.from(document.getElementById('rolesSelect').selectedOptions).map(option => option.value);
+                        return selectedRoles;
+                    }
+                });
+            });
+        })
+        .then((result) => {
+            if (result.isConfirmed) {
+                // Hacer el PATCH con los roles seleccionados
+                axios.patch(`/user-gestion/users/${id}/`, {
+                    groups: result.value
+                })
+                .then(() => {
+                    Swal.fire('Éxito', 'Roles guardados correctamente', 'success');
+                })
+                .catch(() => {
+                    Swal.fire('Error', 'No se pudieron guardar los roles', 'error');
+                });
+            }
+        })
+        .catch(() => {
+            Swal.fire('Error', 'No se pudieron obtener los datos del usuario o los roles', 'error');
+        });
+}
 
 
 
 
-// function poblarListas() {
-//     var $country = document.getElementById("country");
-//     axios.get("../../user-gestion/countries/get-all/").then(function (response) {
-//         response.data.results.forEach(function (element) {
-//             var option = new Option(element.name, element.id);
-//             $country.add(option);
-//         });
-//     });
 
-// }
+
