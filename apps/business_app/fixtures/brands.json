@@ -1,0 +1,23 @@
+[
+    {
+        "model": "business_app.brand",
+        "pk": 1,
+        "fields": {
+            "name": "Genérico"
+        }
+    },
+    {
+        "model": "business_app.brand",
+        "pk": 2,
+        "fields": {
+            "name": "Geely"
+        }
+    },
+    {
+        "model": "business_app.brand",
+        "pk": 3,
+        "fields": {
+            "name": "Peugeot"
+        }
+    }
+]

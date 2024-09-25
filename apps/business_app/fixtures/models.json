@@ -1,0 +1,74 @@
+[
+    {
+        "model": "business_app.model",
+        "pk": 1,
+        "fields": {
+            "name": "CK",
+            "brand": 2,
+            "extra_info": ""
+        }
+    },
+    {
+        "model": "business_app.model",
+        "pk": 2,
+        "fields": {
+            "name": "718",
+            "brand": 2,
+            "extra_info": ""
+        }
+    },
+    {
+        "model": "business_app.model",
+        "pk": 3,
+        "fields": {
+            "name": "820",
+            "brand": 2,
+            "extra_info": ""
+        }
+    },
+    {
+        "model": "business_app.model",
+        "pk": 4,
+        "fields": {
+            "name": "GC6",
+            "brand": 2,
+            "extra_info": ""
+        }
+    },
+    {
+        "model": "business_app.model",
+        "pk": 5,
+        "fields": {
+            "name": "301",
+            "brand": 2,
+            "extra_info": ""
+        }
+    },
+    {
+        "model": "business_app.model",
+        "pk": 6,
+        "fields": {
+            "name": "FC",
+            "brand": 2,
+            "extra_info": ""
+        }
+    },
+    {
+        "model": "business_app.model",
+        "pk": 7,
+        "fields": {
+            "name": "GC9",
+            "brand": 2,
+            "extra_info": ""
+        }
+    },
+    {
+        "model": "business_app.model",
+        "pk": 8,
+        "fields": {
+            "name": "Otras partes y piezas",
+            "brand": 1,
+            "extra_info": ""
+        }
+    }
+]
