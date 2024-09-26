@@ -48,13 +48,13 @@ urlpatterns = [
     path("usuarios/", login_required(pages.usuarios), name="usuarios"),
     path("login/", pages.first_login, name="first_login"),
     path("register/", pages.register, name="register"),
-    path("index/", pages.index, name="index"),
-    path("", pages.index, name="index"),
-    path("brands/", pages.brands, name="brands"),
-    path("models/", pages.models, name="models"),
-    path("shops/", pages.shops, name="shops"),
-    path("products/", pages.products, name="products"),
-    path("shop_products/", pages.shop_products, name="shop_products"),
+    path("index/",  login_required(pages.index), name="index"),
+    path("", pages.first_login, name="first_login"),
+    path("brands/", login_required(pages.brands), name="brands"),
+    path("models/", login_required(pages.models), name="models"),
+    path("shops/", login_required(pages.shops), name="shops"),
+    path("products/", login_required(pages.products), name="products"),
+    path("shop_products/", login_required(pages.shop_products), name="shop_products"),
 ]
 
 # This is for serving media on development stages
