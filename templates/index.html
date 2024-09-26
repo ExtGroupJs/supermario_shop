@@ -29,6 +29,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <link rel="stylesheet" href="{% static 'assets/dist/js/adminlte.js' %}">
   <link rel="stylesheet" href="{% static 'assets/dist/js/pages/dashboard3.js' %}">
   <link rel="stylesheet" href="{% static 'assets/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css' %}">
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
 
 
   {% block head-extra %}
@@ -115,6 +116,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
             <i class="fas fa-th-large"></i>
           </a>
         </li> -->
+       
        {% if user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'first_login' %}" role="button">
@@ -135,7 +137,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
-       <a href="" class="brand-link">
+       <a href="/index" class="brand-link">
         <img src="{% static 'assets/dist/img/AdminLTELogo.png' %}" alt="PGX Logo" class="brand-image  elevation-3"
           style="opacity: .8">
         <span class="brand-text font-weight-light">MM Auto Part</span>
@@ -171,8 +173,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
-               {% if user.is_staff %}
-               <li class="nav-item ">
+             
+               
+               
+               <li class="nav-item classOwner " hidden>
               <a href="#" class="nav-link active">
                 <i class="nav-icon fas fa-tachometer-alt"></i>
                 <p>
@@ -183,52 +187,64 @@ scratch. This page gets rid of all links and provides the needed markup only.
               <ul class="nav nav-treeview ">
                 <li class="nav-item">
                   <a href="{% url 'usuarios' %}" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="far fa-circle text-warning nav-icon"></i>
                     <p>{% blocktranslate %}Users{% endblocktranslate %}</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="{% url 'brands' %}" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="far fa-circle text-info nav-icon"></i>
                     <p>{% blocktranslate %}Marcas{% endblocktranslate %}</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="{% url 'models' %}" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="far fa-circle text-info nav-icon"></i>
                     <p>{% blocktranslate %}Modelos{% endblocktranslate %}</p>
+                   
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="{% url 'shops' %}" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="far fa-circle text-info nav-icon"></i>
                     <p>{% blocktranslate %}Tiendas{% endblocktranslate %}</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="{% url 'products' %}" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="far fa-circle text-danger nav-icon"></i>
                     <p>{% blocktranslate %}Producto{% endblocktranslate %}</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="{% url 'shop_products' %}" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
+                    <i class="far fa-circle text-danger nav-icon"></i>
                     <p>{% blocktranslate %}Entrada{% endblocktranslate %}</p>
                   </a>
                 </li>
-               
-
               </ul>
             </li>
-
-            {% endif %}
-        <li class="nav-item">
+ {% comment %} tienda {% endcomment %}
+               <li class="nav-item">
+              <a href="#" class="nav-link active">
+                <i class="nav-icon text-warning fas fa-shopping-cart"></i>
+                <p>
+                  {% blocktranslate %}Shop{% endblocktranslate %}
+                  <i class="right fas fa-angle-left"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview ">
+                <li class="nav-item">
                   <a href="{% url 'shop_products' %}" class="nav-link">
                     <i class="far fa-circle nav-icon"></i>
-                    <p>{% blocktranslate %}Entrada{% endblocktranslate %}</p>
+                    <p>{% blocktranslate %}Ventas{% endblocktranslate %}</p>
                   </a>
                 </li>
+                
+              </ul>
+            </li>
+            
+       
                
           </ul>
             
@@ -239,292 +255,116 @@ scratch. This page gets rid of all links and provides the needed markup only.
       <!-- /.sidebar -->
     </aside>
     {% block content %}
-    <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
-      <!-- Content Header (Page header) -->
-      <div class="content-header">
-        <div class="container-fluid">
-          <div class="row mb-2">
-            <div class="col-sm-6">
-              <h1 class="m-0">Starter Page</h1>
-            </div><!-- /.col -->
-            <div class="col-sm-6">
-              <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item active">Starter Page</li>
-              </ol>
-            </div><!-- /.col -->
-          </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
-      </div>
-      <!-- /.content-header -->
-
-      <section class="content">
-        <div class="container-fluid">
-          <div class="row">
-
-          </div>
-          <!-- /.row (main row) -->
-        </div><!-- /.container-fluid -->
-      </section>
-
-      <!-- Main content -->
+   
 
 
 
-      <div class="content">
-        <div class="container-fluid">
-          <div class="row">
-            <div class="col-lg-6">
-              <div class="card">
-                <div class="card-header border-0">
-                  <div class="d-flex justify-content-between">
-                    <h3 class="card-title">Online Store Visitors</h3>
-                    <a href="javascript:void(0);">View Report</a>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div class="d-flex">
-                    <p class="d-flex flex-column">
-                      <span class="text-bold text-lg">820</span>
-                      <span>Visitors Over Time</span>
-                    </p>
-                    <p class="ml-auto d-flex flex-column text-right">
-                      <span class="text-success">
-                        <i class="fas fa-arrow-up"></i> 12.5%
-                      </span>
-                      <span class="text-muted">Since last week</span>
-                    </p>
-                  </div>
-                  <!-- /.d-flex -->
-
-                  <div class="position-relative mb-4">
-                    <canvas id="visitors-chart" height="200"></canvas>
-                  </div>
-
-                  <div class="d-flex flex-row justify-content-end">
-                    <span class="mr-2">
-                      <i class="fas fa-square text-primary"></i> This Week
-                    </span>
-
-                    <span>
-                      <i class="fas fa-square text-gray"></i> Last Week
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <!-- /.card -->
-
-              <div class="card">
-                <div class="card-header border-0">
-                  <h3 class="card-title">Products</h3>
-                  <div class="card-tools">
-                    <a href="#" class="btn btn-tool btn-sm">
-                      <i class="fas fa-download"></i>
-                    </a>
-                    <a href="#" class="btn btn-tool btn-sm">
-                      <i class="fas fa-bars"></i>
-                    </a>
-                  </div>
-                </div>
-                <div class="card-body table-responsive p-0">
-                  <table class="table table-striped table-valign-middle">
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Price</th>
-                        <th>Sales</th>
-                        <th>More</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <img src="dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
-                          Some Product
-                        </td>
-                        <td>$13 USD</td>
-                        <td>
-                          <small class="text-success mr-1">
-                            <i class="fas fa-arrow-up"></i>
-                            12%
-                          </small>
-                          12,000 Sold
-                        </td>
-                        <td>
-                          <a href="#" class="text-muted">
-                            <i class="fas fa-search"></i>
-                          </a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <img src="dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
-                          Another Product
-                        </td>
-                        <td>$29 USD</td>
-                        <td>
-                          <small class="text-warning mr-1">
-                            <i class="fas fa-arrow-down"></i>
-                            0.5%
-                          </small>
-                          123,234 Sold
-                        </td>
-                        <td>
-                          <a href="#" class="text-muted">
-                            <i class="fas fa-search"></i>
-                          </a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <img src="dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
-                          Amazing Product
-                        </td>
-                        <td>$1,230 USD</td>
-                        <td>
-                          <small class="text-danger mr-1">
-                            <i class="fas fa-arrow-down"></i>
-                            3%
-                          </small>
-                          198 Sold
-                        </td>
-                        <td>
-                          <a href="#" class="text-muted">
-                            <i class="fas fa-search"></i>
-                          </a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <img src="dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
-                          Perfect Item
-                          <span class="badge bg-danger">NEW</span>
-                        </td>
-                        <td>$199 USD</td>
-                        <td>
-                          <small class="text-success mr-1">
-                            <i class="fas fa-arrow-up"></i>
-                            63%
-                          </small>
-                          87 Sold
-                        </td>
-                        <td>
-                          <a href="#" class="text-muted">
-                            <i class="fas fa-search"></i>
-                          </a>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <!-- /.card -->
-            </div>
-            <!-- /.col-md-6 -->
-            <div class="col-lg-6">
-              <div class="card">
-                <div class="card-header border-0">
-                  <div class="d-flex justify-content-between">
-                    <h3 class="card-title">Sales</h3>
-                    <a href="javascript:void(0);">View Report</a>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div class="d-flex">
-                    <p class="d-flex flex-column">
-                      <span class="text-bold text-lg">$18,230.00</span>
-                      <span>Sales Over Time</span>
-                    </p>
-                    <p class="ml-auto d-flex flex-column text-right">
-                      <span class="text-success">
-                        <i class="fas fa-arrow-up"></i> 33.1%
-                      </span>
-                      <span class="text-muted">Since last month</span>
-                    </p>
-                  </div>
-                  <!-- /.d-flex -->
-
-                  <div class="position-relative mb-4">
-                    <canvas id="sales-chart" height="200"></canvas>
-                  </div>
-
-                  <div class="d-flex flex-row justify-content-end">
-                    <span class="mr-2">
-                      <i class="fas fa-square text-primary"></i> This year
-                    </span>
-
-                    <span>
-                      <i class="fas fa-square text-gray"></i> Last year
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <!-- /.card -->
-
-              <div class="card">
-                <div class="card-header border-0">
-                  <h3 class="card-title">Online Store Overview</h3>
-                  <div class="card-tools">
-                    <a href="#" class="btn btn-sm btn-tool">
-                      <i class="fas fa-download"></i>
-                    </a>
-                    <a href="#" class="btn btn-sm btn-tool">
-                      <i class="fas fa-bars"></i>
-                    </a>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-center border-bottom mb-3">
-                    <p class="text-success text-xl">
-                      <i class="ion ion-ios-refresh-empty"></i>
-                    </p>
-                    <p class="d-flex flex-column text-right">
-                      <span class="font-weight-bold">
-                        <i class="ion ion-android-arrow-up text-success"></i> 12%
-                      </span>
-                      <span class="text-muted">CONVERSION RATE</span>
-                    </p>
-                  </div>
-                  <!-- /.d-flex -->
-                  <div class="d-flex justify-content-between align-items-center border-bottom mb-3">
-                    <p class="text-warning text-xl">
-                      <i class="ion ion-ios-cart-outline"></i>
-                    </p>
-                    <p class="d-flex flex-column text-right">
-                      <span class="font-weight-bold">
-                        <i class="ion ion-android-arrow-up text-warning"></i> 0.8%
-                      </span>
-                      <span class="text-muted">SALES RATE</span>
-                    </p>
-                  </div>
-                  <!-- /.d-flex -->
-                  <div class="d-flex justify-content-between align-items-center mb-0">
-                    <p class="text-danger text-xl">
-                      <i class="ion ion-ios-people-outline"></i>
-                    </p>
-                    <p class="d-flex flex-column text-right">
-                      <span class="font-weight-bold">
-                        <i class="ion ion-android-arrow-down text-danger"></i> 1%
-                      </span>
-                      <span class="text-muted">REGISTRATION RATE</span>
-                    </p>
-                  </div>
-                  <!-- /.d-flex -->
-                </div>
-              </div>
-            </div>
-            <!-- /.col-md-6 -->
-          </div>
-          <!-- /.row -->
-        </div>
-        <!-- /.container-fluid -->
-      </div>
-      <!-- /.content -->
-
-
-      <!-- /.content -->
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Dashboard</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard v1</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
     </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <!-- Small boxes (Stat box) -->
+        <div class="row">
+          <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-info">
+              <div class="inner">
+                <h3>150</h3>
+
+                <p>New Orders</p>
+              </div>
+              <div class="icon">
+                <i class="ion ion-bag"></i>
+              </div>
+              <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-success">
+              <div class="inner">
+                <h3>53<sup style="font-size: 20px">%</sup></h3>
+
+                <p>Bounce Rate</p>
+              </div>
+              <div class="icon">
+                <i class="ion ion-stats-bars"></i>
+              </div>
+              <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-warning">
+              <div class="inner">
+                <h3>44</h3>
+
+                <p>User Registrations</p>
+              </div>
+              <div class="icon">
+                <i class="ion ion-person-add"></i>
+              </div>
+              <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-danger">
+              <div class="inner">
+                <h3>65</h3>
+
+                <p>Unique Visitors</p>
+              </div>
+              <div class="icon">
+                <i class="ion ion-pie-graph"></i>
+              </div>
+              <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <!-- ./col -->
+        </div>
+        <!-- /.row -->
+        <!-- Main row -->
+        <div class="row">
+          <!-- Left col -->
+          <section class="col-lg-7 connectedSortable">
+            
+          </section>
+          <!-- /.Left col -->
+          <!-- right col (We are only adding the ID to make the widgets sortable)-->
+          <section class="col-lg-5 connectedSortable">
+
+           
+          </section>
+     </section>
+    <!-- /.content -->
+  </div>
+
+
+
+
+
     <!-- /.content-wrapper -->
     {% endblock %}
     <!-- Control Sidebar -->
@@ -560,12 +400,15 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <!-- AdminLTE App -->
   <script src="{% static 'assets/dist/js/adminlte.min.js' %}"></script>
 
+
   <script src="{% static 'assets/plugins/toastr/toastr.min.js' %}"></script>
   <script src="{% static 'assets/plugins/sweetalert2/sweetalert2.min.js' %}"></script>
-
+  <script src="{% static 'assets/plugins/chart.js/Chart.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/sparklines/sparkline.js' %}"></script>
 
 
   <script>
+
     var Toast = Swal.mixin({
       toast: true,
       position: 'top-end',
@@ -583,6 +426,34 @@ scratch. This page gets rid of all links and provides the needed markup only.
       }
 
     }); {% endcomment %}
+    aplicateGrupos('.classOwner');
+
+
+
+function aplicateGrupos(clase) {
+  console.log("entro");
+if(verificarGroups(2, verificarTodos = false)){
+const elementoClassOwner = document.querySelector(clase);
+elementoClassOwner.hidden=false;
+   }
+ }
+
+    function verificarGroups(numeros, verificarTodos = false) {
+    // Recuperar el grupo de números almacenados en localStorage
+    const grupos = JSON.parse(localStorage.getItem('groups')) || [];
+
+    // Convertir el argumento 'numeros' en un array si no lo es
+    const numerosArray = Array.isArray(numeros) ? numeros : [numeros];
+
+    // Verificar coincidencias
+    if (verificarTodos) {
+        // Verificar que todos los números pasados estén en el grupo
+        return numerosArray.every(num => grupos.includes(num));
+    } else {
+        // Verificar si al menos uno de los números pasa está en el grupo
+        return numerosArray.some(num => grupos.includes(num));
+    }
+}
 
 
   </script>
