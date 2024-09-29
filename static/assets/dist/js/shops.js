@@ -82,7 +82,7 @@ $(document).ready(function () {
         },
         { data: "extra_info", title: "Información Extra" },
         {
-          data: "",
+          data: "id",
           title: "Acciones",
           render: (data, type, row) => {
             return `<div class="btn-group">

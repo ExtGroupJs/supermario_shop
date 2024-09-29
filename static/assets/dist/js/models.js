@@ -76,7 +76,7 @@ $(document).ready(function () {
         { data: "name", title: "Nombre" },
         { data: "brand.name", title: "Marca" },
 
-        {        
+        {data: "id",        
           title: "Acciones",
           render: (data, type, row) => {
             return `<div class="btn-group">

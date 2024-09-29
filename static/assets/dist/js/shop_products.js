@@ -90,7 +90,7 @@ $(document).ready(function () {
       { data: "sell_price", title: "Precio de Venta" },
       { data: "extra_info", title: "Información Extra" },
       {
-        data: "",
+        data: "id",
         title: "Acciones",
         render: (data, type, row) => {
           return `<div class="btn-group">

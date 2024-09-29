@@ -77,7 +77,7 @@ $(document).ready(function () {
         { data: "description", title: "Descripción" },
         { data: "model.name", title: "Modelo" },
         {
-          data: "",
+          data: "id",
           title: "Acciones",
           render: (data, type, row) => {
             return `<div class="btn-group">
