@@ -85,7 +85,7 @@ $(document).ready(function () {
           },
         },
         {
-          data: "",
+          data: "id",
           title: "Acciones",
           render: (data, type, row) => {
             return `<div class="btn-group">
