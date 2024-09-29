@@ -16,7 +16,8 @@ $(function () {
 
 // Inicializar DataTable
 $(document).ready(function () {
-  const table = $("#tabla-de-Datos").DataTable({
+  const table = $("#tabla-de-Datos").DataTable({ 
+    responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [
       {
