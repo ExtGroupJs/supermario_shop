@@ -46,7 +46,6 @@ $(document).ready(function () {
       processing: true,
       ajax: function (data, callback, settings) {
         dir = "";
-        console.log("✌️data --->", data);
         if (data.order[0].dir == "desc") {
           dir = "-";
         }
