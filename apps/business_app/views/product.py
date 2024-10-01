@@ -1,12 +1,12 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
+
 from apps.business_app.models.product import Product
-from apps.business_app.serializers.product import (
-    ProductSerializer,
-    ReadProductSerializer,
-)
+from apps.business_app.serializers.product import (ProductSerializer,
+                                                   ReadProductSerializer)
+from apps.common.pagination import AllResultsSetPagination
 from apps.common.views import CommonOrderingFilter, SerializerMapMixin
-from django_filters.rest_framework import DjangoFilterBackend
 
 
 class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
@@ -18,6 +18,7 @@ class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
         filters.SearchFilter,
         CommonOrderingFilter,
     ]
+    pagination_class = AllResultsSetPagination
     filterset_fields = [
         "model",
         "model__brand",
