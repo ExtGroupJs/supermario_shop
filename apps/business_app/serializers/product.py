@@ -21,3 +21,4 @@ class ReadProductSerializer(ProductSerializer):
 
     class Meta(ProductSerializer.Meta):
         model = Product
+        fields = ProductSerializer.Meta.fields + ("id", "__str__")

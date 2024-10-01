@@ -75,7 +75,7 @@ $(document).ready(function () {
       columns: [
         { data: "name", title: "Nombre" },
         { data: "description", title: "Descripción" },
-        { data: "model.name", title: "Modelo" },
+        { data: "model.__str__", title: "Modelo" },
         {
           data: "id",
           title: "Acciones",
