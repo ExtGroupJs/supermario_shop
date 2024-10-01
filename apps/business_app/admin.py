@@ -70,11 +70,13 @@ class ProductAdmin(admin.ModelAdmin):
         "name",
         "model",
         "description",
+        "image"
     ]
     fields = [
         "name",
         "model",
         "description",
+        "image",
     ]
 
 

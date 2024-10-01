@@ -10,6 +10,7 @@ class Product(BaseModel):
         to=Model, verbose_name="Modelo", on_delete=models.CASCADE, null=True, blank=True
     )
     description = models.TextField(verbose_name="Descripción", null=True, blank=True)
+    image = models.ImageField(verbose_name="Imagen", null=True, blank=True)
 
     class Meta:
         verbose_name = "Producto"
