@@ -7,7 +7,13 @@ from apps.business_app.serializers.model import ModelSerializer
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ("id", "name", "description", "model")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "model",
+            "image",
+        )
 
 
 class ReadProductSerializer(ProductSerializer):
