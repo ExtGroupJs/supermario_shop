@@ -22,7 +22,7 @@ class Command(BaseCommand):
                 "green",
                 attrs=["blink"],
             )
-        )        
+        )
         call_command("loaddata", "brands.json")
         print(
             colored(
@@ -30,7 +30,7 @@ class Command(BaseCommand):
                 "green",
                 attrs=["blink"],
             )
-        )        
+        )
         call_command("loaddata", "models.json")
         print(
             colored(
@@ -38,7 +38,7 @@ class Command(BaseCommand):
                 "green",
                 attrs=["blink"],
             )
-        )        
+        )
         call_command("loaddata", "products.json")
         print(
             colored(
