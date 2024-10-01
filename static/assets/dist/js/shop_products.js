@@ -84,7 +84,7 @@ $(document).ready(function () {
     },
     columns: [
       { data: "shop.name", title: "Tienda" },
-      { data: "product.name", title: "Producto" },
+      { data: "product.__str__", title: "Producto" },
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
@@ -372,7 +372,7 @@ function poblarListas() {
   var $product = document.getElementById("product");
   axios.get("/business-gestion/products/").then(function (response) {
     response.data.results.forEach(function (element) {
-      var option = new Option(element.name, element.id);
+      var option = new Option(element.__str__, element.id);
       $product.add(option);
     });
   });
