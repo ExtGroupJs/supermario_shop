@@ -125,7 +125,6 @@ RUNNING_FROM = env("RUNNING_FROM", default=RUNNING_FROM_LOCAL)
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-
 if RUNNING_FROM == RUNNING_FROM_LOCAL:
     conexion = {
         "ENGINE": "django.db.backends.sqlite3",
@@ -138,10 +137,7 @@ else:
         "USER": env("DB_REMOTE_USER"),
         "PASSWORD": env("DB_REMOTE_PASSWORD"),
         "HOST": env("DB_REMOTE_HOST"),
-        "PORT": env("DB_REMOTE_PORT", cast=int),
-        "OPTIONS": {
-            "sql_mode": "STRICT_TRANS_TABLES",
-        },
+        "PORT": env.int("DB_REMOTE_PORT"),
     }
 
 DATABASES = {
