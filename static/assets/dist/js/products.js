@@ -154,6 +154,7 @@ $("#modal-crear-products").on("show.bs.modal", function (event) {
         form.elements.name.value = product.name;
         form.elements.description.value = product.description;
         form.elements.model.value = product.model;
+        $('#model').val(product.model).trigger('change');
       })
       .catch(function (error) {});
   } else {
