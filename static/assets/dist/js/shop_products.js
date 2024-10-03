@@ -197,6 +197,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
         form.elements.product.value = shopProduct.product;
+        $('#product').val(shopProduct.product).trigger('change');
       })
       .catch(function (error) {});
   } else {
