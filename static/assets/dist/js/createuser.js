@@ -10,6 +10,7 @@ $(document).ready(function () {
     $('table')
         .addClass('table table-hover')
         .DataTable({
+            responsive: true,
             dom: '<"top"l>Bfrtip',
             buttons: [
                 {
@@ -70,7 +71,7 @@ $(document).ready(function () {
                 { data: "email", "title": "Mail" },
 
                 {
-                    data: 'internal_status', "title": "Acciones",
+                    data: 'id', "title": "Acciones",
                     render: (data, type, row) => {
                         
                             return `<div class="btn-group">

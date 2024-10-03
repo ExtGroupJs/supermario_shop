@@ -5,6 +5,8 @@ from django.db import models
 from django.utils._os import safe_join
 from django.utils.translation import gettext_lazy as _
 
+from apps.business_app.models.shop import Shop
+
 # Create your models here.
 
 
@@ -58,7 +60,7 @@ class SystemUser(
     #         RegexValidator(regex=r"^\+?\d+$", message="Only numeric characters allowed")
     #     ],
     # )
-    # country = models.ForeignKey(to="Country", on_delete=models.CASCADE, null=True)
+    shop = models.ForeignKey(to=Shop, on_delete=models.CASCADE, null=True)
 
     class Meta(User.Meta):
         verbose_name = _("System user")

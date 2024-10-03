@@ -24,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
             # "internal_status",
             "password",
             "groups",
+            "shop",
         ]
         extra_kwargs = {
             "password": {"write_only": True},

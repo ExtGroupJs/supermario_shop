@@ -16,6 +16,7 @@ $(document).ready(function () {
   $("table")
     .addClass("table table-hover")
     .DataTable({
+      responsive: true,
       dom: '<"top"l>Bfrtip',
       buttons: [
         {
@@ -72,30 +73,57 @@ $(document).ready(function () {
           });
       },
       columns: [
-        { data: "name", title: "Nombre" },
-        { data: "description", title: "Descripción" },
-        { data: "model.name", title: "Modelo" },
         {
-          data: "",
-          title: "Acciones",
-          render: (data, type, row) => {
-            return `<div class="btn-group">
-                        <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-products" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}">
-                          <i class="fas fa-edit"></i>
-                        </button>  
-                        <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}')" >
-                          <i class="fas fa-trash"></i>
-                        </button>                                          
-                      </div>`;
-          },
+            data: "image",
+            title: "Foto",
+            render: (data) => {
+                return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
+            },
         },
-      ],
+        { data: "name", title: "Nombre" },
+        { data: "model.__str__", title: "Modelo" },
+        { data: "description", title: "Descripción" },
+        {
+            data: "id",
+            title: "Acciones",
+            render: (data, type, row) => {
+                return `<div class="btn-group">
+                            <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-products" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}">
+                              <i class="fas fa-edit"></i>
+                            </button>  
+                            <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}')" >
+                              <i class="fas fa-trash"></i>
+                            </button>                                          
+                          </div>`;
+            },
+        },
+    ],
+    
       //  esto es para truncar el texto de las celdas
       columnDefs: [],
     });
 });
 
 let selected_id;
+
+$(document).on('click', '.thumbnail', function() {
+  const fullsizeImage = $(this).data('fullsize');
+  
+  Swal.fire({
+      imageUrl: fullsizeImage,
+      imageWidth: 400, // Ajusta el ancho según sea necesario
+      imageHeight: 300, // Ajusta la altura según sea necesario
+      imageAlt: 'Image',
+      showCloseButton: false,
+      showConfirmButton: true,
+  });
+});
+
+
+
+
+
+
 
 $("#modal-crear-products").on("hide.bs.modal", (event) => {
   const form = event.currentTarget.querySelector("form");
@@ -126,6 +154,7 @@ $("#modal-crear-products").on("show.bs.modal", function (event) {
         form.elements.name.value = product.name;
         form.elements.description.value = product.description;
         form.elements.model.value = product.model;
+        $('#model').val(product.model).trigger('change');
       })
       .catch(function (error) {});
   } else {
@@ -148,7 +177,7 @@ $(function () {
         required: true,
       },
       description: {
-        required: true,
+        required: false,
       },
       model: {
         required: true,
@@ -186,6 +215,9 @@ form.addEventListener("submit", function (event) {
   data.append("name", document.getElementById("name").value);
   data.append("description", document.getElementById("description").value);
   data.append("model", document.getElementById("model").value);
+  if (document.getElementById("image").files[0] != null) {
+    data.append("image", document.getElementById("image").files[0]);
+  }
 
   if (edit_products) {
     axios

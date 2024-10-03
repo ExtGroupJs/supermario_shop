@@ -77,12 +77,12 @@ $(document).ready(function () {
           data: "logo",
           title: "Logo",
           render: (data) => {
-            return `<img src="${data}" alt="Logo" style="width: 50px; height: auto;">`;
+            return `<div style="text-align: center;"><img src="${data}" alt="Logo" style="width: 50px; height: auto;"></div>`;
           },
         },
         { data: "extra_info", title: "Información Extra" },
         {
-          data: "",
+          data: "id",
           title: "Acciones",
           render: (data, type, row) => {
             return `<div class="btn-group">

@@ -16,6 +16,7 @@ $(document).ready(function () {
   $("table")
     .addClass("table table-hover")
     .DataTable({
+      responsive: true,
       dom: '<"top"l>Bfrtip',
       buttons: [
         {
@@ -75,8 +76,7 @@ $(document).ready(function () {
         { data: "name", title: "Nombre" },
         { data: "brand.name", title: "Marca" },
 
-        {
-          data: "",
+        {data: "id",        
           title: "Acciones",
           render: (data, type, row) => {
             return `<div class="btn-group">

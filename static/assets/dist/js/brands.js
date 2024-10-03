@@ -15,6 +15,7 @@ $(document).ready(function () {
   $("table")
     .addClass("table table-hover")
     .DataTable({
+      responsive: true,
       dom: '<"top"l>Bfrtip',
       buttons: [
         {
@@ -45,7 +46,6 @@ $(document).ready(function () {
       processing: true,
       ajax: function (data, callback, settings) {
         dir = "";
-        console.log("✌️data --->", data);
         if (data.order[0].dir == "desc") {
           dir = "-";
         }
@@ -84,7 +84,7 @@ $(document).ready(function () {
           },
         },
         {
-          data: "",
+          data: "id",
           title: "Acciones",
           render: (data, type, row) => {
             return `<div class="btn-group">

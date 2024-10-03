@@ -14,6 +14,7 @@ $(document).ready(function () {
     $('table')
         .addClass('table table-hover')
         .DataTable({
+            responsive: true,
             dom: '<"top"l>Bfrtip',
             buttons: [
                 {

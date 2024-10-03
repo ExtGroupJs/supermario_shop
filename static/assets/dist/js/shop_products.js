@@ -16,7 +16,8 @@ $(function () {
 
 // Inicializar DataTable
 $(document).ready(function () {
-  const table = $("#tabla-de-Datos").DataTable({
+  const table = $("#tabla-de-Datos").DataTable({ 
+    responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [
       {
@@ -83,13 +84,13 @@ $(document).ready(function () {
     },
     columns: [
       { data: "shop.name", title: "Tienda" },
-      { data: "product.name", title: "Producto" },
+      { data: "product.__str__", title: "Producto" },
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
       { data: "extra_info", title: "Información Extra" },
       {
-        data: "",
+        data: "id",
         title: "Acciones",
         render: (data, type, row) => {
           return `<div class="btn-group">
@@ -196,6 +197,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
         form.elements.product.value = shopProduct.product;
+        $('#product').val(shopProduct.product).trigger('change');
       })
       .catch(function (error) {});
   } else {
@@ -371,7 +373,7 @@ function poblarListas() {
   var $product = document.getElementById("product");
   axios.get("/business-gestion/products/").then(function (response) {
     response.data.results.forEach(function (element) {
-      var option = new Option(element.name, element.id);
+      var option = new Option(element.__str__, element.id);
       $product.add(option);
     });
   });
