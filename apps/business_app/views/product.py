@@ -3,8 +3,10 @@ from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 
 from apps.business_app.models.product import Product
-from apps.business_app.serializers.product import (ProductSerializer,
-                                                   ReadProductSerializer)
+from apps.business_app.serializers.product import (
+    ProductSerializer,
+    ReadProductSerializer,
+)
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.views import CommonOrderingFilter, SerializerMapMixin
 

@@ -65,13 +65,7 @@ class ModelAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     empty_value_display = "-empty-"
-    list_display = [
-        "id",
-        "name",
-        "model",
-        "description",
-        "image"
-    ]
+    list_display = ["id", "name", "model", "description", "image"]
     fields = [
         "name",
         "model",
