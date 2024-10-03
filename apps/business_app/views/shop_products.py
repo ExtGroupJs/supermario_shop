@@ -4,11 +4,10 @@ from rest_framework.generics import GenericAPIView
 
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.shop_products import (
-    ReadShopProductsSerializer,
-    ShopProductsSerializer,
-)
+    ReadShopProductsSerializer, ShopProductsSerializer)
 from apps.common.views import CommonOrderingFilter, SerializerMapMixin
 from apps.users_app.models.groups import Groups
+from apps.users_app.models.system_user import SystemUser
 
 
 class ShopProductsViewSet(
@@ -52,4 +51,5 @@ class ShopProductsViewSet(
             ).exists()
         ):
             return queryset
-        return queryset.filter(quantity__gt=0)
+        system_user = SystemUser.objects.get(id=self.request.user.id)
+        return queryset.filter(quantity__gt=0, shop=system_user.shop)
