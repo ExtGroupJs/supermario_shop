@@ -26,4 +26,4 @@ jobs:
             source venv/Scripts/activate &&
             python manage.py migrate &&
             python manage.py collectstatic --noinput &&
-            sudo systemctl restart gunicorn"  # Asegúrate de que gunicorn esté configurado para reiniciar con systemctl
+            sudo systemctl restart gunicorn
