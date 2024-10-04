@@ -3,7 +3,7 @@ name: Deploy Application
 on:
   push:
     branches:
-      - main  # Cambia esto según tu rama principal
+      - dev  # Cambia esto según tu rama principal
 
 jobs:
   deploy:
@@ -20,8 +20,8 @@ jobs:
 
       - name: Deploy to Contabo
         run: |
-          ssh -o StrictHostKeyChecking=no user@your-contabo-ip "
-            cd /home/projects/supermario_shop &&
+          ssh -o StrictHostKeyChecking=no root@217.76.49.67"
+            cd ../home/projects/supermario_shop &&
             git pull origin main &&
             source venv/Scripts/activate &&
             python manage.py migrate &&
