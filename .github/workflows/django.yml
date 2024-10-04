@@ -21,4 +21,4 @@ jobs:
       - name: Deploy to Contabo
         run: |
           ssh -t root@217.76.49.67
-            "cd /home/projects/supermario_shop; exec \$SHELL"
+            "cd /home/projects/supermario_shop; exec \$SHELL git pull"
