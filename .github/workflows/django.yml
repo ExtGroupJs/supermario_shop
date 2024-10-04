@@ -21,9 +21,9 @@ jobs:
       - name: Deploy to Contabo
         run: |
           ssh -o StrictHostKeyChecking=no root@217.76.49.67
-            cd\ /home/projects/supermario_shop &&
+            'cd\ /home/projects/supermario_shop &&
             git pull origin main &&
             source venv/Scripts/activate &&
             python manage.py migrate &&
             python manage.py collectstatic --noinput &&
-            sudo systemctl restart gunicorn
+            sudo systemctl restart gunicorn'
