@@ -20,5 +20,5 @@ jobs:
 
       - name: Deploy to Contabo
         run: |
-          ssh -o -t StrictHostKeyChecking=no root@217.76.49.67
+          ssh -t root@217.76.49.67
             "cd /home/projects/supermario_shop; exec \$SHELL"
