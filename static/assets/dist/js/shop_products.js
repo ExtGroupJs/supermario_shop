@@ -183,7 +183,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
     selected_id = button.data("id"); // Extract info from data-* attributes
     edit_shopProducts = true;
 
-    modal.find(".modal-title").text("Editar Entrada de Producto " + dataName);
+    modal.find(".modal-title").text("Editar Entrada de Producto ");
 
     // Realizar la petición con Axios
     axios
