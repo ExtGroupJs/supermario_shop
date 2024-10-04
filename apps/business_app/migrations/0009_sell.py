@@ -5,27 +5,68 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('business_app', '0008_product_image'),
-        ('users_app', '0003_systemuser_shop'),
+        ("business_app", "0008_product_image"),
+        ("users_app", "0003_systemuser_shop"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Sell',
+            name="Sell",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_timestamp', models.DateTimeField(auto_now_add=True, verbose_name='Created timestamp')),
-                ('updated_timestamp', models.DateTimeField(auto_now=True, null=True, verbose_name='Updated timestamp')),
-                ('extra_info', models.TextField(blank=True, null=True, verbose_name='Información Extra')),
-                ('quantity', models.PositiveIntegerField(default=1, verbose_name='Cantidad')),
-                ('seller', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='sells', to='users_app.systemuser', verbose_name='Vendedor')),
-                ('shop_product', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='sells', to='business_app.shopproducts', verbose_name='Producto')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_timestamp",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Created timestamp"
+                    ),
+                ),
+                (
+                    "updated_timestamp",
+                    models.DateTimeField(
+                        auto_now=True, null=True, verbose_name="Updated timestamp"
+                    ),
+                ),
+                (
+                    "extra_info",
+                    models.TextField(
+                        blank=True, null=True, verbose_name="Información Extra"
+                    ),
+                ),
+                (
+                    "quantity",
+                    models.PositiveIntegerField(default=1, verbose_name="Cantidad"),
+                ),
+                (
+                    "seller",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="sells",
+                        to="users_app.systemuser",
+                        verbose_name="Vendedor",
+                    ),
+                ),
+                (
+                    "shop_product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="sells",
+                        to="business_app.shopproducts",
+                        verbose_name="Producto",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Venta',
-                'verbose_name_plural': 'Ventas',
+                "verbose_name": "Venta",
+                "verbose_name_plural": "Ventas",
             },
         ),
     ]
