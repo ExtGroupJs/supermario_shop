@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to Contabo
         run: |
-          ssh -o StrictHostKeyChecking=no root@217.76.49.67
+          ssh -o StrictHostKeyChecking=no -t root@217.76.49.67
             "cd\ /home/projects/supermario_shop &&
             git pull origin main &&
             source venv/Scripts/activate &&
