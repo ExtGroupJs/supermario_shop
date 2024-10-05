@@ -24,5 +24,6 @@ jobs:
           
       - name: Deploy to Contabo2
         run: |
-          ssh -o StrictHostKeyChecking=no root@217.76.49.67 "cd /home/projects/supermario_shop && . /venv/bin/activate"
+          ssh -t root@217.76.49.67 "cd /home/projects/supermario_shop; source venv/bin/activate; exec \$SHELL --login"
+
 
