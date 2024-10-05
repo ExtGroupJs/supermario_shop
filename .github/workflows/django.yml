@@ -24,6 +24,6 @@ jobs:
           
       - name: Deploy to Contabo2
         run: |
-          ssh -t root@217.76.49.67 "cd /home/projects/supermario_shop; source venv/bin/activate; python manage.py migrate; exec \$SHELL --login"
+          ssh -t root@217.76.49.67 "cd /home/projects/supermario_shop; source venv/bin/activate; python manage.py migrate; python manage.py collectstatic --noinput; sudo systemctl restart gunicorn; exec \$SHELL --login"
 
 
