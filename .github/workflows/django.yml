@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to Contabo
         run: |
-          ssh -o StrictHostKeyChecking=no -t root@217.76.49.67 "cd /home/projects/supermario_shop && ls && git pull && exit"
+          ssh -o StrictHostKeyChecking=no -t root@217.76.49.67 "cd /home/projects/supermario_shop && git pull && exit"
           
       - name: Deploy to Contabo2
         run: |
