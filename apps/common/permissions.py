@@ -81,14 +81,15 @@ class IsAuthenticatedAndReadOnly(BasePermission):
 #         Groups.SOME_OTHER_ROLE.value,
 #     )
 
+
 class SellViewSetPermission(CommonRolePermission):
-    roles = CommonRolePermission.roles +[
-    Groups.SHOP_SELLER.value,
-]
+    roles = CommonRolePermission.roles + [
+        Groups.SHOP_SELLER.value,
+    ]
+
 
 class ShopProductsViewSetPermission(CommonRolePermission):
     # TODO restringir a SHOP seller para tener acceso de solo lectura
-    roles = CommonRolePermission.roles +[
-    Groups.SHOP_SELLER.value,
-]
-
+    roles = CommonRolePermission.roles + [
+        Groups.SHOP_SELLER.value,
+    ]

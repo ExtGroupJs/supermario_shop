@@ -30,5 +30,6 @@ class Sell(BaseModel):
 
     def __str__(self):
         return f"{self.shop_product} ({self.shop_product.shop})"
-    
+
+
 # a post save signal is implemented on apps\business_app\signals.py

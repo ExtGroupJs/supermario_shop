@@ -14,7 +14,6 @@ from apps.common.views import CommonOrderingFilter, SerializerMapMixin
 from apps.common.permissions import SellViewSetPermission
 
 
-
 class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
     queryset = Sell.objects.all().select_related("shop_product", "seller")
     serializer_class = SellSerializer

@@ -8,7 +8,6 @@ from apps.business_app.serializers.shop import ShopSerializer
 from apps.common.permissions import CommonRolePermission
 
 
-
 class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     queryset = Shop.objects.all()
     serializer_class = ShopSerializer

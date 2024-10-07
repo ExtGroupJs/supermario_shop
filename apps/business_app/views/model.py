@@ -8,7 +8,6 @@ from apps.common.views import CommonOrderingFilter, SerializerMapMixin
 from apps.common.permissions import CommonRolePermission
 
 
-
 class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     queryset = Model.objects.all()
     serializer_class = ModelSerializer

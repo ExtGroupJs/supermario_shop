@@ -7,7 +7,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from apps.common.permissions import CommonRolePermission
 
 
-
 class BrandViewSet(viewsets.ModelViewSet, GenericAPIView):
     queryset = Brand.objects.all()
     serializer_class = BrandSerializer

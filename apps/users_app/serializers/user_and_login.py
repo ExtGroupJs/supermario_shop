@@ -13,6 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
     # country_name = serializers.CharField(read_only=True, source="country.name")
 
     shop_name = serializers.SerializerMethodField()
+
     class Meta:
         model = SystemUser
         fields = [
@@ -27,14 +28,13 @@ class UserSerializer(serializers.ModelSerializer):
             "groups",
             "shop",
             "shop_name",
-            
         ]
         extra_kwargs = {
             "password": {"write_only": True},
             "is_staff": {"write_only": True},
         }
         read_only_fields = ["shop_name"]
-    
+
     def get_shop_name(self, obj):
         return obj.shop.name if obj.shop else None
 
