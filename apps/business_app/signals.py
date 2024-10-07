@@ -23,7 +23,12 @@ def update_inventory(increment):
 
 
 @receiver(post_save, sender=Sell)
-def remove_from_inventory(sender, instance, **kwargs):
+def remove_from_inventory(sender, instance, created, **kwargs):
+    print("Entré al post-save")
+    if created:
+        print(f'Un nuevo objeto de MyModel ha sido creado: {instance}')
+    else:
+        print(f'Un objeto de MyModel ha sido actualizado: {instance}')
     related_product = ShopProducts.objects.get(id=instance.shop_product.id)
     related_product.quantity += instance.quantity
     related_product.save(update_fields=["quantity"])
@@ -31,7 +36,7 @@ def remove_from_inventory(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Sell)
 def restored_inventory(sender, instance, **kwargs):
-    
+    print("Entré al post-delete")
     related_product = ShopProducts.objects.get(id=instance.shop_product.id)
     related_product.quantity -= instance.quantity
     related_product.save(update_fields=["quantity"])
