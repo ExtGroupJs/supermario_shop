@@ -9,89 +9,90 @@ const url = "/business-gestion/products/";
 
 $(function () {
   bsCustomFileInput.init();
+  $("#filter-form")[0].reset();
   poblarListas();
 });
 
 $(document).ready(function () {
-  $("table")
-    .addClass("table table-hover")
-    .DataTable({
-      responsive: true,
-      dom: '<"top"l>Bfrtip',
-      buttons: [
-        {
-          text: "Crear",
-          className: "btn btn-primary btn-info",
-          action: function (e, dt, node, config) {
-            $("#modal-crear-products").modal("show");
-          },
+  const table = $("#tabla-de-Datos").DataTable({
+    responsive: true,
+    dom: '<"top"l>Bfrtip',
+    buttons: [
+      {
+        text: "Crear",
+        className: "btn btn-primary btn-info",
+        action: function (e, dt, node, config) {
+          $("#modal-crear-products").modal("show");
         },
-        {
-          extend: "excel",
-          text: "Excel",
-        },
-        {
-          extend: "pdf",
-          text: "PDF",
-        },
-        {
-          extend: "print",
-          text: "Print",
-        },
-      ],
-      // Adding server-side processing
-      serverSide: true,
-      search: {
-        return: true,
       },
-      processing: true,
-      ajax: function (data, callback, settings) {
-        dir = "";
+      {
+        extend: "excel",
+        text: "Excel",
+      },
+      {
+        extend: "pdf",
+        text: "PDF",
+      },
+      {
+        extend: "print",
+        text: "Print",
+      },
+    ],
+    // Adding server-side processing
+    serverSide: true,
+    search: {
+      return: true,
+    },
+    processing: true,
+    ajax: function (data, callback, settings) {
+      const filters = $("#filter-form").serializeArray();
 
-        if (data.order[0].dir == "desc") {
-          dir = "-";
+      const params = {};
+
+      filters.forEach((filter) => {
+        if (filter.value) {
+          params[filter.name] = filter.value;
         }
+      });
+      // Añadir parámetros de paginación
+      params.page_size = data.length;
+      params.page = data.start / data.length + 1;
+      params.ordering = data.columns[data.order[0].column].data;
+      params.search = data.search.value;
+      console.log("✌️params --->", params);
 
-        
-        axios
-          .get(`${url}`, {
-            
-            params: {
-              page_size: data.length,
-              page: data.start / data.length + 1,
-              search: data.search.value,
-              ordering: dir + data.columns[data.order[0].column].data,
-            },
-            
-          })
-          .then((res) => {
-            callback({
-              recordsTotal: res.data.count,
-              recordsFiltered: res.data.count,
-              data: res.data.results,
-            });
-          })
-          .catch((error) => {
-            alert(error);
+      axios
+        .get(`${url}`, { params })
+        .then((res) => {
+          callback({
+            recordsTotal: res.data.count,
+            recordsFiltered: res.data.count,
+            data: res.data.results,
           });
-      },
-      columns: [
+        })
+        .catch((error) => {
+          alert(error);
+        });
+    },
+    columns: [
+      { data: "name", title: "Nombre" },
+      {
+        data: "image",
+        title: "Foto",
+        render: (data) => {
+          if (data) {
+            return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
         
-        { data: "name", title: "Nombre" },
-        {
-          data: "image",
-          title: "Foto",
-          render: (data) => {
-              return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
-          },
+          } else{return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;} 
+           },
       },
-        { data: "model.__str__", title: "Modelo" },
-        { data: "description", title: "Descripción" },
-        {
-            data: "id",
-            title: "Acciones",
-            render: (data, type, row) => {
-                return `<div class="btn-group">
+      { data: "model.__str__", title: "Modelo" },
+      { data: "description", title: "Descripción" },
+      {
+        data: "id",
+        title: "Acciones",
+        render: (data, type, row) => {
+          return `<div class="btn-group">
                             <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-products" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}">
                               <i class="fas fa-edit"></i>
                             </button>  
@@ -99,35 +100,48 @@ $(document).ready(function () {
                               <i class="fas fa-trash"></i>
                             </button>                                          
                           </div>`;
-            },
         },
+      },
     ],
-    
-      //  esto es para truncar el texto de las celdas
-      columnDefs: [],
-    });
+
+    //  esto es para truncar el texto de las celdas
+    columnDefs: [],
+  });
+
+  // Manejo del formulario de filtros
+  $("#filter-form").on("submit", function (event) {
+    event.preventDefault();
+    console.log("✌️event --->", event);
+    table.ajax.reload();
+  });
+
+  // Restablecer filtros
+  $("#reset-filters").on("click", function () {
+    $("#filter-form")[0].reset();
+
+    table.ajax.reload();
+  });
+
+  // Mostrar/Ocultar filtros
+  $("#toggle-filters").on("click", function () {
+    $("#filter-section").toggle();
+  });
 });
 
 let selected_id;
 
-$(document).on('click', '.thumbnail', function() {
-  const fullsizeImage = $(this).data('fullsize');
-  
+$(document).on("click", ".thumbnail", function () {
+  const fullsizeImage = $(this).data("fullsize");
+
   Swal.fire({
-      imageUrl: fullsizeImage,
-      imageWidth: 400, // Ajusta el ancho según sea necesario
-      imageHeight: 300, // Ajusta la altura según sea necesario
-      imageAlt: 'Image',
-      showCloseButton: false,
-      showConfirmButton: true,
+    imageUrl: fullsizeImage,
+    imageWidth: 400, // Ajusta el ancho según sea necesario
+    imageHeight: 300, // Ajusta la altura según sea necesario
+    imageAlt: "Image",
+    showCloseButton: false,
+    showConfirmButton: true,
   });
 });
-
-
-
-
-
-
 
 $("#modal-crear-products").on("hide.bs.modal", (event) => {
   const form = event.currentTarget.querySelector("form");
@@ -158,7 +172,7 @@ $("#modal-crear-products").on("show.bs.modal", function (event) {
         form.elements.name.value = product.name;
         form.elements.description.value = product.description;
         form.elements.model.value = product.model;
-        $('#model').val(product.model).trigger('change');
+        $("#model").val(product.model).trigger("change");
       })
       .catch(function (error) {});
   } else {
@@ -291,16 +305,18 @@ form.addEventListener("submit", function (event) {
 function poblarListas() {
   // Poblar la lista de modelos
   var $model = document.getElementById("model");
+  var $filterModel = document.getElementById("filter-model");
   axios.get("/business-gestion/models/").then(function (response) {
     response.data.results.forEach(function (element) {
       var option = new Option(element.name, element.id);
       $model.add(option);
+      var option = new Option(element.name, element.id);
+      $filterModel.add(option);
     });
   });
 }
 
 function function_delete(id, name) {
-  const table = $("#tabla-de-Datos").DataTable();
   Swal.fire({
     title: "Eliminar",
     text: `¿Está seguro que desea eliminar el elemento ${name}?`,
@@ -338,3 +354,5 @@ function function_delete(id, name) {
     }
   });
 }
+
+function poblarModelosFiltro() {}
