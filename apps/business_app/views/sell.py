@@ -11,6 +11,8 @@ from apps.business_app.serializers.product import (
 from apps.business_app.serializers.sell import SellSerializer
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.views import CommonOrderingFilter, SerializerMapMixin
+from apps.common.permissions import SellViewSetPermission
+
 
 
 class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
@@ -21,6 +23,7 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         filters.SearchFilter,
         CommonOrderingFilter,
     ]
+    permission_classes = [SellViewSetPermission]
     filterset_fields = [
         "shop_product",
         "shop_product__product",
