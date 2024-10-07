@@ -68,6 +68,7 @@ $(document).ready(function () {
             columns: [
                 { data: "username", "title": "User" },
                 { data: "get_full_name", "title": "Name" },
+                { data: "shop", "title": "Shop" },
                 { data: "email", "title": "Mail" },
 
                 {
@@ -75,14 +76,14 @@ $(document).ready(function () {
                     render: (data, type, row) => {
                         
                             return `<div class="btn-group">
-                        <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-usuario" data-id="${row.id}" data-type="edit" data-name="${row.get_full_name}" id="${row.id}"  >
+                        <button type="button" title="edit" class="btn bg-olive" data-toggle="modal" data-target="#modal-crear-usuario" data-id="${row.id}" data-type="edit" data-name="${row.get_full_name}" id="${row.id}"  >
                           <i class="fas fa-edit"></i>
                         </button>                       
                                              
                         <button type="button" title="delete" class="btn bg-olive" data-toggle="modal" data-target="#modal-eliminar-usuario" data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}">
                           <i class="fas fa-trash"></i>
                         </button>
-                        <button type="button" title="Roles" class="btn bg-olive"  data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}"  onclick="mostrarRoles(${row.id})">
+                        <button type="button" title="Roles y Tienda" class="btn bg-olive active"  data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}"  onclick="mostrarUserConfig(${row.id})">
                         <i class="nav-icon fas fa-users-cog"></i>
                             </button>                    
                       </div>`;
@@ -452,59 +453,84 @@ form.addEventListener('submit', function (event) {
     }
 });
 
-function mostrarRoles(id) {
+function mostrarUserConfig(id) {
+    var table = $('#tabla-de-Datos').DataTable();
     // Obtener los datos del usuario
     axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
     axios.get(`/user-gestion/users/${id}/`)
         .then(userResponse => {
             const rolesAsignados = userResponse.data.groups || []; 
+            const tiendaActual = userResponse.data.shop || null; // Obtener la tienda actual
 
             // Obtener los roles del endpoint
             return axios.get('/user-gestion/groups/').then(groupsResponse => {
                 const roles = groupsResponse.data.results;
-                const opciones = roles.map(role => {
+                const opcionesRoles = roles.map(role => {
                     const isSelected = rolesAsignados.includes(role.id) ? 'selected' : '';
                     return `<option value="${role.id}" ${isSelected}>${role.name}</option>`;
                 }).join('');
 
-                // Crear el HTML para el select múltiple
-                const html = `
-                    <select id="rolesSelect" class="form-control" multiple>
-                        ${opciones}
-                    </select>
-                `;
+                // Obtener las tiendas del endpoint
+                return axios.get('/business-gestion/shops/').then(shopsResponse => {
+                    const tiendas = shopsResponse.data.results;
+                    const opcionesTiendas = tiendas.map(shop => {
+                        const isSelected = tiendaActual === shop.id ? 'selected' : '';
+                        return `<option value="${shop.id}" ${isSelected}>${shop.name}</option>`;
+                    }).join('');
 
-                // Mostrar la alerta con la lista desplegable
-                return Swal.fire({
-                    title: 'Selecciona los roles',
-                    html: html,
-                    icon: "info",
-                    showCancelButton: true,
-                    confirmButtonText: 'Guardar',
-                    preConfirm: () => {
-                        const selectedRoles = Array.from(document.getElementById('rolesSelect').selectedOptions).map(option => option.value);
-                        return selectedRoles;
-                    }
+                    // Crear el HTML para los selects
+                    const html = `
+                        <div>
+                            <label for="rolesSelect">Selecciona los roles</label>
+                            <select id="rolesSelect" class="form-control" multiple>
+                                ${opcionesRoles}
+                            </select>
+                            <label for="shopSelect">Selecciona la tienda (opcional)</label>
+                            <select id="shopSelect" class="form-control">
+                                <option value="">Ninguna</option>
+                                ${opcionesTiendas}
+                            </select>
+                        </div>
+                    `;
+
+                    // Mostrar la alerta con los selects
+                    return Swal.fire({
+                        title: 'Configura los roles y la tienda',
+                        html: html,
+                        icon: "info",
+                        showCancelButton: true,
+                        confirmButtonText: 'Guardar',
+                        preConfirm: () => {
+                            const selectedRoles = Array.from(document.getElementById('rolesSelect').selectedOptions).map(option => option.value);
+                            const selectedShop = document.getElementById('shopSelect').value;
+                            return { roles: selectedRoles, shop: selectedShop };
+                        }
+                    });
                 });
             });
         })
         .then((result) => {
             if (result.isConfirmed) {
-                // Hacer el PATCH con los roles seleccionados
+                // Hacer el PATCH con los roles y la tienda seleccionada
+                const { roles, shop } = result.value;
                 axios.patch(`/user-gestion/users/${id}/`, {
-                    groups: result.value
+                    groups: roles,
+                    shop: shop // Enviamos la tienda seleccionada (puede ser vacía)
                 })
                 .then(() => {
-                    Swal.fire('Éxito', 'Roles guardados correctamente', 'success');
+                    
+                    Swal.fire('Éxito', 'Roles y tienda guardados correctamente', 'success');
+                    table.ajax.reload();
                 })
                 .catch(() => {
-                    Swal.fire('Error', 'No se pudieron guardar los roles', 'error');
+                    Swal.fire('Error', 'No se pudieron guardar los roles o la tienda', 'error');
                 });
             }
         })
         .catch(() => {
-            Swal.fire('Error', 'No se pudieron obtener los datos del usuario o los roles', 'error');
+            Swal.fire('Error', 'No se pudieron obtener los datos del usuario, roles o tiendas', 'error');
         });
+       
 }
 
 

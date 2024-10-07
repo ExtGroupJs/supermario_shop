@@ -52,14 +52,17 @@ $(document).ready(function () {
           dir = "-";
         }
 
+        
         axios
           .get(`${url}`, {
+            
             params: {
               page_size: data.length,
               page: data.start / data.length + 1,
               search: data.search.value,
               ordering: dir + data.columns[data.order[0].column].data,
             },
+            
           })
           .then((res) => {
             callback({
@@ -73,14 +76,15 @@ $(document).ready(function () {
           });
       },
       columns: [
-        {
-            data: "image",
-            title: "Foto",
-            render: (data) => {
-                return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
-            },
-        },
+        
         { data: "name", title: "Nombre" },
+        {
+          data: "image",
+          title: "Foto",
+          render: (data) => {
+              return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
+          },
+      },
         { data: "model.__str__", title: "Modelo" },
         { data: "description", title: "Descripción" },
         {
