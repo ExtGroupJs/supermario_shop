@@ -37,3 +37,5 @@ def products(request):
 
 def shop_products(request):
     return render(request, "shop_products/shop_products.html")
+def sales_products(request):
+    return render(request, "sales_products/sales_products.html")
