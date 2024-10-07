@@ -6,6 +6,9 @@ from apps.business_app.views.model import ModelViewSet
 from apps.business_app.views.product import ProductViewSet
 from apps.business_app.views.shop import ShopViewSet
 from apps.business_app.views.shop_products import ShopProductsViewSet
+from apps.business_app.views.sell import SellViewSet 
+
+
 # from django.urls import path
 
 # from apps.business_app.views import (
@@ -67,6 +70,11 @@ router.register(
     "shop-products",
     ShopProductsViewSet,
     basename="shop-products",
+)
+router.register(
+    "sell-products",
+    SellViewSet,
+    basename="sell-products",
 )
 # (
 # router.register(
