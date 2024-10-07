@@ -1,0 +1,29 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - main  # Cambia esto según tu rama principal
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to Contabo
+        run: |
+          ssh -o StrictHostKeyChecking=no -t root@217.76.49.67 "cd /home/projects/supermario_shop && git pull && exit"
+          
+      - name: Deploy to Contabo2
+        run: |
+          ssh -t root@217.76.49.67 "cd /home/projects/supermario_shop; source venv/bin/activate; python manage.py migrate; python manage.py collectstatic --noinput; sudo systemctl restart gunicorn_supermario_shop.service; exec \$SHELL --login"
+
+
