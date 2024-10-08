@@ -12,6 +12,7 @@ from apps.business_app.serializers.sell import SellSerializer
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.views import CommonOrderingFilter, SerializerMapMixin
 from apps.common.permissions import SellViewSetPermission
+from apps.users_app.models.system_user import SystemUser
 
 
 class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
@@ -37,3 +38,5 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         "seller__username",
         "extra_info",
     ]
+    def perform_create(self, serializer):
+        serializer.save(seller=SystemUser.objects.get(id=self.request.user.id) )

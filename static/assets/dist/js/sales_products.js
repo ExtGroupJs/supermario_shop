@@ -124,9 +124,6 @@ $(document).ready(function () {
   });
 });
 
-
-
-
 // ------------------------------------------------
 function sellProduct(shopProductId, availableQuantity) {
   var table = $("#tabla-de-Datos").DataTable();
@@ -161,14 +158,13 @@ function sellProduct(shopProductId, availableQuantity) {
     },
   }).then((result) => {
     if (result.isConfirmed) {
-console.log('✌️result --->', result);
+      console.log("✌️result --->", result);
       const { quantity, extraInfo } = result.value;
 
       const payload = {
         shop_product: shopProductId,
         extra_info: extraInfo || "string", // Usar "string" si no se proporciona información
         quantity: quantity,
-        seller: 1,
       };
 
       // Enviar los datos al servidor
