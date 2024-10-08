@@ -3,16 +3,20 @@ from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 
 from apps.business_app.models.product import Product
-from apps.business_app.serializers.product import (ProductSerializer,
-                                                   ReadProductSerializer)
+from apps.business_app.serializers.product import (
+    ProductSerializer,
+    ReadProductSerializer,
+)
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.views import CommonOrderingFilter, SerializerMapMixin
+from apps.common.permissions import CommonRolePermission
 
 
 class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     list_serializer_class = ReadProductSerializer
+    permission_classes = [CommonRolePermission]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,

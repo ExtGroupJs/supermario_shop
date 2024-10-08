@@ -6,6 +6,7 @@ from solo.admin import SingletonModelAdmin
 from apps.business_app.models.brand import Brand
 from apps.business_app.models.model import Model
 from apps.business_app.models.product import Product
+from apps.business_app.models.sell import Sell
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
 
@@ -65,13 +66,7 @@ class ModelAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     empty_value_display = "-empty-"
-    list_display = [
-        "id",
-        "name",
-        "model",
-        "description",
-        "image"
-    ]
+    list_display = ["id", "name", "model", "description", "image"]
     fields = [
         "name",
         "model",
@@ -115,6 +110,24 @@ class ShopProductsAdmin(admin.ModelAdmin):
         "quantity",
         "cost_price",
         "sell_price",
+    ]
+
+
+@admin.register(Sell)
+class SellAdmin(admin.ModelAdmin):
+    empty_value_display = "-empty-"
+    list_display = [
+        "id",
+        "shop_product",
+        "seller",
+        "extra_info",
+        "quantity",
+    ]
+    fields = [
+        "shop_product",
+        "seller",
+        "extra_info",
+        "quantity",
     ]
 
 

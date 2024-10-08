@@ -16,7 +16,7 @@ $(function () {
 
 // Inicializar DataTable
 $(document).ready(function () {
-  const table = $("#tabla-de-Datos").DataTable({ 
+  const table = $("#tabla-de-Datos").DataTable({
     responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [
@@ -45,32 +45,21 @@ $(document).ready(function () {
     ajax: function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
 
-// if (filters[8].value!='') {
-//   const tempArray = filters[8].value.split('-');
-//   filters[6].value=convertirFecha(tempArray[0],0);
-//   filters[7].value=convertirFecha(tempArray[1],1);
-//   filters[8].remove;
-// }
-// console.log('✌️filters --->', filters);
-
       const params = {};
 
-      filters.forEach(filter => {
+      filters.forEach((filter) => {
         if (filter.value) {
-           params[filter.name] = filter.value;
-
+          params[filter.name] = filter.value;
         }
-        
-      }
-    
-    );
+      });
       // Añadir parámetros de paginación
       params.page_size = data.length;
       params.page = data.start / data.length + 1;
       params.ordering = data.columns[data.order[0].column].data;
       params.search = data.search.value;
 
-      axios.get(url, { params })
+      axios
+        .get(url, { params })
         .then((res) => {
           callback({
             recordsTotal: res.data.count,
@@ -106,19 +95,19 @@ $(document).ready(function () {
     ],
     createdRow: function (row, data, dataIndex) {
       if (data.quantity === 0) {
-        $(row).addClass('table-danger'); // Rojo
+        $(row).addClass("table-danger"); // Rojo
       } else if (data.quantity === 1) {
-        $(row).addClass('table-warning'); // Amarillo
+        $(row).addClass("table-warning"); // Amarillo
       }
-    }
+    },
   });
   function convertirFecha(fecha, hora) {
     // Dividir la fecha en partes
-    const partes = fecha.split('/');
-    
+    const partes = fecha.split("/");
+
     // Verificar que la fecha tenga el formato correcto
     if (partes.length !== 3) {
-        throw new Error("Formato de fecha incorrecto. Debe ser DD/MM/YYYY.");
+      throw new Error("Formato de fecha incorrecto. Debe ser DD/MM/YYYY.");
     }
 
     // Crear un objeto Date con el formato YYYY, MM (0-indexado), DD
@@ -126,25 +115,23 @@ $(document).ready(function () {
 
     // Establecer la hora según el valor proporcionado
     if (hora === 0) {
-        fechaDate.setHours(0, 0); // 00:00
+      fechaDate.setHours(0, 0); // 00:00
     } else if (hora === 1) {
-        fechaDate.setHours(13, 0); // 13:00
+      fechaDate.setHours(13, 0); // 13:00
     } else {
-        throw new Error("La hora debe ser 0 o 1.");
+      throw new Error("La hora debe ser 0 o 1.");
     }
 
     // Formatear la fecha en el formato deseado
     const fechaFormateada = fechaDate.toISOString().slice(0, 16);
-    
+
     return fechaFormateada;
-
-}
-
-
+  }
 
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();
+console.log('✌️event --->', event);
     table.ajax.reload();
   });
 
@@ -161,7 +148,6 @@ $(document).ready(function () {
 });
 
 // Otras funciones existentes...
-
 
 let selected_id;
 
@@ -197,7 +183,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
         form.elements.product.value = shopProduct.product;
-        $('#product').val(shopProduct.product).trigger('change');
+        $("#product").val(shopProduct.product).trigger("change");
       })
       .catch(function (error) {});
   } else {
