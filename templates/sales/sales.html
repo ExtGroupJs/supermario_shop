@@ -20,12 +20,12 @@
     <div class="container-fluid">
       <div class="row mb-2">
         <div class="col-sm-6">
-          <h1>Producto</h1>
+          <h1>Ventas</h1>
         </div>
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="#">Inicio</a></li>
-            <li class="breadcrumb-item active">Productos</li>
+            <li class="breadcrumb-item active">Ventas</li>
           </ol>
         </div>
       </div>
@@ -40,33 +40,15 @@
 
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Gestionar Producto</h3>
-              <button class="btn btn-secondary float-right" id="toggle-filters"><i class="nav-icon fas fa-filter"></i>
-                Filtros</button>
-            </div>
-<!-- /.card-header -->
-            <!-- Filtros -->
-            <div class="card-body" id="filter-section" style="display: none;">
-              <form id="filter-form" class="mb-2">
-                <div class="row">
-                  <div class="form-group col-md-6">
-                    <label for="filter-model">Modelo</label>
-                    <select class="form-control select2" id="filter-model" name="model"></select>
-                  </div>
-                  <div class="form-group col-md-12">
-                    <button type="submit" class="btn btn-primary"><i class="nav-icon fas fa-check"></i> Aplicar</button>
-                    <button type="button" id="reset-filters" class="btn btn-secondary"><i
-                        class="nav-icon fas fa-redo"></i> Restablecer</button>
-                  </div>
-                </div>
-              </form>
-              <hr>
-            </div>
 
+              <h3 class="card-title">Gestionar Ventas</h3>
+            </div>
             <!-- /.card-header -->
             <div class="modal-body">
 
+              <!-- </div>style="overflow: hidden;"> -->
               <table id="tabla-de-Datos" class="table table-bordered table-striped" style="width: 100%;">
+
               </table>
             </div>
             <!-- /.card-body -->
@@ -81,70 +63,7 @@
   </section>
   <!-- /.content -->
 </div>
-<!-- /.content-wrapper -->
 
-<!-- modal para crear producto -->
-<div class="modal fade" id="modal-crear-products" data-backdrop="static" tabindex="-1" role="dialog"
-  aria-labelledby="staticBackdropLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Adicionar Producto</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-
-      <form id="form-create-products">
-        <div class="card-body">
-
-          <div class="form-group">
-            <label for="name">Nombre</label>
-            <input type="text" class="form-control" id="name" name="name" placeholder="Entre el nombre" required>
-          </div>
-          <div class="row">
-            <div class="form-group col-sm-6">
-              <label for="exampleInputFile">Imagen</label>
-              <div class="input-group">
-                <div class="custom-file">
-                  <input type="file" class="custom-file-input" id="image" name="image"
-                    accept="image/jpeg, image/png, image/gif">
-                  <label class=" custom-file-label" for="image"></label>
-                </div>
-              </div>
-            </div>
-
-
-            <div class="form-group col-sm-6">
-              <label for="model">Modelo</label>
-              <select class="form-control select2 selectModel" id="model" name="model" tabindex="-1"></select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="description">Descripción</label>
-            <textarea class="form-control" rows="3" id="description" name="description"
-              placeholder="Ingrese la descripción" required></textarea>
-          </div>
-
-
-
-        </div>
-
-        <!-- /.card-body -->
-        <div class="modal-footer justify-content-between">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-          <button type="submit" class="btn btn-primary">Enviar</button>
-        </div>
-
-      </form>
-
-    </div>
-  </div>
-
-</div>
-<!-- /.modal-content -->
-</div>
 <!-- /.modal-dialog -->
 </div>
 <!-- /.modal -->
@@ -168,12 +87,11 @@
 <script src="{% static 'assets/plugins/jquery-validation/additional-methods.min.js' %}"></script>
 <script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+
+<script src="{% static 'assets/dist/js/sales.js' %}"></script>
 <script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
 
-<script src="{% static 'assets/dist/js/products.js' %}"></script>
-<script>
-  $('.select2').select2({ dropdownParent: $('#filter-form'), theme: 'bootstrap4' })
-  $('.selectModel').select2({ dropdownParent: $('#modal-crear-products'), theme: 'bootstrap4' })
+<!-- Page specific script -->
 
-</script>
+
 {% endblock %}

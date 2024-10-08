@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
 from apps.business_app.models.shop_products import ShopProducts
-from apps.business_app.serializers.product import (ProductSerializer,
-                                                   ReadProductSerializer)
+from apps.business_app.serializers.product import (
+    ProductSerializer,
+    ReadProductSerializer,
+)
 from apps.business_app.serializers.shop import ShopSerializer
 
 

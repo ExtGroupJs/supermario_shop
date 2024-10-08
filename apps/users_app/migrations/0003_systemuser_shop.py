@@ -5,16 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('business_app', '0008_product_image'),
-        ('users_app', '0002_create_default_admin_user'),
+        ("business_app", "0008_product_image"),
+        ("users_app", "0002_create_default_admin_user"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='systemuser',
-            name='shop',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='business_app.shop'),
+            model_name="systemuser",
+            name="shop",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="business_app.shop",
+            ),
         ),
     ]

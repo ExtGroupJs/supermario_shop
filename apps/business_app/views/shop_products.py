@@ -4,7 +4,9 @@ from rest_framework.generics import GenericAPIView
 
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.shop_products import (
-    ReadShopProductsSerializer, ShopProductsSerializer)
+    ReadShopProductsSerializer,
+    ShopProductsSerializer,
+)
 from apps.common.views import CommonOrderingFilter, SerializerMapMixin
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
