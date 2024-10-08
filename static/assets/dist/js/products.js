@@ -317,6 +317,7 @@ function poblarListas() {
 }
 
 function function_delete(id, name) {
+  const table = $("#tabla-de-Datos").DataTable();
   Swal.fire({
     title: "Eliminar",
     text: `¿Está seguro que desea eliminar el elemento ${name}?`,
