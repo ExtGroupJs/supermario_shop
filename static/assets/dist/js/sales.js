@@ -18,7 +18,6 @@ $(document).ready(function () {
       responsive: true,
       dom: '<"top"l>Bfrtip',
       buttons: [
-       
         {
           extend: "excel",
           text: "Excel",
@@ -65,9 +64,13 @@ $(document).ready(function () {
           });
       },
       columns: [
-        { data: "shop_product", title: "Producto" },
+        { data: "shop_product_name", title: "Producto" },
         { data: "quantity", title: "Cantidad" },
-        
+        { data: "unit_price", title: "Precio unitario" },
+        { data: "total_priced", title: "Monto total" },
+        { data: "seller_name", title: "Vendedor" },
+        { data: "created_timestamp", title: "Fecha" },
+
         {
           data: "id",
           title: "Acciones",
@@ -83,10 +86,6 @@ $(document).ready(function () {
       columnDefs: [],
     });
 });
-
-
-
-
 
 function function_delete(id, name) {
   const table = $("#tabla-de-Datos").DataTable();

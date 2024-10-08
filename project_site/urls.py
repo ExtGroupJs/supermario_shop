@@ -58,9 +58,7 @@ urlpatterns = [
     path(
         "sales_products/", login_required(pages.sales_products), name="sales_products"
     ),
-    path(
-        "sales/", login_required(pages.sales), name="sales"
-    ),
+    path("sales/", login_required(pages.sales), name="sales"),
 ]
 
 # This is for serving media on development stages

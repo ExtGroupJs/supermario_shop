@@ -6,6 +6,6 @@ class BusinessAppConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.business_app"
     verbose_name = _("Business Specific Application")
-    
+
     def ready(self):
         import apps.business_app.signals  # Asegúrate de importar tu archivo de señales

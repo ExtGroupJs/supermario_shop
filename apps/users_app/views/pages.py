@@ -42,5 +42,6 @@ def shop_products(request):
 def sales_products(request):
     return render(request, "sales_products/sales_products.html")
 
+
 def sales(request):
     return render(request, "sales/sales.html")
