@@ -7,11 +7,9 @@ from apps.common.mixins.generic_log import GenericLogMixin
 from apps.common.models import BaseModel
 from django.core.exceptions import ValidationError
 from safedelete.models import SafeDeleteModel
-from safedelete.models import HARD_DELETE_NOCASCADE
 
 
-
-class ShopProducts(GenericLogMixin,SafeDeleteModel,  BaseModel):
+class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     shop = models.ForeignKey(
         to=Shop, on_delete=models.DO_NOTHING, verbose_name="Tienda"
     )

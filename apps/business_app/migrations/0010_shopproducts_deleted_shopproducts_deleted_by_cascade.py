@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('business_app', '0009_sell'),
+        ("business_app", "0009_sell"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='shopproducts',
-            name='deleted',
+            model_name="shopproducts",
+            name="deleted",
             field=models.DateTimeField(db_index=True, editable=False, null=True),
         ),
         migrations.AddField(
-            model_name='shopproducts',
-            name='deleted_by_cascade',
+            model_name="shopproducts",
+            name="deleted_by_cascade",
             field=models.BooleanField(default=False, editable=False),
         ),
     ]

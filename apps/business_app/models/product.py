@@ -3,9 +3,10 @@ from django.db import models
 from apps.business_app.models.model import Model
 from apps.common.mixins.generic_log import GenericLogMixin
 from apps.common.models import BaseModel
+from safedelete.models import SafeDeleteModel
 
 
-class Product(GenericLogMixin, BaseModel):
+class Product(GenericLogMixin, SafeDeleteModel, BaseModel):
     name = models.CharField(verbose_name="Nombre", max_length=200)
     model = models.ForeignKey(
         to=Model, verbose_name="Modelo", on_delete=models.CASCADE, null=True, blank=True

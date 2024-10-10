@@ -38,6 +38,7 @@ class GenericLogMixin:
                 object_id=self.pk,
                 details=str(details),
             )
+
     def delete(self, *args, **kwargs):
         GenericLog.objects.create(
             performed_action=GenericLog.ACTION.DELETED,
