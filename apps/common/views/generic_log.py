@@ -13,8 +13,6 @@ from rest_framework.response import Response
 from django.contrib.contenttypes.models import ContentType
 
 
-
-
 class GenericLogViewSet(viewsets.ReadOnlyModelViewSet, GenericAPIView):
     queryset = GenericLog.objects.all()
     serializer_class = GenericLogSerializer
@@ -34,14 +32,14 @@ class GenericLogViewSet(viewsets.ReadOnlyModelViewSet, GenericAPIView):
         "name",
         "description",
     ]
+
     @action(detail=False, methods=["GET"])
     def content_types_dict(self, request):
-        content_types = self.get_queryset().values_list('content_type', flat=True).distinct()
+        content_types = (
+            self.get_queryset().values_list("content_type", flat=True).distinct()
+        )
         result = {}
         for content_type in content_types:
             result[content_type] = ContentType.objects.get(id=content_type).name
 
-        return Response(
-            result, status=status.HTTP_200_OK
-        )
-
+        return Response(result, status=status.HTTP_200_OK)

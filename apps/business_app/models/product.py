@@ -6,7 +6,7 @@ from apps.common.models import BaseModel
 from safedelete.models import SafeDeleteModel
 
 
-class Product(GenericLogMixin, SafeDeleteModel, BaseModel):
+class Product(SafeDeleteModel, BaseModel):
     name = models.CharField(verbose_name="Nombre", max_length=200)
     model = models.ForeignKey(
         to=Model, verbose_name="Modelo", on_delete=models.CASCADE, null=True, blank=True
