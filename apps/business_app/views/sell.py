@@ -9,8 +9,8 @@ from apps.business_app.serializers.product import (
     ReadProductSerializer,
 )
 from apps.business_app.serializers.sell import SellSerializer
+from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.pagination import AllResultsSetPagination
-from apps.common.views import CommonOrderingFilter, SerializerMapMixin
 from apps.common.permissions import SellViewSetPermission
 from apps.users_app.models.system_user import SystemUser
 

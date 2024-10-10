@@ -1,33 +1,10 @@
 from django.db.models import Case, F, Q, Value, When
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins
-from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 
 from apps.common.filters import CommonFilter
 from apps.common.pagination import AllResultsSetPagination
-
-
-class SerializerMapMixin:
-    """
-    This class allows to use diferent serializers for diferent actions,
-    it has to be inherited and then: {action}_serializer_class = Serializer
-    """
-
-    serializer_class = NotImplemented
-    action = NotImplemented
-    request = NotImplemented
-
-    def get_serializer_class(self, action=None):
-        if not action:
-            action = self.action
-        serializer_field = f"{action}_serializer_class"
-        serializer_class = getattr(self, serializer_field, self.serializer_class)
-        return serializer_class
-
-    def get_host(self):
-        protocol = "https" if self.request._request.is_secure() else "http"
-        return f"{protocol}://{self.request._request.get_host()}"
 
 
 class CommonOrderingFilter(filters.OrderingFilter):
@@ -109,39 +86,3 @@ class CommonOrderingFilter(filters.OrderingFilter):
                     ordering_with_nulls_last.append(field)
             return queryset.order_by(*ordering_with_nulls_last)
         return queryset
-
-
-class GetAllMixin(mixins.ListModelMixin):
-    """
-    This mixin adds an action to return all the elements of a list, without pagination
-    """
-
-    @action(
-        detail=False,
-        methods=["GET"],
-        url_path="get-all",
-        url_name="get-all",
-    )
-    def get_all(self, request):
-        self.pagination_class = AllResultsSetPagination
-        return self.list(request)
-
-
-class CommonViewMixin(GenericAPIView):
-    """
-    Use this as parent class in all views. Adds:
-     - ordering
-     - default filtering
-    """
-
-    # Filtering
-    _filter_class = None
-    ordering_fields = "__all__"
-    ordering = ["-created_timestamp"]
-    # filterset_fields = [field.name for field in queryset.model._meta.fields]
-    filterset_class = CommonFilter
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        CommonOrderingFilter,
-    ]
