@@ -19,8 +19,12 @@ class GenericLogMixin:
             for field, new_value in updated_object_dict.items():
                 original_value = original_object_dict.get(field)
                 if original_value != new_value:
-                    details[f"old_{field}"] = str(getattr(original_object, field))
-                    details[f"new_{field}"] = str(getattr(self, field))
+                    details[field] = {
+                        "old_value": str(getattr(original_object, field)),
+                        "new_value": str(getattr(self, field)),
+                    }
+                    # details[f"old_{field}"] = str(getattr(original_object, field))
+                    # details[f"new_{field}"] = str(getattr(self, field))
                     print(
                         f'El campo "{field}" ha cambiado de "{original_value}" a "{new_value}"'
                     )
@@ -29,7 +33,7 @@ class GenericLogMixin:
             action = GenericLog.ACTION.CREATED
             for field, new_value in updated_object_dict.items():
                 if new_value:
-                    details[f"{field}"] = str(getattr(self, field))
+                    details[field] = str(getattr(self, field))
         super().save(*args, **kwargs)
         if details:
             GenericLog.objects.create(
