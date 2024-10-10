@@ -38,5 +38,6 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         "seller__username",
         "extra_info",
     ]
+
     def perform_create(self, serializer):
-        serializer.save(seller=SystemUser.objects.get(id=self.request.user.id) )
+        serializer.save(seller=SystemUser.objects.get(id=self.request.user.id))
