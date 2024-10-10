@@ -1,3 +1,4 @@
+from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
@@ -7,6 +8,11 @@ from apps.common.models.generic_log import GenericLog
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.permissions import CommonRolePermission
 from apps.common.serializers.generic_log import GenericLogSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.contrib.contenttypes.models import ContentType
+
+
 
 
 class GenericLogViewSet(viewsets.ReadOnlyModelViewSet, GenericAPIView):
@@ -28,3 +34,14 @@ class GenericLogViewSet(viewsets.ReadOnlyModelViewSet, GenericAPIView):
         "name",
         "description",
     ]
+    @action(detail=False, methods=["GET"])
+    def content_types_dict(self, request):
+        content_types = self.get_queryset().values_list('content_type', flat=True).distinct()
+        result = {}
+        for content_type in content_types:
+            result[content_type] = ContentType.objects.get(id=content_type).name
+
+        return Response(
+            result, status=status.HTTP_200_OK
+        )
+

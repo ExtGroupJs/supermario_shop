@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from apps.common.models.generic_log import GenericLog
-from django.contrib.contenttypes.models import ContentType
 
 
 
@@ -22,3 +21,4 @@ class GenericLogSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_timestamp", "created_by"]
     def get_model_class(self, object):
         return object.content_type.name
+
