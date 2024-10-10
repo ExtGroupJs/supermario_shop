@@ -18,4 +18,3 @@ class GenericLogAdmin(admin.ModelAdmin):
         "details",
         "created_by",
     ]
-

@@ -42,4 +42,4 @@ class GenericLog(models.Model):
         verbose_name_plural = "Logs"
 
     def __str__(self):
-        pass
+        return f"{self.content_type}-{self.content_object} - {self.performed_action}"
