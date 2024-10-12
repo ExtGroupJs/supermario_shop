@@ -60,6 +60,7 @@ urlpatterns = [
         "sales_products/", login_required(pages.sales_products), name="sales_products"
     ),
     path("sales/", login_required(pages.sales), name="sales"),
+    path("salescar/", login_required(pages.salescar), name="salescar"),
 ]
 
 # This is for serving media on development stages
