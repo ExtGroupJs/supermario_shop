@@ -83,6 +83,9 @@ $(document).ready(function () {
         title: "Acciones",
         render: (data, type, row) => {
           return `<div class="btn-group">
+           <button type="button" title="Agregar Cantidad" class="btn bg-olive" onclick="agregarCantidad('${row.id}','${row.quantity}')">
+                <i class="fas fa-plus"></i>
+              </button>
                     <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
                       <i class="fas fa-edit"></i>
                     </button>
@@ -404,3 +407,61 @@ function function_delete(id, name) {
     }
   });
 }
+
+function agregarCantidad(shopProductId,cantidad_actual) {
+  Swal.fire({
+    title: 'Agregar Cantidad',
+    text: '¿Cuántas unidades deseas agregar al producto?',
+    input: 'number',
+    inputAttributes: {
+     step: 1
+    },
+    showCancelButton: true,
+    confirmButtonText: 'Agregar',
+    cancelButtonText: 'Cancelar',
+    preConfirm: (cantidad) => {
+
+      if (!cantidad || cantidad <= 0) {
+      
+        Swal.showValidationMessage(`Por favor, introduce una cantidad válida.`);
+     
+      }
+      return cantidad;
+
+    } 
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const cantidadAgregada = Number(result.value) + Number(cantidad_actual);
+      const table = $("#tabla-de-Datos").DataTable();
+      // Realizar la petición para actualizar la cantidad
+      axios.patch(`${url}${shopProductId}/`, { quantity: cantidadAgregada })
+        .then(response => {
+          if (response.status === 200) {
+            Swal.fire({
+              icon: 'success',
+              title: '¡Éxito!',
+              text: `Se han agregado ${cantidadAgregada} unidades al producto.`,
+              showConfirmButton: false,
+              timer: 2000 // Mensaje de éxito por 2 segundos
+            });
+            // Recargar la tabla para reflejar los cambios
+            table.ajax.reload();
+          }
+        })
+        .catch(error => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo actualizar la cantidad. Intente nuevamente.',
+            showConfirmButton: true
+          });
+        });
+    }
+  });
+}
+
+function esNegativo(num) {
+  return num < 0;
+}
+
+
