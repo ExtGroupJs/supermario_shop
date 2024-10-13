@@ -1,7 +1,6 @@
 import logging
 
 from django.contrib import admin
-from solo.admin import SingletonModelAdmin
 
 from apps.business_app.models.brand import Brand
 from apps.business_app.models.model import Model
@@ -9,28 +8,6 @@ from apps.business_app.models.product import Product
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
-
-# from apps.business_app.models import (
-# AllowedExtensions,
-# SiteConfiguration,
-# UploadedFiles,
-# AlleleNode,
-# Marker,
-# Event,
-# Layer,
-# WorkingCopyOfOriginalFile,
-# )
-# from apps.business_app.models.initial_file_data import InitialFileData
-# from apps.business_app.models.pdb_files import PdbFiles
-
-# logger = logging.getLogger(__name__)
-
-# # Register your models here.
-
-# admin.site.register(SiteConfiguration, SingletonModelAdmin)
-# admin.site.register(Event)
-# admin.site.register(Marker)
-# admin.site.register(Layer)
 
 
 @admin.register(Brand)

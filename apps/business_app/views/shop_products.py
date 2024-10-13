@@ -7,7 +7,8 @@ from apps.business_app.serializers.shop_products import (
     ReadShopProductsSerializer,
     ShopProductsSerializer,
 )
-from apps.common.views import CommonOrderingFilter, SerializerMapMixin
+from apps.common.common_ordering_filter import CommonOrderingFilter
+from apps.common.mixins.serializer_map import SerializerMapMixin
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 
