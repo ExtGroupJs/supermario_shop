@@ -7,9 +7,9 @@ from datetime import datetime
 class SellSerializer(serializers.ModelSerializer):
     shop_product_name = serializers.CharField(
         source="shop_product.__str__", read_only=True
+    )
     unit_price = serializers.CharField(source="shop_product.sell_price", read_only=True)
     seller_name = serializers.CharField(source="seller.__str__", read_only=True)
-
     total_priced = serializers.SerializerMethodField(read_only=True)
     created_timestamp = serializers.SerializerMethodField(read_only=True)
 
