@@ -2,8 +2,10 @@ from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 from apps.business_app.models.brand import Brand
 from apps.business_app.serializers.brand import BrandSerializer
-from apps.common.views import CommonOrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+
+from apps.common.common_ordering_filter import CommonOrderingFilter
+
 from apps.common.permissions import CommonRolePermission
 
 

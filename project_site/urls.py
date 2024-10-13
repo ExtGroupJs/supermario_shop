@@ -40,6 +40,7 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path("common/", include("apps.common.urls")),
     path("user-gestion/", include("apps.users_app.urls")),
     path("business-gestion/", include("apps.business_app.urls")),
     path("admin/", admin.site.urls),
@@ -59,6 +60,9 @@ urlpatterns = [
         "sales_products/", login_required(pages.sales_products), name="sales_products"
     ),
     path("sales/", login_required(pages.sales), name="sales"),
+
+    path("salescar/", login_required(pages.salescar), name="salescar"),
+
 ]
 
 # This is for serving media on development stages

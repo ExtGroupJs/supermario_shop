@@ -3,11 +3,13 @@ from django.core import validators
 
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.product import Product
+from apps.common.mixins.generic_log import GenericLogMixin
 from apps.common.models import BaseModel
 from django.core.exceptions import ValidationError
+from safedelete.models import SafeDeleteModel
 
 
-class ShopProducts(BaseModel):
+class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     shop = models.ForeignKey(
         to=Shop, on_delete=models.DO_NOTHING, verbose_name="Tienda"
     )
