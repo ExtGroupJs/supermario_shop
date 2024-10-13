@@ -4,7 +4,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.business_app.models.shop import Shop
 from apps.business_app.serializers.shop import ShopSerializer
+
 from apps.common.common_ordering_filter import CommonOrderingFilter
+
 from apps.common.permissions import CommonRolePermission
 
 
