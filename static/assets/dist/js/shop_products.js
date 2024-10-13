@@ -92,6 +92,9 @@ $(document).ready(function () {
                     <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product}')" >
                       <i class="fas fa-trash"></i>
                     </button>
+                    <button type="button" title="Ver Logs" class="btn bg-olive" onclick="verLogs('${row.id}','${row.product.name}')">
+                <i class="fas fa-history"></i>
+              </button>
                   </div>`;
         },
       },
@@ -463,5 +466,102 @@ function agregarCantidad(shopProductId,cantidad_actual) {
 function esNegativo(num) {
   return num < 0;
 }
+
+
+function verLogs(shopProductId,name) {
+  // Función para formatear la fecha
+  function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    const options = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    return date.toLocaleString('es-ES', options).replace(',', ' -');
+  }
+
+  // Configurar el DataTable para los logs
+  const logsTable = $("#tabla-de-logs").DataTable({    
+   responsive: true,
+    ajax: {
+      url: "/common/logs/",
+      data: {
+        object_id: shopProductId,
+        performed_action: "U" // Filtrar solo por performed_action "U"
+      },
+      dataSrc: "results"
+    },
+   
+    columns: [
+      {
+        data: "created_timestamp",
+        title: "Fecha",
+        render: function(data) {
+          return formatDate(data); // Formatear la fecha
+        }
+      },
+      {
+        data: "details",
+        title: "Existencia",
+        render: function(data) {          
+          try {
+            const formattedData = data.replace(/'/g, '"');
+            const details = JSON.parse(formattedData);
+            return details.quantity.old_value; // Mostrar old_value
+          } catch (e) {
+            console.error("Error al parsear details:", e);
+            return "Error"; // Manejo de error
+          }
+        }
+      },
+      {
+        data: "details",
+        title: "Entrada",
+        render: function(data) {
+          try {
+            const formattedData = data.replace(/'/g, '"');
+            const details = JSON.parse(formattedData);
+            return details.quantity.new_value; // Mostrar new_value
+          } catch (e) {
+            console.error("Error al parsear details:", e);
+            return "Error"; // Manejo de error
+          }
+        }
+      },
+      {
+        data: "details",
+        title: "Acción",
+        render: function(data) {
+          try {
+            const formattedData = data.replace(/'/g, '"');
+            const details = JSON.parse(formattedData);
+            const existencia = parseInt(details.quantity.old_value, 10); 
+            const entrada = parseInt(details.quantity.new_value, 10);
+            let action = "";
+            let difference = 0;
+            if (entrada > existencia) {
+              action = "Entrada";
+              difference = entrada - existencia;
+            } else {
+              action = "Venta";
+              difference = existencia - entrada;
+            }
+            return `${action} ${difference}`; // Mostrar acción y diferencia
+          } catch (e) {
+            console.error("Error al parsear details:", e);
+            return "Error"; // Manejo de error
+          }
+        }
+      },
+    ],
+    columnDefs: [
+      {className: "primera_col", targets: 0},
+      
+    ],
+    destroy: true // Permite reinicializar el DataTable
+  });
+  $("#modal-logs-label").text("Logs del Producto "+name);
+  // Mostrar el modal
+  $("#modal-logs").modal("show");
+}
+
+
+
 
 
