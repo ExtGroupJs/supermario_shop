@@ -14,6 +14,9 @@ from apps.common.mixins.serializer_map import SerializerMapMixin
 from apps.common.pagination import AllResultsSetPagination
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
+from rest_framework.decorators import action
+from django.db.models import Count, Sum
+from rest_framework.response import Response
 
 
 class ShopProductsViewSet(
@@ -61,3 +64,14 @@ class ShopProductsViewSet(
             return queryset
         system_user = SystemUser.objects.get(id=self.request.user.id)
         return queryset.filter(quantity__gt=0, shop=system_user.shop)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+    )
+    def investment(self, request):
+        objects = self.filter_queryset(self.get_queryset())
+        investments = 0
+        for obj in objects:
+            investments += obj.investment()
+        return Response(investments)
