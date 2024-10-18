@@ -66,7 +66,7 @@ class DashboardViewSet(
     def shop_product_sells_count(self, request):
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
-        frequency = serializer.validated_data.pop("frequency")
+        frequency = serializer.validated_data.pop("frequency", None)
         objects = Sell.objects.filter(**serializer.validated_data)
         if frequency:
             if frequency == "day":
@@ -85,6 +85,10 @@ class DashboardViewSet(
                 .annotate(total=Count("quantity"))
                 .order_by("frequency")
             )
+        else:
+            results = {
+                "frequency": "None",
+                "total": len(objects.annotate(total=Count("quantity")).values("total")),
+            }
 
-            return Response({"result": results})
-        return Response({"result": "investments"})
+        return Response({"result": results})
