@@ -13,6 +13,7 @@ class GenericLog(models.Model):
     Usage excample: Refers to apps/common/mixins/generic_log.py
 
     """
+
     class ACTION(models.TextChoices):
         CREATED = "C", _("creado")
         UPDATED = "U", _("modificado")

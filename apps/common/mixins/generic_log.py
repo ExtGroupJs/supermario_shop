@@ -5,15 +5,15 @@ from apps.common.models.generic_log import GenericLog
 
 class GenericLogMixin:
     """
-        This class allows to store every change on any field of on any desired model as an instance of GenericLog model.
+    This class allows to store every change on any field of on any desired model as an instance of GenericLog model.
 
-        Usage example:
+    Usage example:
 
-        class YourModel(GenericLogMixin, SafeDeleteModel, ...):
-        
-        NOTICE: This class should be the first because it override the save and delete methods, 
-        optionally but as good practice, you should inherit as well of SafeDeleteModel in the second place, 
-        this way when the object is deleted, the reference is stored and the trazability can be done.
+    class YourModel(GenericLogMixin, SafeDeleteModel, ...):
+
+    NOTICE: This class should be the first because it override the save and delete methods,
+    optionally but as good practice, you should inherit as well of SafeDeleteModel in the second place,
+    this way when the object is deleted, the reference is stored and the trazability can be done.
     """
 
     def save(self, *args, **kwargs):
