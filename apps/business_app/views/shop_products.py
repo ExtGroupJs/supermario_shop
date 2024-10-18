@@ -64,14 +64,3 @@ class ShopProductsViewSet(
             return queryset
         system_user = SystemUser.objects.get(id=self.request.user.id)
         return queryset.filter(quantity__gt=0, shop=system_user.shop)
-
-    @action(
-        detail=False,
-        methods=["GET"],
-    )
-    def investment(self, request):
-        objects = self.filter_queryset(self.get_queryset())
-        investments = 0
-        for obj in objects:
-            investments += obj.investment()
-        return Response(investments)
