@@ -1,16 +1,10 @@
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
-from rest_framework.generics import GenericAPIView
+from rest_framework import viewsets
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.dashboard import (
     DashboardInvestmentSerializer,
     DashboardSerializer,
-)
-from apps.business_app.serializers.shop_products import (
-    ReadShopProductsSerializer,
-    ShopProductsSerializer,
 )
 
 from django.db.models.functions import (
@@ -22,12 +16,8 @@ from django.db.models.functions import (
 )
 
 
-from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
 
-from apps.common.pagination import AllResultsSetPagination
-from apps.users_app.models.groups import Groups
-from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
 from django.db.models import Count, Sum
 from rest_framework.response import Response
