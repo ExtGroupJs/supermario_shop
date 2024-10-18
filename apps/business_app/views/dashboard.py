@@ -3,6 +3,7 @@ from rest_framework import viewsets
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.dashboard import (
+    DashboardCountsSerializer,
     DashboardInvestmentSerializer,
     DashboardSerializer,
 )
@@ -22,13 +23,15 @@ from rest_framework.decorators import action
 from django.db.models import Count, Sum
 from rest_framework.response import Response
 
+from apps.common.utils.allowed_frequencies import AllowedFrequencies
+
 
 class DashboardViewSet(
     SerializerMapMixin,
     viewsets.ViewSet,
     # GenericAPIView,
 ):
-    serializer_class = DashboardSerializer
+    serializer_class = DashboardCountsSerializer
 
     @action(
         detail=False,
@@ -124,13 +127,13 @@ class DashboardViewSet(
         return Response({"result": results})
 
     def _get_frequency_function_given_payload_string(self, frequency):
-        if frequency == "day":
+        if frequency == AllowedFrequencies.DAY:
             return TruncDay
-        if frequency == "week":
+        if frequency == AllowedFrequencies.WEEK:
             return TruncWeek
-        if frequency == "month":
+        if frequency == AllowedFrequencies.MONTH:
             return TruncMonth
-        if frequency == "quarter":
+        if frequency == AllowedFrequencies.QUARTER:
             return TruncQuarter
-        if frequency == "year":
+        if frequency == AllowedFrequencies.YEAR:
             return TruncYear

@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.business_app.models.product import Product
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
+from apps.common.utils.allowed_frequencies import AllowedFrequencies
 
 
 class DashboardSerializer(serializers.Serializer):
@@ -10,9 +11,9 @@ class DashboardSerializer(serializers.Serializer):
     updated_timestamp__lte = serializers.DateField(required=False)
 
 
-class DashboardSerializer(DashboardSerializer):
+class DashboardCountsSerializer(DashboardSerializer):
     frequency = serializers.ChoiceField(
-        choices=["day", "week", "month", "quarter", "year"], required=False
+        choices=AllowedFrequencies.choices, required=False
     )
     shop_product__shop = serializers.PrimaryKeyRelatedField(
         queryset=Shop.objects.all(), required=False
