@@ -76,18 +76,12 @@ class DashboardViewSet(
         frequency = serializer.validated_data.pop("frequency", None)
         objects = Sell.objects.filter(**serializer.validated_data)
         if frequency:
-            if frequency == "day":
-                function_to_apply = TruncDay
-            if frequency == "week":
-                function_to_apply = TruncWeek
-            if frequency == "month":
-                function_to_apply = TruncMonth
-            if frequency == "quarter":
-                function_to_apply = TruncQuarter
-            if frequency == "year":
-                function_to_apply = TruncYear
             results = (
-                objects.annotate(frequency=function_to_apply("updated_timestamp"))
+                objects.annotate(
+                    frequency=self._get_frequency_function_given_payload_string(
+                        frequency
+                    )("updated_timestamp")
+                )
                 .values("frequency")
                 .annotate(total=Count("quantity"))
                 .order_by("frequency")
@@ -108,7 +102,7 @@ class DashboardViewSet(
     )
     def shop_product_sells_products_count(self, request):
         """
-        This function obtains the total quantity of sells, optionaly can be filtered by shop, product_shop, date, or a combination
+        This function obtains the total quantity of selled products, optionaly can be filtered by shop, product_shop, date, or a combination
         can be grouped for painting graphics or so in "day", "week", "month", "quarter" or "year"
         """
         serializer = self.get_serializer_class()(data=request.data)
@@ -116,26 +110,37 @@ class DashboardViewSet(
         frequency = serializer.validated_data.pop("frequency", None)
         objects = Sell.objects.filter(**serializer.validated_data)
         if frequency:
-            if frequency == "day":
-                function_to_apply = TruncDay
-            if frequency == "week":
-                function_to_apply = TruncWeek
-            if frequency == "month":
-                function_to_apply = TruncMonth
-            if frequency == "quarter":
-                function_to_apply = TruncQuarter
-            if frequency == "year":
-                function_to_apply = TruncYear
             results = (
-                objects.annotate(frequency=function_to_apply("updated_timestamp"))
+                objects.annotate(
+                    frequency=self._get_frequency_function_given_payload_string(
+                        frequency
+                    )("updated_timestamp")
+                )
                 .values("frequency")
                 .annotate(total=Sum("quantity"))
                 .order_by("frequency")
             )
         else:
+            # TODO mejorar cuando tenga a Monica disponible
+            tmp_queryset = objects.annotate(total=Sum("quantity")).values("total")
+            total = 0
+            for result in tmp_queryset:
+                total += result.get("total", 0)
             results = {
                 "frequency": "None",
-                "total": objects.annotate(total=Sum("quantity")).values("total").group_by(),
+                "total": total,
             }
 
         return Response({"result": results})
+
+    def _get_frequency_function_given_payload_string(self, frequency):
+        if frequency == "day":
+            return TruncDay
+        if frequency == "week":
+            return TruncWeek
+        if frequency == "month":
+            return TruncMonth
+        if frequency == "quarter":
+            return TruncQuarter
+        if frequency == "year":
+            return TruncYear
