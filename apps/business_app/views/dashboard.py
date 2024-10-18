@@ -48,6 +48,9 @@ class DashboardViewSet(
         serializer_class=DashboardInvestmentSerializer,
     )
     def shop_product_investment(self, request):
+        """
+        This function obtains the total investment for a given date limit, shop, product or a combination
+        """
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -64,6 +67,10 @@ class DashboardViewSet(
         url_path="shop-product-sells-count",
     )
     def shop_product_sells_count(self, request):
+        """
+        This function obtains the total quantity of sells, optionaly can be filtered by shop, product_shop, date, or a combination
+        can be grouped for painting graphics or so in "day", "week", "month", "quarter" or "year"
+        """
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
         frequency = serializer.validated_data.pop("frequency", None)
