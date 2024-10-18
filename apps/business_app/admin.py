@@ -79,7 +79,7 @@ class ShopProductsAdmin(admin.ModelAdmin):
         "quantity",
         "cost_price",
         "sell_price",
-        "updated_timestamp"
+        "updated_timestamp",
     ]
     fields = [
         "shop",
