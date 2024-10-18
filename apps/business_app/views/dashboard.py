@@ -99,3 +99,43 @@ class DashboardViewSet(
             }
 
         return Response({"result": results})
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_name="shop-product-sell-products-count",
+        url_path="shop-product-sells-products-count",
+    )
+    def shop_product_sells_products_count(self, request):
+        """
+        This function obtains the total quantity of sells, optionaly can be filtered by shop, product_shop, date, or a combination
+        can be grouped for painting graphics or so in "day", "week", "month", "quarter" or "year"
+        """
+        serializer = self.get_serializer_class()(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        frequency = serializer.validated_data.pop("frequency", None)
+        objects = Sell.objects.filter(**serializer.validated_data)
+        if frequency:
+            if frequency == "day":
+                function_to_apply = TruncDay
+            if frequency == "week":
+                function_to_apply = TruncWeek
+            if frequency == "month":
+                function_to_apply = TruncMonth
+            if frequency == "quarter":
+                function_to_apply = TruncQuarter
+            if frequency == "year":
+                function_to_apply = TruncYear
+            results = (
+                objects.annotate(frequency=function_to_apply("updated_timestamp"))
+                .values("frequency")
+                .annotate(total=Sum("quantity"))
+                .order_by("frequency")
+            )
+        else:
+            results = {
+                "frequency": "None",
+                "total": objects.annotate(total=Sum("quantity")).values("total").group_by(),
+            }
+
+        return Response({"result": results})
