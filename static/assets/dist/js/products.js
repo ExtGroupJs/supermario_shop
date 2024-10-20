@@ -386,42 +386,6 @@ function function_delete(id, name) {
   });
 }
 
-function poblarModelosFiltro() {}
-
-
-
-async function generarCatalogo() {
-  const { jsPDF } = window.jspdf;
-
-  try {
-    // Llamar al endpoint para obtener los productos
-    const response = await axios.get('/business-gestion/products/');
-    const productos = response.data.results; // Suponiendo que los datos vienen en un array
-    // Crear un nuevo PDF
-    const doc = new jsPDF();
-    const imgWidth = 50; // Ancho de la imagen
-    const imgHeight = 50; // Alto de la imagen
-
-    // Iterar sobre los productos y agregar al PDF
-    for (let i = 0; i < productos.length; i++) {
-      const producto = productos[i];
-if (producto.image!=null) {
-  const imgUrl = producto.image; // Suponiendo que hay un campo 'image'
-
-  // Cargar la imagen y agregarla al PDF
-  const imgData = await getBase64Image(imgUrl);
-  doc.addImage(imgData, 'JPEG', 10, 10 + (i * (imgHeight + 10)), imgWidth, imgHeight);
-  doc.text(producto.name, 70, 20 + (i * (imgHeight + 10))); // Ajustar la posición del texto
-}
-     
-    }
-
-    // Guardar el PDF
-    doc.save('catalogo_productos.pdf');
-  } catch (error) {
-    console.error('Error al generar el catálogo:', error);
-  }
-}
 
 // Función para convertir una imagen a Base64
 async function getBase64Image(url) {
