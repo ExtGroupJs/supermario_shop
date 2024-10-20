@@ -43,6 +43,7 @@
               <h3 class="card-title">Gestionar Producto</h3>
               <button class="btn btn-secondary float-right" id="toggle-filters"><i class="nav-icon fas fa-filter"></i>
                 Filtros</button>
+                <button id="btn-generar-catalogo" class="btn btn-primary" onclick="generarCatalogo()">Generar Catálogo</button>
             </div>
 <!-- /.card-header -->
             <!-- Filtros -->
@@ -151,6 +152,7 @@
 
 {% endblock %}
 {% block script %} <!-- DataTables & Plugins -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="{% static 'assets/plugins/datatables/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
@@ -174,6 +176,10 @@
 <script>
   $('.select2').select2({ dropdownParent: $('#filter-form'), theme: 'bootstrap4' })
   $('.selectModel').select2({ dropdownParent: $('#modal-crear-products'), theme: 'bootstrap4' })
+{% comment %} para el catalogo {% endcomment %}
+
+
+
 
 </script>
 {% endblock %}

@@ -36,6 +36,35 @@ $(document).ready(function () {
       {
         extend: "print",
         text: "Print",
+        exportOptions: {
+          columns: [0, 1],
+          stripHtml: false, // No eliminar imágenes
+        },
+        exportOptions: {
+          columns: [0, 1],
+          stripHtml: false, // No eliminar imágenes
+        },
+        customize: function (doc) {
+          let icono = `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+          doc.content[1].table.body.forEach((row) => {
+            if (row[1] && row[1].text.includes("src")) {
+              const regex = /src="([^"]+)"/;
+              const resultado = row[1].text.match(regex);
+
+              const imgUrl = resultado[1]; // Extraer la URL
+              getBase64Image(imgUrl)
+                .then((base64Image) => {
+                  row[1] = { image: base64Image, width: 500, height: 500 }; // Ajustar el tamaño si es necesario
+console.log('✌️row[1] --->', row[1]);
+                })
+                .catch(() => {
+                  row[1] = "sin imagen"; // Si falla la conversión, poner "sin imagen"
+                });
+            } else {
+              row[1] = "sin imagen"; // Cambia a "sin imagen" si no hay imagen
+            }
+          });
+        },
       },
     ],
     // Adding server-side processing
@@ -306,6 +335,7 @@ function poblarListas() {
   // Poblar la lista de modelos
   var $model = document.getElementById("model");
   var $filterModel = document.getElementById("filter-model");
+  $filterModel.add(new Option("ninguno", ""));
   axios.get("/business-gestion/models/").then(function (response) {
     response.data.results.forEach(function (element) {
       var option = new Option(element.name, element.id);
@@ -357,3 +387,50 @@ function function_delete(id, name) {
 }
 
 function poblarModelosFiltro() {}
+
+
+
+async function generarCatalogo() {
+  const { jsPDF } = window.jspdf;
+
+  try {
+    // Llamar al endpoint para obtener los productos
+   
+    const response = await axios.get('/business-gestion/products/');
+    const productos = response.data.results; // Suponiendo que los datos vienen en un array
+
+
+    // Crear un nuevo PDF
+    const doc = new jsPDF();
+    const imgWidth = 50; // Ancho de la imagen
+    const imgHeight = 50; // Alto de la imagen
+
+    // Iterar sobre los productos y agregar al PDF
+    for (let i = 0; i < productos.length; i++) {
+      const producto = productos[i];
+if (producto.image!=null) {
+  const imgUrl = producto.image; // Suponiendo que hay un campo 'image'
+
+  // Cargar la imagen y agregarla al PDF
+  const imgData = await getBase64Image(imgUrl);
+  doc.addImage(imgData, 'JPEG', 10, 10 + (i * (imgHeight + 10)), imgWidth, imgHeight);
+  doc.text(producto.name, 70, 20 + (i * (imgHeight + 10))); // Ajustar la posición del texto
+}
+     
+    }
+
+    // Guardar el PDF
+    doc.save('catalogo_productos.pdf');
+  } catch (error) {
+    console.error('Error al generar el catálogo:', error);
+  }
+}
+
+// Función para convertir una imagen a Base64
+async function getBase64Image(url) {
+  const response = await axios.get(url, { responseType: 'arraybuffer' });
+  const base64String = btoa(
+    new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+  );
+  return `data:image/jpeg;base64,${base64String}`; // Cambia el tipo MIME si es necesario
+}
