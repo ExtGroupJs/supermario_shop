@@ -395,7 +395,7 @@ async function generarCatalogo() {
 
   try {
     // Llamar al endpoint para obtener los productos
-    load.hidden=false;
+   
     const response = await axios.get('/business-gestion/products/');
     const productos = response.data.results; // Suponiendo que los datos vienen en un array
 
