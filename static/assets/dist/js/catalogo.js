@@ -111,7 +111,7 @@ console.log('✌️row[1] --->', row[1]);
         title: "Foto",
         render: (data) => {
           if (data) {
-            return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 500px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
+            return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 200px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
         
           } else{return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;} 
            },
