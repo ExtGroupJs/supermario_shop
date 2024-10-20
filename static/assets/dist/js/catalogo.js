@@ -41,7 +41,7 @@ $(document).ready(function () {
           stripHtml: false, // No eliminar imágenes
         },
         exportOptions: {
-          columns: [0, 1],
+          columns: [0, 1, 2],
           stripHtml: false, // No eliminar imágenes
         },
         customize: function (doc) {
@@ -105,31 +105,16 @@ console.log('✌️row[1] --->', row[1]);
     },
     columns: [
       { data: "name", title: "Nombre" },
+      { data: "model.__str__", title: "Modelo" },
       {
         data: "image",
         title: "Foto",
         render: (data) => {
           if (data) {
-            return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
+            return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 500px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
         
           } else{return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;} 
            },
-      },
-      { data: "model.__str__", title: "Modelo" },
-      { data: "description", title: "Descripción" },
-      {
-        data: "id",
-        title: "Acciones",
-        render: (data, type, row) => {
-          return `<div class="btn-group">
-                            <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-products" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}">
-                              <i class="fas fa-edit"></i>
-                            </button>  
-                            <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}')" >
-                              <i class="fas fa-trash"></i>
-                            </button>                                          
-                          </div>`;
-        },
       },
     ],
 
@@ -386,6 +371,42 @@ function function_delete(id, name) {
   });
 }
 
+function poblarModelosFiltro() {}
+
+
+
+async function generarCatalogo() {
+  const { jsPDF } = window.jspdf;
+
+  try {
+    // Llamar al endpoint para obtener los productos
+    const response = await axios.get('/business-gestion/products/');
+    const productos = response.data.results; // Suponiendo que los datos vienen en un array
+    // Crear un nuevo PDF
+    const doc = new jsPDF();
+    const imgWidth = 50; // Ancho de la imagen
+    const imgHeight = 50; // Alto de la imagen
+
+    // Iterar sobre los productos y agregar al PDF
+    for (let i = 0; i < productos.length; i++) {
+      const producto = productos[i];
+if (producto.image!=null) {
+  const imgUrl = producto.image; // Suponiendo que hay un campo 'image'
+
+  // Cargar la imagen y agregarla al PDF
+  const imgData = await getBase64Image(imgUrl);
+  doc.addImage(imgData, 'JPEG', 10, 10 + (i * (imgHeight + 10)), imgWidth, imgHeight);
+  doc.text(producto.name, 70, 20 + (i * (imgHeight + 10))); // Ajustar la posición del texto
+}
+     
+    }
+
+    // Guardar el PDF
+    doc.save('catalogo_productos.pdf');
+  } catch (error) {
+    console.error('Error al generar el catálogo:', error);
+  }
+}
 
 // Función para convertir una imagen a Base64
 async function getBase64Image(url) {
