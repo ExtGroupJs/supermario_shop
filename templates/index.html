@@ -30,7 +30,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <link rel="stylesheet" href="{% static 'assets/dist/js/pages/dashboard3.js' %}">
   <link rel="stylesheet" href="{% static 'assets/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css' %}">
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-
+<link rel="stylesheet" href="{% static 'assets/dist/css/load.css' %}">
 
   {% block head-extra %}
 
@@ -240,12 +240,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 </p>
               </a>
               <ul class="nav nav-treeview ">
-                <li class="nav-item">
+                {% comment %} <li class="nav-item">
                   <a href="{% url 'sales_products' %}" class="nav-link">
                     <i class="far fa-circle nav-icon"></i>
                     <p>{% blocktranslate %}Ventas{% endblocktranslate %}</p>
                   </a>
-                </li>
+                </li> {% endcomment %}
                 <li class="nav-item">
                   <a href="{% url 'salescar' %}" class="nav-link">
                     <i class="far fa-circle nav-icon"></i>

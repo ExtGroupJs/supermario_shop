@@ -33,6 +33,8 @@ def shops(request):
 
 def products(request):
     return render(request, "products/products.html")
+def catalogo(request):
+    return render(request, "catalogo/catalogo.html")
 
 
 def shop_products(request):
