@@ -2,6 +2,7 @@
 from rest_framework_extensions.routers import ExtendedSimpleRouter
 
 from apps.business_app.views.brand import BrandViewSet
+from apps.business_app.views.dashboard import DashboardViewSet
 from apps.business_app.views.model import ModelViewSet
 from apps.business_app.views.product import ProductViewSet
 from apps.business_app.views.shop import ShopViewSet
@@ -75,6 +76,11 @@ router.register(
     "sell-products",
     SellViewSet,
     basename="sell-products",
+)
+router.register(
+    "dashboard",
+    DashboardViewSet,
+    basename="dashboard",
 )
 # (
 # router.register(

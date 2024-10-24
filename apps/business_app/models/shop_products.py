@@ -50,3 +50,6 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     def save(self, *args, **kwargs):
         self.full_clean()  # Valida el modelo antes de guardar
         super().save(*args, **kwargs)
+
+    def investment(self):
+        return self.cost_price * self.quantity

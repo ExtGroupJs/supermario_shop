@@ -48,6 +48,8 @@ def sales_products(request):
 def sales(request):
     return render(request, "sales/sales.html")
 
+
 def salescar(request):
     return render(request, "sales_products/salescar.html")
-
+def dashboard(request):
+    return render(request, "dashboard/dashboard.html")

@@ -299,14 +299,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
             <!-- small box -->
             <div class="small-box bg-info">
               <div class="inner">
-                <h3>150</h3>
+                <h3>-</h3>
 
-                <p>New Orders</p>
+                <p>Inversión</p>
               </div>
               <div class="icon">
-                <i class="ion ion-bag"></i>
+                <i class="nav-icon fas fa-chart-line"></i>
               </div>
-              <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'shop_products' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -417,6 +417,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <script src="{% static 'assets/plugins/sweetalert2/sweetalert2.min.js' %}"></script>
   <script src="{% static 'assets/plugins/chart.js/Chart.min.js' %}"></script>
   <script src="{% static 'assets/plugins/sparklines/sparkline.js' %}"></script>
+  <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+
+
 
 
   <script>

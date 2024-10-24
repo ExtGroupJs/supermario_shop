@@ -16,11 +16,9 @@ def update_inventory(inc_pos_dec_neg, instance):
 
 @receiver(post_save, sender=Sell)
 def remove_from_inventory(sender, instance, **kwargs):
-
     update_inventory(inc_pos_dec_neg=-1, instance=instance)
 
 
 @receiver(post_delete, sender=Sell)
 def restored_inventory(sender, instance, **kwargs):
     update_inventory(inc_pos_dec_neg=1, instance=instance)
-
