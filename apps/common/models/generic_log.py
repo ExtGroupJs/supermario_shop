@@ -7,6 +7,13 @@ from apps.users_app.models.system_user import SystemUser
 
 
 class GenericLog(models.Model):
+    """
+    This class is used for store every action perform on any desired model
+
+    Usage excample: Refers to apps/common/mixins/generic_log.py
+
+    """
+
     class ACTION(models.TextChoices):
         CREATED = "C", _("creado")
         UPDATED = "U", _("modificado")

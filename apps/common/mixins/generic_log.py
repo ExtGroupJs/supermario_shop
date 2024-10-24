@@ -1,14 +1,21 @@
-from argparse import Action
-from django.db import models
 from django.forms import model_to_dict
-from django.utils.translation import gettext_lazy as _
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from apps.common.models.generic_log import GenericLog
-from apps.users_app.models.system_user import SystemUser
 
 
 class GenericLogMixin:
+    """
+    This class allows to store every change on any field of on any desired model as an instance of GenericLog model.
+
+    Usage example:
+
+    class YourModel(GenericLogMixin, SafeDeleteModel, ...):
+
+    NOTICE: This class should be the first because it override the save and delete methods,
+    optionally but as good practice, you should inherit as well of SafeDeleteModel in the second place,
+    this way when the object is deleted, the reference is stored and the trazability can be done.
+    """
+
     def save(self, *args, **kwargs):
         updated_object_dict = model_to_dict(self)
         action = GenericLog.ACTION.UPDATED
