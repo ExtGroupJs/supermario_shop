@@ -7,6 +7,10 @@ from apps.users_app.models.system_user import SystemUser
 
 
 class Sell(BaseModel):
+    """
+    A postsave signal is implemented on apps\business_app\signals.py
+    """
+
     shop_product = models.ForeignKey(
         to=ShopProducts,
         on_delete=models.DO_NOTHING,
@@ -31,5 +35,7 @@ class Sell(BaseModel):
     def __str__(self):
         return f"{self.shop_product} ({self.shop_product.shop})"
 
-
-# a post save signal is implemented on apps\business_app\signals.py
+    def profits(self):
+        return (
+            self.shop_product.sell_price - self.shop_product.cost_price
+        ) * self.quantity

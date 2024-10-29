@@ -10,8 +10,9 @@ class SellSerializer(serializers.ModelSerializer):
     )
     unit_price = serializers.CharField(source="shop_product.sell_price", read_only=True)
     seller_name = serializers.CharField(source="seller.__str__", read_only=True)
-    total_priced = serializers.SerializerMethodField(read_only=True)
-    created_timestamp = serializers.SerializerMethodField(read_only=True)
+    total_priced = serializers.SerializerMethodField()
+    created_timestamp = serializers.SerializerMethodField()
+    profits = serializers.SerializerMethodField()
 
     class Meta:
         model = Sell
@@ -25,6 +26,7 @@ class SellSerializer(serializers.ModelSerializer):
             "unit_price",
             "total_priced",
             "created_timestamp",
+            "profits",
         )
         read_only_fields = (
             "id",
@@ -36,3 +38,6 @@ class SellSerializer(serializers.ModelSerializer):
 
     def get_total_priced(self, object):
         return object.quantity * object.shop_product.sell_price
+
+    def get_profits(self, object):
+        return object.profits()
