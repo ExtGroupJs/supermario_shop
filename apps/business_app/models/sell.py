@@ -35,9 +35,3 @@ class Sell(BaseModel):
 
     def __str__(self):
         return f"{self.shop_product} ({self.shop_product.shop})"
-
-    @staticmethod
-    def profits():
-        return (F("shop_product__sell_price") - F("shop_product__cost_price")) * F(
-            "quantity"
-        )

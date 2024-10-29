@@ -40,4 +40,6 @@ class SellSerializer(serializers.ModelSerializer):
         return object.quantity * object.shop_product.sell_price
 
     def get_profits(self, object):
-        return object.profits()
+        return (
+            object.shop_product.sell_price - object.shop_product.cost_price
+        ) * object.quantity
