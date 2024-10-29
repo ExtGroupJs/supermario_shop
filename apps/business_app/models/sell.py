@@ -4,6 +4,7 @@ from django.db import models
 from apps.business_app.models.shop_products import ShopProducts
 from apps.common.models import BaseModel
 from apps.users_app.models.system_user import SystemUser
+from django.db.models import F
 
 
 class Sell(BaseModel):
@@ -35,7 +36,8 @@ class Sell(BaseModel):
     def __str__(self):
         return f"{self.shop_product} ({self.shop_product.shop})"
 
-    def profits(self):
-        return (
-            self.shop_product.sell_price - self.shop_product.cost_price
-        ) * self.quantity
+    @staticmethod
+    def profits():
+        return (F("shop_product__sell_price") - F("shop_product__cost_price")) * F(
+            "quantity"
+        )
