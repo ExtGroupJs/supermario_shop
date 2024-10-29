@@ -41,6 +41,8 @@ def catalogo(request):
 
 def shop_products(request):
     return render(request, "shop_products/shop_products.html")
+def inventario(request):
+    return render(request, "inventario/inventario.html")
 
 
 def sales_products(request):

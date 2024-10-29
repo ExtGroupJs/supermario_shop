@@ -57,6 +57,7 @@ urlpatterns = [
     path("products/", login_required(pages.products), name="products"),
     path("catalogo/", login_required(pages.catalogo), name="catalogo"),
     path("shop_products/", login_required(pages.shop_products), name="shop_products"),
+    path("inventario/", login_required(pages.inventario), name="inventario"),
     path(
         "sales_products/", login_required(pages.sales_products), name="sales_products"
     ),
