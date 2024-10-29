@@ -33,6 +33,8 @@ def shops(request):
 
 def products(request):
     return render(request, "products/products.html")
+
+
 def catalogo(request):
     return render(request, "catalogo/catalogo.html")
 
@@ -51,5 +53,7 @@ def sales(request):
 
 def salescar(request):
     return render(request, "sales_products/salescar.html")
+
+
 def dashboard(request):
     return render(request, "dashboard/dashboard.html")
