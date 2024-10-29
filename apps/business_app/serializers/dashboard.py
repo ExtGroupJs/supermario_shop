@@ -23,18 +23,6 @@ class DashboardCountsSerializer(DashboardSerializer):
     )
 
 
-class SellDashboardProfitsSerializer(DashboardSerializer):
-    frequency = serializers.ChoiceField(
-        choices=AllowedFrequencies.choices, required=False
-    )
-    shop_product__shop = serializers.PrimaryKeyRelatedField(
-        queryset=Shop.objects.all(), required=False
-    )
-    shop_product = serializers.PrimaryKeyRelatedField(
-        queryset=ShopProducts.objects.all(), required=False
-    )
-
-
 class DashboardInvestmentSerializer(DashboardSerializer):
     shop = serializers.PrimaryKeyRelatedField(
         queryset=Shop.objects.all(), required=False

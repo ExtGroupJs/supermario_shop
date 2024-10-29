@@ -92,22 +92,19 @@ class DashboardViewSet(
                 .order_by("frequency")
             )
         else:
-            tmp_queryset =objects.annotate(
-                        total=Sum(
-                            ExpressionWrapper(
-                                (
-                                    F("shop_product__sell_price")
-                                    - F("shop_product__cost_price")
-                                )
-                                * F("quantity"),
-                                output_field=FloatField(),
-                            )
-                        )
-                    ).values("total")
+            tmp_queryset = objects.annotate(
+                total=Sum(
+                    ExpressionWrapper(
+                        (F("shop_product__sell_price") - F("shop_product__cost_price"))
+                        * F("quantity"),
+                        output_field=FloatField(),
+                    )
+                )
+            ).values("total")
             print(tmp_queryset)
             results = {
                 "frequency": "None",
-                "total": sum(item['total'] for item in tmp_queryset) 
+                "total": sum(item["total"] for item in tmp_queryset),
             }
 
         return Response({"result": results})
@@ -176,7 +173,7 @@ class DashboardViewSet(
             tmp_queryset = objects.annotate(total=Sum("quantity")).values("total")
             results = {
                 "frequency": "None",
-                "total": sum(item['total'] for item in tmp_queryset),
+                "total": sum(item["total"] for item in tmp_queryset),
             }
 
         return Response({"result": results})
