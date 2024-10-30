@@ -32,7 +32,7 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
         model = ShopProducts
 
     def to_representation(self, instance):
-        ret = super().to_representation(instance)
+        response = super().to_representation(instance)
         if (
             self.context.get("request")
             .user.groups.exclude(
@@ -40,5 +40,5 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
             )
             .exists()
         ):
-            ret.pop("cost_price")
-        return ret
+            response.pop("cost_price")
+        return response
