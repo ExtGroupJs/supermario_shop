@@ -58,7 +58,9 @@ urlpatterns = [
     path("catalogo/", login_required(pages.catalogo), name="catalogo"),
     path("shop_products/", login_required(pages.shop_products), name="shop_products"),
     path("inventario/", login_required(pages.inventario), name="inventario"),
-    path("sales_products/", login_required(pages.sales_products), name="sales_products"),
+    path(
+        "sales_products/", login_required(pages.sales_products), name="sales_products"
+    ),
     path("sales/", login_required(pages.sales), name="sales"),
     path("salescar/", login_required(pages.salescar), name="salescar"),
     path("dashboard/", login_required(pages.dashboard), name="dashboard"),

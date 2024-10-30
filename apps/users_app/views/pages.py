@@ -5,8 +5,10 @@ from apps.users_app.models.groups import Groups
 
 # Create your views here.
 
+
 def is_owner(user):
     return user.groups.filter(id=Groups.SHOP_OWNER.value).exists()
+
 
 def index(request):
     return render(request, "index.html")
@@ -23,9 +25,11 @@ def first_login(request):
 def register(request):
     return render(request, "login/register.html")
 
+
 @user_passes_test(is_owner)
 def brands(request):
     return render(request, "brands/brands.html")
+
 
 @user_passes_test(is_owner)
 def models(request):
@@ -73,6 +77,6 @@ def dashboard(request):
 
 def user_redirect(request):
     if request.user.groups.filter(id=Groups.SHOP_OWNER.value).exists():
-        return redirect('dashboard')
+        return redirect("dashboard")
     else:
-        return redirect('sales')
+        return redirect("sales")

@@ -90,6 +90,19 @@ class SellViewSetPermission(CommonRolePermission):
 
 class ShopProductsViewSetPermission(CommonRolePermission):
     # TODO restringir a SHOP seller para tener acceso de solo lectura
-    roles = CommonRolePermission.roles + [
-        Groups.SHOP_SELLER.value,
-    ]
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if (
+            self.get_superuser_bypass(request=request, view=view)
+            and request.user.is_superuser
+        ):
+            return True
+
+        roles = CommonRolePermission.roles
+        if request.method in SAFE_METHODS:
+            roles = roles + [
+                Groups.SHOP_SELLER.value,
+            ]
+        return request.user.groups and request.user.groups.filter(id__in=roles).exists()
