@@ -15,6 +15,7 @@ from django.db.models.functions import (
     TruncQuarter,
     TruncYear,
 )
+from django.db.models import F, ExpressionWrapper, FloatField
 
 
 from apps.common.mixins.serializer_map import SerializerMapMixin
@@ -52,6 +53,61 @@ class DashboardViewSet(
         for obj in objects:
             investments += obj.investment()
         return Response({"investments": investments})
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_name="sell-profits",
+        url_path="sell-profits",
+    )
+    def sell_profits(self, request):
+        """
+        This function obtains the total profits of sells, optionaly can be filtered by shop, product_shop, date, or a combination
+        can be grouped for painting graphics or so in "day", "week", "month", "quarter" or "year"
+        """
+        serializer = self.get_serializer_class()(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        frequency = serializer.validated_data.pop("frequency", None)
+        objects = Sell.objects.filter(**serializer.validated_data)
+        if frequency:
+            results = (
+                objects.annotate(
+                    frequency=self._get_frequency_function_given_payload_string(
+                        frequency
+                    )("updated_timestamp")
+                )
+                .values("frequency")
+                .annotate(
+                    total=Sum(
+                        ExpressionWrapper(
+                            (
+                                F("shop_product__sell_price")
+                                - F("shop_product__cost_price")
+                            )
+                            * F("quantity"),
+                            output_field=FloatField(),
+                        )
+                    )
+                )
+                .order_by("frequency")
+            )
+        else:
+            tmp_queryset = objects.annotate(
+                total=Sum(
+                    ExpressionWrapper(
+                        (F("shop_product__sell_price") - F("shop_product__cost_price"))
+                        * F("quantity"),
+                        output_field=FloatField(),
+                    )
+                )
+            ).values("total")
+            print(tmp_queryset)
+            results = {
+                "frequency": "None",
+                "total": sum(item["total"] for item in tmp_queryset),
+            }
+
+        return Response({"result": results})
 
     @action(
         detail=False,
@@ -114,14 +170,10 @@ class DashboardViewSet(
                 .order_by("frequency")
             )
         else:
-            # TODO mejorar cuando tenga a Monica disponible
             tmp_queryset = objects.annotate(total=Sum("quantity")).values("total")
-            total = 0
-            for result in tmp_queryset:
-                total += result.get("total", 0)
             results = {
                 "frequency": "None",
-                "total": total,
+                "total": sum(item["total"] for item in tmp_queryset),
             }
 
         return Response({"result": results})

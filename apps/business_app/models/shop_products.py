@@ -47,6 +47,11 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     def __str__(self):
         return f"{self.product} ({self.shop})"
 
+    def __repr__(self):
+        if not self.extra_info:
+            return self.product.__str__()
+        return f"{self.product} ({self.extra_info})"
+
     def save(self, *args, **kwargs):
         self.full_clean()  # Valida el modelo antes de guardar
         super().save(*args, **kwargs)

@@ -4,9 +4,14 @@ from django.db import models
 from apps.business_app.models.shop_products import ShopProducts
 from apps.common.models import BaseModel
 from apps.users_app.models.system_user import SystemUser
+from django.db.models import F
 
 
 class Sell(BaseModel):
+    """
+    A postsave signal is implemented on apps\business_app\signals.py
+    """
+
     shop_product = models.ForeignKey(
         to=ShopProducts,
         on_delete=models.DO_NOTHING,
@@ -30,6 +35,3 @@ class Sell(BaseModel):
 
     def __str__(self):
         return f"{self.shop_product} ({self.shop_product.shop})"
-
-
-# a post save signal is implemented on apps\business_app\signals.py

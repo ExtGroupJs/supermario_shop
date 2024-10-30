@@ -49,7 +49,7 @@ urlpatterns = [
     path("usuarios/", login_required(pages.usuarios), name="usuarios"),
     path("login/", pages.first_login, name="first_login"),
     path("register/", pages.register, name="register"),
-    path("index/", login_required(pages.dashboard), name="index"),
+    path("index/", login_required(pages.user_redirect), name="index"),
     path("", pages.first_login, name="first_login"),
     path("brands/", login_required(pages.brands), name="brands"),
     path("models/", login_required(pages.models), name="models"),
@@ -57,12 +57,14 @@ urlpatterns = [
     path("products/", login_required(pages.products), name="products"),
     path("catalogo/", login_required(pages.catalogo), name="catalogo"),
     path("shop_products/", login_required(pages.shop_products), name="shop_products"),
+    path("inventario/", login_required(pages.inventario), name="inventario"),
     path(
         "sales_products/", login_required(pages.sales_products), name="sales_products"
     ),
     path("sales/", login_required(pages.sales), name="sales"),
     path("salescar/", login_required(pages.salescar), name="salescar"),
     path("dashboard/", login_required(pages.dashboard), name="dashboard"),
+    path("redireccionar/", login_required(pages.user_redirect), name="redireccionar"),
 ]
 
 # This is for serving media on development stages
