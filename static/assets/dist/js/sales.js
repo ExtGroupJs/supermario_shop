@@ -12,6 +12,7 @@ $(function () {
 });
 
 $(document).ready(function () {
+  let rol= verificarGroups(2, verificarTodos = false)
   $("table")
     .addClass("table table-hover")
     .DataTable({
@@ -68,7 +69,7 @@ $(document).ready(function () {
         { data: "quantity", title: "Cantidad" },
         { data: "unit_price", title: "Precio unitario" },
         { data: "total_priced", title: "Monto total" },
-        { data: "profits", title: "Ganancia" },
+        { data: "profits", title: "Ganancia", visible: rol },
         { data: "seller_name", title: "Vendedor" },
         { data: "created_timestamp", title: "Fecha" },
 
@@ -126,4 +127,20 @@ function function_delete(id, name) {
         });
     }
   });
+}
+function verificarGroups(numeros, verificarTodos = false) {
+  // Recuperar el grupo de números almacenados en localStorage
+  const grupos = JSON.parse(localStorage.getItem('groups')) || [];
+
+  // Convertir el argumento 'numeros' en un array si no lo es
+  const numerosArray = Array.isArray(numeros) ? numeros : [numeros];
+
+  // Verificar coincidencias
+  if (verificarTodos) {
+      // Verificar que todos los números pasados estén en el grupo
+      return numerosArray.every(num => grupos.includes(num));
+  } else {
+      // Verificar si al menos uno de los números pasa está en el grupo
+      return numerosArray.some(num => grupos.includes(num));
+  }
 }

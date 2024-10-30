@@ -149,7 +149,7 @@
             localStorage.setItem("id", res.data.id);
             {% comment %} localStorage.setItem("groups", res.data.groups); {% endcomment %}
             localStorage.setItem('groups', JSON.stringify(res.data.groups));
-             window.location = "{% url 'index' %}";
+             window.location = "{% url 'redireccionar' %}";
           
             load.hidden = true;
           }

@@ -11,7 +11,7 @@ from apps.business_app.serializers.shop import ShopSerializer
 class ShopProductsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShopProducts
-        fields = "__all__"
+        fields = ("id", "quantity", "cost_price", "sell_price", "shop", "product","extra_info", "__repr__")
 
 
 class ReadShopProductsSerializer(ShopProductsSerializer):
