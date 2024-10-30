@@ -22,7 +22,7 @@ function cargarProductos() {
 
       productos.forEach((producto) => {
         $("#producto").append(
-          new Option(`${producto.product.__str__}`, producto.id, false, false)
+          new Option(`${producto.__repr__}`, producto.id, false, false)
         );
       });
       cargarProductoEspecifico($("#producto").val());

@@ -12,6 +12,7 @@ from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
 
 from apps.common.pagination import AllResultsSetPagination
+from apps.common.permissions import ShopProductsViewSetPermission
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
@@ -28,6 +29,7 @@ class ShopProductsViewSet(
     serializer_class = ShopProductsSerializer
     list_serializer_class = ReadShopProductsSerializer
     pagination_class = AllResultsSetPagination
+    permission_classes = [ShopProductsViewSetPermission]
 
     filter_backends = [
         DjangoFilterBackend,
@@ -64,3 +66,18 @@ class ShopProductsViewSet(
             return queryset
         system_user = SystemUser.objects.get(id=self.request.user.id)
         return queryset.filter(quantity__gt=0, shop=system_user.shop)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(
+            queryset, many=True, context={"request": request}
+        )
+        return Response(serializer.data)

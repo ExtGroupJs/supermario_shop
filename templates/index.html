@@ -222,12 +222,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     <p>{% blocktranslate %}Entrada{% endblocktranslate %}</p>
                   </a>
                 </li>
-                <li class="nav-item">
-                  <a href="{% url 'sales' %}" class="nav-link">
-                    <i class="far fa-circle text-warning nav-icon"></i>
-                    <p>{% blocktranslate %}Gestion de Ventas{% endblocktranslate %}</p>
-                  </a>
-                </li>
+                
               </ul>
             </li>
  {% comment %} tienda {% endcomment %}
@@ -235,7 +230,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
               <a href="#" class="nav-link active">
                 <i class="nav-icon text-warning fas fa-shopping-cart"></i>
                 <p>
-                  {% blocktranslate %}Shop{% endblocktranslate %}
+                  {% blocktranslate %}Tienda{% endblocktranslate %}
                   <i class="right fas fa-angle-left"></i>
                 </p>
               </a>
@@ -247,9 +242,22 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   </a>
                 </li> {% endcomment %}
                 <li class="nav-item">
+                  <a href="{% url 'inventario' %}" class="nav-link">
+                    <i class="far fa-circle text-success nav-icon"></i>
+                    <p>{% blocktranslate %}Inventario{% endblocktranslate %}</p>
+                  </a>
+                </li>
+             
+                <li class="nav-item">
+                  <a href="{% url 'sales' %}" class="nav-link">
+                    <i class="far fa-circle text-warning nav-icon"></i>
+                    <p>{% blocktranslate %}Gestion de Ventas{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                   <li class="nav-item">
                   <a href="{% url 'salescar' %}" class="nav-link">
                     <i class="far fa-circle nav-icon"></i>
-                    <p>{% blocktranslate %}Venta directa{% endblocktranslate %}</p>
+                    <p>{% blocktranslate %}Venta{% endblocktranslate %}</p>
                   </a>
                 </li>
                 
@@ -446,7 +454,6 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
 
 function aplicateGrupos(clase) {
-  console.log("entro");
 if(verificarGroups(2, verificarTodos = false)){
 const elementoClassOwner = document.querySelector(clase);
 elementoClassOwner.hidden=false;
