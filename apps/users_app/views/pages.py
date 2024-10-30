@@ -1,13 +1,13 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import user_passes_test
 
+from apps.users_app.models.groups import Groups
+
 # Create your views here.
 
 def is_owner(user):
-    if user.groups.filter(name='Dueño').exists():
-        return True
-    else:
-        return False
+    return user.groups.filter(id=Groups.SHOP_OWNER.value).exists()
+
 def index(request):
     return render(request, "index.html")
 
