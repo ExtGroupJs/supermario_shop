@@ -6,7 +6,7 @@ from rest_framework.generics import GenericAPIView
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.models.generic_log import GenericLog
 from apps.common.pagination import AllResultsSetPagination
-from apps.common.permissions import CommonRolePermission
+from apps.common.permissions import IsAuthenticatedAndReadOnly
 from apps.common.serializers.generic_log import GenericLogSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -16,7 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 class GenericLogViewSet(viewsets.ReadOnlyModelViewSet, GenericAPIView):
     queryset = GenericLog.objects.all()
     serializer_class = GenericLogSerializer
-    permission_classes = [CommonRolePermission]
+    permission_classes = [IsAuthenticatedAndReadOnly]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
