@@ -26,13 +26,17 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         CommonOrderingFilter,
     ]
     permission_classes = [SellViewSetPermission]
-    filterset_fields = [
-        "shop_product",
-        "shop_product__product",
-        "shop_product__product__model",
-        "shop_product__product__model__brand",
-        "seller",
-    ]
+    filterset_fields = { 
+        "shop_product": ["exact"],
+        "seller": ["exact"],
+        "shop_product__product": ["exact"],
+        "shop_product__product__model": ["exact"],
+        "shop_product__product__model__brand": ["exact"],
+        "shop_product__sell_price": ["gte", "lte", "exact"],
+        "quantity": ["gte", "lte", "exact"],
+        "created_timestamp": ["gte", "lte"],
+        "updated_timestamp": ["gte", "lte"],}
+
     search_fields = [
         "shop_product__product__name",
         "shop_product__product__model__name",
