@@ -41,6 +41,8 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         "extra_info",
     ]
 
+    ordering_fields = "__all__"
+
     def perform_create(self, serializer):
         serializer.save(seller=SystemUser.objects.get(id=self.request.user.id))
 
