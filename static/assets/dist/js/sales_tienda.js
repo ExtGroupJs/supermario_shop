@@ -65,7 +65,7 @@ $(document).ready(function () {
       },
       
       columns: [
-        // { data: "shop_product_name", title: "Producto" },
+        { data: "shop_product_name", title: "Producto" },
         { data: "quantity", title: "Cantidad" },
         { data: "unit_price", title: "Precio unitario" },
         { data: "total_priced", title: "Monto total" },
