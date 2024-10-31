@@ -70,7 +70,7 @@ $(document).ready(function () {
         { data: "unit_price", title: "Precio unitario" },
         { data: "total_priced", title: "Monto total" },
         { data: "profits", title: "Ganancia"},
-        { data: "seller_name", title: "Vendedor" },
+        { data: "seller", title: "Vendedor" },
         { data: "created_timestamp", title: "Fecha" },
 
         {

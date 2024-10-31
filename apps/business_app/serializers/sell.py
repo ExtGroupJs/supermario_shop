@@ -11,7 +11,7 @@ class SellSerializer(serializers.ModelSerializer):
         source="shop_product.__str__", read_only=True
     )
     unit_price = serializers.CharField(source="shop_product.sell_price", read_only=True)
-    seller_name = serializers.CharField(source="seller.__str__", read_only=True)
+    seller = serializers.CharField(source="seller.__str__", read_only=True)
     total_priced = serializers.SerializerMethodField()
     created_timestamp = serializers.SerializerMethodField()
     profits = serializers.SerializerMethodField()
@@ -22,7 +22,7 @@ class SellSerializer(serializers.ModelSerializer):
             "id",
             "shop_product",
             "shop_product_name",
-            "seller_name",
+            "seller",
             "extra_info",
             "quantity",
             "unit_price",

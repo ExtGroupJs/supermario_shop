@@ -69,7 +69,7 @@ $(document).ready(function () {
         { data: "quantity", title: "Cantidad" },
         { data: "unit_price", title: "Precio unitario" },
         { data: "total_priced", title: "Monto total" },
-        { data: "seller_name", title: "Vendedor" },
+        { data: "seller", title: "Vendedor" },
         { data: "created_timestamp", title: "Fecha" },
         {
           data: "id",
