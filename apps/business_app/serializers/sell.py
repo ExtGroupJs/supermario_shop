@@ -21,7 +21,6 @@ class SellSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "shop_product",
-            "shop_product_name",
             "seller",
             "extra_info",
             "quantity",
