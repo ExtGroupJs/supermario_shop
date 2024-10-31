@@ -13,7 +13,7 @@ def is_owner(user):
 def index(request):
     return render(request, "index.html")
 
-
+@user_passes_test(is_owner)
 def usuarios(request):
     return render(request, "user/usuarios.html")
 
@@ -21,7 +21,7 @@ def usuarios(request):
 def first_login(request):
     return render(request, "login/login.html")
 
-
+@user_passes_test(is_owner)
 def register(request):
     return render(request, "login/register.html")
 
@@ -45,11 +45,11 @@ def shops(request):
 def products(request):
     return render(request, "products/products.html")
 
-
+@user_passes_test(is_owner)
 def catalogo(request):
     return render(request, "catalogo/catalogo.html")
 
-
+@user_passes_test(is_owner)
 def shop_products(request):
     return render(request, "shop_products/shop_products.html")
 
@@ -61,9 +61,11 @@ def inventario(request):
 def sales_products(request):
     return render(request, "sales_products/sales_products.html")
 
-
+@user_passes_test(is_owner)
 def sales(request):
     return render(request, "sales/sales.html")
+def sales_tienda(request):
+    return render(request, "sales/sales_tienda.html")
 
 
 def salescar(request):
@@ -79,4 +81,4 @@ def user_redirect(request):
     if request.user.groups.filter(id=Groups.SHOP_OWNER.value).exists():
         return redirect("dashboard")
     else:
-        return redirect("sales")
+        return redirect("sales_tienda")
