@@ -7,7 +7,7 @@ from apps.users_app.models.groups import Groups
 
 
 class SellSerializer(serializers.ModelSerializer):
-    shop_product_name = serializers.CharField(
+    shop_product = serializers.CharField(
         source="shop_product.__str__", read_only=True
     )
     unit_price = serializers.CharField(source="shop_product.sell_price", read_only=True)
