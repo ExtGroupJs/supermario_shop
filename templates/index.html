@@ -222,6 +222,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     <p>{% blocktranslate %}Entrada{% endblocktranslate %}</p>
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a href="{% url 'sales' %}" class="nav-link">
+                    <i class="far fa-circle text-warning nav-icon"></i>
+                    <p>{% blocktranslate %}Gestion de Ventas{% endblocktranslate %}</p>
+                  </a>
+                </li>
                 
               </ul>
             </li>
@@ -248,8 +254,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   </a>
                 </li>
              
-                <li class="nav-item">
-                  <a href="{% url 'sales' %}" class="nav-link">
+                <li class="nav-item classventa">
+                  <a href="{% url 'sales_tienda' %}" class="nav-link">
                     <i class="far fa-circle text-warning nav-icon"></i>
                     <p>{% blocktranslate %}Gestion de Ventas{% endblocktranslate %}</p>
                   </a>
@@ -450,6 +456,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
     }); {% endcomment %}
     aplicateGrupos('.classOwner');
+    aplicateGruposInvert('.classventa');
 
 
 
@@ -457,6 +464,12 @@ function aplicateGrupos(clase) {
 if(verificarGroups(2, verificarTodos = false)){
 const elementoClassOwner = document.querySelector(clase);
 elementoClassOwner.hidden=false;
+   }
+ }
+function aplicateGruposInvert(clase) {
+if(verificarGroups(2, verificarTodos = false)){
+const elementoClassOwner = document.querySelector(clase);
+elementoClassOwner.hidden=true;
    }
  }
 
