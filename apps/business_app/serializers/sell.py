@@ -7,11 +7,11 @@ from apps.users_app.models.groups import Groups
 
 
 class SellSerializer(serializers.ModelSerializer):
-    shop_product = serializers.CharField(
+    shop_product__product__name = serializers.CharField(
         source="shop_product.__str__", read_only=True
     )
-    unit_price = serializers.CharField(source="shop_product.sell_price", read_only=True)
-    seller = serializers.CharField(source="seller.__str__", read_only=True)
+    shop_product__sell_price = serializers.CharField(source="shop_product.sell_price", read_only=True)
+    seller__first_name = serializers.CharField(source="seller.__str__", read_only=True)
     total_priced = serializers.SerializerMethodField()
     created_timestamp = serializers.SerializerMethodField()
     profits = serializers.SerializerMethodField()
@@ -20,11 +20,11 @@ class SellSerializer(serializers.ModelSerializer):
         model = Sell
         fields = (
             "id",
-            "shop_product",
-            "seller",
+            "shop_product__product__name",
+            "seller__first_name",
             "extra_info",
             "quantity",
-            "unit_price",
+            "shop_product__sell_price",
             "total_priced",
             "created_timestamp",
             "profits",
