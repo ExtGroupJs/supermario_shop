@@ -20,6 +20,7 @@ class SellSerializer(serializers.ModelSerializer):
         model = Sell
         fields = (
             "id",
+            "shop_product",
             "shop_product__product__name",
             "seller__first_name",
             "extra_info",
