@@ -77,7 +77,7 @@ $(document).ready(function () {
           data: "id",
           title: "Acciones",
           render: (data, type, row) => {
-            return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product}')" >
+            return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product__product__name}')" >
                           <i class="fas fa-trash"></i>
                         </button>                                          
                       </div>`;
