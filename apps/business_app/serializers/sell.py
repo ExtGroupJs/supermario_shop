@@ -1,9 +1,8 @@
+from email.policy import default
 from rest_framework import serializers
 
 from apps.business_app.models.sell import Sell
 from datetime import datetime
-
-from apps.users_app.models.groups import Groups
 
 
 class SellSerializer(serializers.ModelSerializer):
@@ -39,16 +38,3 @@ class SellSerializer(serializers.ModelSerializer):
 
     def get_created_timestamp(self, object):
         return object.created_timestamp.strftime("%d-%h-%Y a las  %I:%M %p")
-
-
-    def to_representation(self, instance):
-        response = super().to_representation(instance)
-        if (
-            self.context.get("request")
-            .user.groups.exclude(
-                id__in=[Groups.SHOP_OWNER.value, Groups.SUPER_ADMIN.value]
-            )
-            .exists()
-        ):
-            response.pop("profits")
-        return response

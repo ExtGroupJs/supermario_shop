@@ -17,6 +17,7 @@ from apps.common.pagination import AllResultsSetPagination
 
 from apps.common.permissions import SellViewSetPermission
 from apps.users_app.models.system_user import SystemUser
+from apps.users_app.models.groups import Groups
 
 
 class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
@@ -24,7 +25,6 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         Sell.objects.all()
         .select_related("shop_product", "seller")
         .annotate(total_priced=F("quantity") * F("shop_product__sell_price"))
-        .annotate(profits=(F("shop_product__sell_price")-F("shop_product__cost_price")) * F("quantity")) 
     )
     serializer_class = SellSerializer
     filter_backends = [
@@ -53,17 +53,13 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
     def perform_create(self, serializer):
         serializer.save(seller=SystemUser.objects.get(id=self.request.user.id))
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(
-                page, many=True, context={"request": request}
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.groups.filter(
+            id__in=[Groups.SHOP_OWNER.value, Groups.SUPER_ADMIN.value]
+        ).exists():
+            queryset = queryset.annotate(
+                profits=(F("shop_product__sell_price") - F("shop_product__cost_price"))
+                * F("quantity")
             )
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(
-            queryset, many=True, context={"request": request}
-        )
-        return Response(serializer.data)
+        return queryset
