@@ -4,6 +4,7 @@ const csrfToken = document.cookie
   .find((c) => c.trim().startsWith("csrftoken="))
   ?.split("=")[1];
 
+const list_url = "/business-gestion/shop-products/list-for-sale";
 const url = "/business-gestion/shop-products/";
 let productosSeleccionados = [];
 let importe_total = 0;
@@ -16,7 +17,7 @@ $(document).ready(function () {
 function cargarProductos() {
   load.hidden = false;
   axios
-    .get(url)
+    .get(list_url)
     .then((res) => {
       const productos = res.data.results;
 
