@@ -21,9 +21,12 @@ function cargarProductos() {
       const productos = res.data.results;
 
       productos.forEach((producto) => {
+       if(producto.quantity>0){
         $("#producto").append(
           new Option(`${producto.__repr__}`, producto.id, false, false)
         );
+       }
+      
       });
       cargarProductoEspecifico($("#producto").val());
     })
@@ -156,6 +159,10 @@ $("#crearVenta").on("click", function () {
       .post("/business-gestion/sell-products/", payload)
       .then((response) => {
         item.status = "vendido";
+        importe_total=0;
+        actualizarTabla();
+        $('#producto').empty();
+        cargarProductos();
       })
       .catch((error) => {
         item.status = "error";
