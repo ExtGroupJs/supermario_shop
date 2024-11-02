@@ -65,11 +65,11 @@ $(document).ready(function () {
       },
       
       columns: [
-        { data: "shop_product", title: "Producto" },
+        { data: "shop_product__product__name", title: "Producto" },
         { data: "quantity", title: "Cantidad" },
-        { data: "unit_price", title: "Precio unitario" },
+        { data: "shop_product__sell_price", title: "Precio unitario" },
         { data: "total_priced", title: "Monto total" },
-        { data: "seller", title: "Vendedor" },
+        { data: "seller__first_name", title: "Vendedor" },
         { data: "created_timestamp", title: "Fecha" },
         {
           data: "id",

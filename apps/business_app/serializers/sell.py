@@ -7,24 +7,27 @@ from apps.users_app.models.groups import Groups
 
 
 class SellSerializer(serializers.ModelSerializer):
-    shop_product = serializers.CharField(
+    shop_product__product__name = serializers.CharField(
         source="shop_product.__str__", read_only=True
     )
-    unit_price = serializers.CharField(source="shop_product.sell_price", read_only=True)
-    seller = serializers.CharField(source="seller.__str__", read_only=True)
-    total_priced = serializers.SerializerMethodField()
+    shop_product__sell_price = serializers.CharField(
+        source="shop_product.sell_price", read_only=True
+    )
+    seller__first_name = serializers.CharField(source="seller.__str__", read_only=True)
+    total_priced = serializers.FloatField(read_only=True)
     created_timestamp = serializers.SerializerMethodField()
-    profits = serializers.SerializerMethodField()
+    profits = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Sell
         fields = (
             "id",
             "shop_product",
-            "seller",
+            "shop_product__product__name",
+            "seller__first_name",
             "extra_info",
             "quantity",
-            "unit_price",
+            "shop_product__sell_price",
             "total_priced",
             "created_timestamp",
             "profits",
@@ -37,13 +40,6 @@ class SellSerializer(serializers.ModelSerializer):
     def get_created_timestamp(self, object):
         return object.created_timestamp.strftime("%d-%h-%Y a las  %I:%M %p")
 
-    def get_total_priced(self, object):
-        return object.quantity * object.shop_product.sell_price
-
-    def get_profits(self, object):
-        return (
-            object.shop_product.sell_price - object.shop_product.cost_price
-        ) * object.quantity
 
     def to_representation(self, instance):
         response = super().to_representation(instance)

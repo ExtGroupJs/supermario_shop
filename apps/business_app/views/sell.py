@@ -8,6 +8,8 @@ from apps.business_app.serializers.product import (
     ProductSerializer,
     ReadProductSerializer,
 )
+from django.db.models import Count, Sum, F
+
 from apps.business_app.serializers.sell import SellSerializer
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
@@ -18,7 +20,12 @@ from apps.users_app.models.system_user import SystemUser
 
 
 class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
-    queryset = Sell.objects.all().select_related("shop_product", "seller")
+    queryset = (
+        Sell.objects.all()
+        .select_related("shop_product", "seller")
+        .annotate(total_priced=F("quantity") * F("shop_product__sell_price"))
+        .annotate(profits=(F("shop_product__sell_price")-F("shop_product__cost_price")) * F("quantity")) 
+    )
     serializer_class = SellSerializer
     filter_backends = [
         DjangoFilterBackend,
@@ -41,7 +48,7 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         "extra_info",
     ]
 
-    ordering_fields = "__all__"
+    ordering_fields = SellSerializer.Meta.fields
 
     def perform_create(self, serializer):
         serializer.save(seller=SystemUser.objects.get(id=self.request.user.id))
