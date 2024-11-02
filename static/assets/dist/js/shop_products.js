@@ -44,7 +44,6 @@ $(document).ready(function () {
     processing: true,
     ajax: function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
-
       const params = {};
 
       filters.forEach((filter) => {
@@ -137,7 +136,7 @@ $(document).ready(function () {
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();
-console.log('✌️event --->', event);
+    console.log("✌️event --->", event);
     table.ajax.reload();
   });
 
@@ -411,52 +410,49 @@ function function_delete(id, name) {
   });
 }
 
-function agregarCantidad(shopProductId,cantidad_actual) {
+function agregarCantidad(shopProductId, cantidad_actual) {
   Swal.fire({
-    title: 'Agregar Cantidad',
-    text: '¿Cuántas unidades deseas agregar al producto?',
-    input: 'number',
+    title: "Agregar Cantidad",
+    text: "¿Cuántas unidades deseas agregar al producto?",
+    input: "number",
     inputAttributes: {
-     step: 1
+      step: 1,
     },
     showCancelButton: true,
-    confirmButtonText: 'Agregar',
-    cancelButtonText: 'Cancelar',
+    confirmButtonText: "Agregar",
+    cancelButtonText: "Cancelar",
     preConfirm: (cantidad) => {
-
       if (!cantidad || cantidad <= 0) {
-      
         Swal.showValidationMessage(`Por favor, introduce una cantidad válida.`);
-     
       }
       return cantidad;
-
-    } 
+    },
   }).then((result) => {
     if (result.isConfirmed) {
       const cantidadAgregada = Number(result.value) + Number(cantidad_actual);
       const table = $("#tabla-de-Datos").DataTable();
       // Realizar la petición para actualizar la cantidad
-      axios.patch(`${url}${shopProductId}/`, { quantity: cantidadAgregada })
-        .then(response => {
+      axios
+        .patch(`${url}${shopProductId}/`, { quantity: cantidadAgregada })
+        .then((response) => {
           if (response.status === 200) {
             Swal.fire({
-              icon: 'success',
-              title: '¡Éxito!',
+              icon: "success",
+              title: "¡Éxito!",
               text: `Se han agregado ${cantidadAgregada} unidades al producto.`,
               showConfirmButton: false,
-              timer: 2000 // Mensaje de éxito por 2 segundos
+              timer: 2000, // Mensaje de éxito por 2 segundos
             });
             // Recargar la tabla para reflejar los cambios
             table.ajax.reload();
           }
         })
-        .catch(error => {
+        .catch((error) => {
           Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo actualizar la cantidad. Intente nuevamente.',
-            showConfirmButton: true
+            icon: "error",
+            title: "Error",
+            text: "No se pudo actualizar la cantidad. Intente nuevamente.",
+            showConfirmButton: true,
           });
         });
     }
@@ -467,39 +463,46 @@ function esNegativo(num) {
   return num < 0;
 }
 
-
-function verLogs(shopProductId,name) {
+function verLogs(shopProductId, name) {
   // Función para formatear la fecha
   function formatDate(timestamp) {
     const date = new Date(timestamp);
-    const options = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-    return date.toLocaleString('es-ES', options).replace(',', ' -');
+    const options = {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    };
+    return date.toLocaleString("es-ES", options).replace(",", " -");
   }
 
   // Configurar el DataTable para los logs
-  const logsTable = $("#tabla-de-logs").DataTable({    
-   responsive: true,
+  const logsTable = $("#tabla-de-logs").DataTable({
+    responsive: true,
     ajax: {
       url: "/common/logs/",
       data: {
         object_id: shopProductId,
-        performed_action: "U" // Filtrar solo por performed_action "U"
+        performed_action: "U", // Filtrar solo por performed_action "U"
       },
-      dataSrc: "results"
+      dataSrc: "results",
     },
-   
+
     columns: [
       {
         data: "created_timestamp",
         title: "Fecha",
-        render: function(data) {
+        render: function (data) {
           return formatDate(data); // Formatear la fecha
-        }
+        },
       },
       {
         data: "details",
         title: "Existencia",
-        render: function(data) {          
+        render: function (data) {
           try {
             const formattedData = data.replace(/'/g, '"');
             const details = JSON.parse(formattedData);
@@ -508,12 +511,12 @@ function verLogs(shopProductId,name) {
             console.error("Error al parsear details:", e);
             return "Error"; // Manejo de error
           }
-        }
+        },
       },
       {
         data: "details",
         title: "Entrada",
-        render: function(data) {
+        render: function (data) {
           try {
             const formattedData = data.replace(/'/g, '"');
             const details = JSON.parse(formattedData);
@@ -522,16 +525,16 @@ function verLogs(shopProductId,name) {
             console.error("Error al parsear details:", e);
             return "Error"; // Manejo de error
           }
-        }
+        },
       },
       {
         data: "details",
         title: "Acción",
-        render: function(data) {
+        render: function (data) {
           try {
             const formattedData = data.replace(/'/g, '"');
             const details = JSON.parse(formattedData);
-            const existencia = parseInt(details.quantity.old_value, 10); 
+            const existencia = parseInt(details.quantity.old_value, 10);
             const entrada = parseInt(details.quantity.new_value, 10);
             let action = "";
             let difference = 0;
@@ -547,21 +550,13 @@ function verLogs(shopProductId,name) {
             console.error("Error al parsear details:", e);
             return "Error"; // Manejo de error
           }
-        }
+        },
       },
     ],
-    columnDefs: [
-      {className: "primera_col", targets: 0},
-      
-    ],
-    destroy: true // Permite reinicializar el DataTable
+    columnDefs: [{ className: "primera_col", targets: 0 }],
+    destroy: true, // Permite reinicializar el DataTable
   });
-  $("#modal-logs-label").text("Logs del Producto "+name);
+  $("#modal-logs-label").text("Logs del Producto " + name);
   // Mostrar el modal
   $("#modal-logs").modal("show");
 }
-
-
-
-
-
