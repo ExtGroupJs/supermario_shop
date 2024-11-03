@@ -69,17 +69,17 @@ $(document).ready(function () {
       },
 
       columns: [
-        // { data: "shop_product_name", title: "Producto" },
+        { data: "shop_product__product__name", title: "Producto" },
         { data: "quantity", title: "Cantidad" },
-        { data: "unit_price", title: "Precio unitario" },
+        { data: "shop_product__sell_price", title: "Precio unitario" },
         { data: "total_priced", title: "Monto total" },
-        { data: "seller_name", title: "Vendedor" },
+        { data: "seller__first_name", title: "Vendedor" },
         { data: "created_timestamp", title: "Fecha" },
         {
           data: "id",
           title: "Acciones",
           render: (data, type, row) => {
-            return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product}')" >
+            return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product__product__name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
                           <i class="fas fa-trash"></i>
                         </button>                                          
                       </div>`;
@@ -111,11 +111,11 @@ console.log('✌️function --->');
   });
 });
 
-function function_delete(id, name) {
+function function_delete(id, name, quantity, date, seller) {
   const table = $("#tabla-de-Datos").DataTable();
   Swal.fire({
-    title: "Eliminar",
-    text: `Esta seguro que desea eliminar el elemento ${name}?`,
+    title: "Confirmación requerida",
+    text: `¿Está seguro que desea eliminar la venta de ${quantity} ${name} hecha por ${seller} el día ${date}?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#3085d6",

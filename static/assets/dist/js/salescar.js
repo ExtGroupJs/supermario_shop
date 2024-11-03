@@ -4,9 +4,10 @@ const csrfToken = document.cookie
   .find((c) => c.trim().startsWith("csrftoken="))
   ?.split("=")[1];
 
+const list_url = "/business-gestion/shop-products/list-for-sale";
 const url = "/business-gestion/shop-products/";
 let productosSeleccionados = [];
-
+let importe_total = 0;
 // Cargar productos al inicio
 $(document).ready(function () {
   cargarProductos();
@@ -16,14 +17,17 @@ $(document).ready(function () {
 function cargarProductos() {
   load.hidden = false;
   axios
-    .get(url)
+    .get(list_url)
     .then((res) => {
       const productos = res.data.results;
 
       productos.forEach((producto) => {
+       if(producto.quantity>0){
         $("#producto").append(
           new Option(`${producto.__repr__}`, producto.id, false, false)
         );
+       }
+      
       });
       cargarProductoEspecifico($("#producto").val());
     })
@@ -56,7 +60,6 @@ $("#agregarProducto").on("click", function () {
   const cantidad = $("#cantidad").val();
 
   if (!productoId || cantidad < 1 || cantidad > especificProducto.quantity) {
-    console.log("✌️productoId --->", productoId);
     $("#cantidad").focus().select().addClass("is-invalid");
     Swal.fire({
       icon: "error",
@@ -105,10 +108,13 @@ function existe() {
 
 // Actualizar la tabla de productos seleccionados
 function actualizarTabla() {
+  importe_total=0;
   const tbody = $("#productosTable tbody");
+  const showimport=document.getElementById("impTotal"); 
   tbody.empty();
 
   productosSeleccionados.forEach((item) => {
+    importe_total+=item.importe;
     tbody.append(`
             <tr>
                 <td>${item.producto}</td>
@@ -119,7 +125,7 @@ function actualizarTabla() {
             </tr>
         `);
   });
-
+  showimport.innerText=`Importe total:${importe_total}$`;
   $("#cantidad").focus().select().val("");
 }
 
@@ -154,6 +160,10 @@ $("#crearVenta").on("click", function () {
       .post("/business-gestion/sell-products/", payload)
       .then((response) => {
         item.status = "vendido";
+        importe_total=0;
+        actualizarTabla();
+        $('#producto').empty();
+        cargarProductos();
       })
       .catch((error) => {
         item.status = "error";
@@ -170,13 +180,14 @@ $("#crearVenta").on("click", function () {
   let texto = "";
   html = "<hr><ul style='justify-content: left'>";
   productosSeleccionados.forEach((item) => {
+
     if (item.status === "error") {
       html += `<li class="text-danger">${item.producto} - ${item.cantidad} - <i class="icon fas fa-ban"></i> </li>`;
     } else {
       html += `<li class="text-success">${item.producto} - ${item.cantidad} - <i class="icon fas fa-check"></i> </li>`;
     }
   });
-  html += "</ul><hr>";
+  html += `</ul><h4>Importe Total: ${importe_total}</h4><hr>`;
   Swal.fire({
     icon: "success",
     title: "Venta creada con éxito",

@@ -262,7 +262,7 @@ function function_delete(id, name) {
   const table = $("#tabla-de-Datos").DataTable();
   Swal.fire({
     title: "Eliminar",
-    text: `Esta seguro que desea eliminar el elemento ${name}?`,
+    text: `¿Está seguro que desea eliminar el elemento ${name}?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#3085d6",
