@@ -63,6 +63,8 @@ class ShopProductsViewSet(
                 )
             ).exists()
         ):
+            if self.action == "list_for_sale":
+                queryset =  queryset.filter(quantity__gt=0)
             return queryset
         system_user = SystemUser.objects.get(id=self.request.user.id)
         return queryset.filter(quantity__gt=0, shop=system_user.shop)
@@ -81,3 +83,11 @@ class ShopProductsViewSet(
             queryset, many=True, context={"request": request}
         )
         return Response(serializer.data)
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_name="list-for-sale",
+        url_path="list-for-sale",
+    )
+    def list_for_sale(self, request):
+        return self.list(request)
