@@ -45,7 +45,7 @@ $(document).ready(function () {
             params[filter.name] = filter.value;
           }
         });
-        params.page_size = data.length;
+      params.page_size = data.length;
       params.page = data.start / data.length + 1;
       params.ordering = data.columns[data.order[0].column].data;
       params.search = data.search.value;
