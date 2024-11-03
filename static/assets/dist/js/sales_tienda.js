@@ -86,7 +86,7 @@ $(document).ready(function () {
         },
       },
     ],
-    order: [[6, 'desc']],
+    order: [[5, 'desc']],
     //  esto es para truncar el texto de las celdas
     columnDefs: [],
   });
