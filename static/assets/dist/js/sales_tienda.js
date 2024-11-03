@@ -62,6 +62,7 @@ $(document).ready(function () {
             recordsFiltered: res.data.count,
             data: res.data.results,
           });
+
         })
         .catch((error) => {
           alert(error);
@@ -80,6 +81,7 @@ $(document).ready(function () {
         title: "Acciones",
         render: (data, type, row) => {
           return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product__product__name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
+
                           <i class="fas fa-trash"></i>
                         </button>                                          
                       </div>`;
