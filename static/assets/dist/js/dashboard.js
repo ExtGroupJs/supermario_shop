@@ -17,7 +17,8 @@ smallboxdataSellProfits();
 smallboxdataSellProfitsCurrentMonth();
 smallboxdataSellProfitsLastMonth();
 smallboxdataSellProfitsCurrentWeek(),
-smallboxdataSellProfitsLastWeek()
+smallboxdataSellProfitsLastWeek(),
+smallboxdataSellProfitsThisWeek()
 });
 
 function smallboxdataInvestment() {
@@ -335,7 +336,7 @@ function smallboxdataSellProfitsCurrentWeek() {
 
     // Calcular el último día de la semana actual (sábado)
     const lastDayOfCurrentWeek = new Date(today);
-    lastDayOfCurrentWeek.setDate(today.getDate() + (6 - today.getDay()));
+    lastDayOfCurrentWeek.setDate(today.getDate() + (6 - today.getDay()+1));
     
     // Formatear las fechas a YYYY-MM-DD
     const startDate = firstDayOfCurrentWeek.toISOString().split('T')[0];
@@ -365,20 +366,16 @@ function smallboxdataSellProfitsCurrentWeek() {
 }
 function smallboxdataSellProfitsLastWeek() {
     // Obtener la fecha actual
-    const today = new Date();
-    
+    const today = new Date();  
     // Calcular el primer día de la semana anterior (domingo)
     const firstDayOfLastWeek = new Date(today);
     firstDayOfLastWeek.setDate(today.getDate() - today.getDay() - 7);
-
     // Calcular el último día de la semana anterior (sábado)
     const lastDayOfLastWeek = new Date(today);
     lastDayOfLastWeek.setDate(today.getDate() - today.getDay() - 1);
-
     // Formatear las fechas a YYYY-MM-DD
     const startDate = firstDayOfLastWeek.toISOString().split('T')[0];
     const endDate = lastDayOfLastWeek.toISOString().split('T')[0];
-
     // Parámetros para la solicitud
     const params = {
         "updated_timestamp__gte": startDate,
@@ -390,14 +387,18 @@ function smallboxdataSellProfitsLastWeek() {
         .then(response => {
             // Procesar las ganancias por día
             const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
+console.log('✌️dailyProfits --->', dailyProfits);
             
             // Limpiar datos anteriores
-            profitsChart.data.labels = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            profitsChart.data.labels = [];
             profitsChart.data.datasets[0].data = [];
 
             // Llenar datos de la gráfica
             dailyProfits.forEach(day => {
-                // profitsChart.data.labels.push(day.date); // Asegúrate de que 'date' es la propiedad correcta
+                
+console.log('✌️day.frequency --->', day.frequency);
+console.log('✌️getDayOfWeekmiaaaaa --->', getDayOfWeek(day.frequency));
+                 profitsChart.data.labels.push(getDayOfWeek(day.frequency)); // Asegúrate de que 'date' es la propiedad correcta
                 profitsChart.data.datasets[0].data.push(day.total); // Asegúrate de que 'total' es la propiedad correcta
             });
 
@@ -408,4 +409,67 @@ function smallboxdataSellProfitsLastWeek() {
             console.error('Error fetching data:', error);
         });
 }
+function smallboxdataSellProfitsThisWeek() {
+    // Obtener la fecha actual
+    const today = new Date();  
+    // Calcular el primer día de la semana  (domingo)
+    const firstDayOfThisWeek = new Date(today);
+    firstDayOfThisWeek.setDate(today.getDate() - today.getDay());
+    // Calcular el último día de la semana anterior (sábado)
+    const lastDayOfThisWeek = new Date(today);
+    lastDayOfThisWeek.setDate(today.getDate() - today.getDay() + 1);
+    // Formatear las fechas a YYYY-MM-DD
+    const startDate = firstDayOfThisWeek.toISOString().split('T')[0];
+    const endDate = lastDayOfThisWeek.toISOString().split('T')[0];
+    // Parámetros para la solicitud
+    console.log('✌️startDate --->', startDate);
+    
+console.log('✌️endDate --->', endDate);
+    const params = {
+        "updated_timestamp__gte": startDate,
+        "updated_timestamp__lte": endDate,
+        "frequency": "day"  // Cambiamos a "day" para obtener datos diarios
+    };
+
+    axios.post('/business-gestion/dashboard/sell-profits/', params)
+        .then(response => {
+            // Procesar las ganancias por día
+            const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
+            // Limpiar datos anteriores
+            profitsChartThisWeek.data.labels = [];
+            profitsChartThisWeek.data.datasets[0].data = [];
+            // Llenar datos de la gráfica
+            dailyProfits.forEach(day => {
+                profitsChartThisWeek.data.labels.push(getDayOfWeek(day.frequency)); // Asegúrate de que 'date' es la propiedad correcta
+                profitsChartThisWeek.data.datasets[0].data.push(day.total); // Asegúrate de que 'total' es la propiedad correcta
+            });
+
+            // Actualizar la gráfica
+            profitsChartThisWeek.update();
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+
+function getDayOfWeek(date) {
+    // Crear un objeto Date si la entrada es una cadena
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+    // Asegurarse de que la fecha es válida
+    if (isNaN(dateObj)) {
+        throw new Error('Fecha inválida');
+    }
+
+    // Array con los nombres de los días de la semana
+    const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+    // Obtener el índice del día de la semana (0-6)
+    const dayIndex = (dateObj.getUTCDay() + 7) % 7; // Usar getUTCDay para evitar problemas de zona horaria
+
+    // Retornar el nombre del día correspondiente
+    return daysOfWeek[dayIndex];
+}
+
+
 
