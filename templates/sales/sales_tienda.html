@@ -40,10 +40,51 @@
 
           <div class="card">
             <div class="card-header">
-
               <h3 class="card-title">Gestionar Ventas</h3>
+              <button class="btn btn-secondary float-right" id="toggle-filters"><i class="nav-icon fas fa-filter"></i>
+                Filtros</button>
             </div>
             <!-- /.card-header -->
+             <!-- Filtros -->
+            <div class="card-body" id="filter-section" style="display: none;">
+              <form id="filter-form" class="mb-2">
+                <div class="row"> 
+                <div class="form-group col-md-6">
+                    <label for="created_timestamp__gte">Fecha de Creación (Desde)</label>
+                    <input type="date" class="form-control" id="created_timestamp__gte"
+                      name="created_timestamp__gte">
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label for="created_timestamp__lte">Fecha de Creación (Hasta)</label>
+                    <input type="date" class="form-control" id="created_timestamp__lte"
+                      name="created_timestamp__lte">
+                  </div>
+
+                 
+                    <!-- Date range -->
+                    <!-- <div class="form-group col-md-4">
+                      <label>Date range:</label>
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text">
+                            <i class="far fa-calendar-alt"></i>
+                          </span>
+                        </div>
+                        <input type="text" class="form-control" id="range_created_timestamp" name="range_created_timestamp">
+                      </div>
+                    </div> -->
+                    <!-- /.input group -->
+
+
+
+                  
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="nav-icon fas fa-check"></i> Aplicar</button>
+                <button type="button" id="reset-filters" class="btn btn-secondary"><i class="nav-icon fas fa-redo"></i>
+                  Restablecer</button>
+              </form>
+              <hr>
+            </div>
             <div class="modal-body">
 
               <!-- </div>style="overflow: hidden;"> -->

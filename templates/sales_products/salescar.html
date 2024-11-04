@@ -69,8 +69,17 @@
             <button type="button" class="btn btn-primary" id="agregarProducto">Agregar Producto</button>
             <button type="button" class="btn btn-success" id="crearVenta">Crear Venta</button>
         </form>
-        
-        <h2>Productos a Vender</h2>
+        <div class="row">
+          <div class="col-md-9">
+            <h2>Productos a Vender</h2>
+          </div>
+          <div class="col-md-3">
+           <blockquote>
+                  <h5 id="impTotal">Importe total: 0$</h5>
+                 
+                </blockquote>
+          </div>
+        </div>
         <table class="table table-bordered" id="productosTable">
             <thead>
                 <tr>

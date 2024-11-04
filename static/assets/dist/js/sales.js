@@ -6,15 +6,17 @@ const csrfToken = document.cookie
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 // url del endpoint principal
 const url = "/business-gestion/sell-products/";
+$(function () {
+  bsCustomFileInput.init();
+  $("#filter-form")[0].reset();
+});
 
 $(function () {
   bsCustomFileInput.init();
 });
 
 $(document).ready(function () {
-    $("table")
-    .addClass("table table-hover")
-    .DataTable({
+  const table = $("#tabla-de-Datos").DataTable({
       responsive: true,
       dom: '<"top"l>Bfrtip',
       buttons: [
@@ -38,20 +40,24 @@ $(document).ready(function () {
       },
       processing: true,
       ajax: function (data, callback, settings) {
-        dir = "";
-        if (data.order[0].dir == "desc") {
-          dir = "-";
+        const filters = $("#filter-form").serializeArray();
+      const params = {};
+      filters.forEach((filter) => {
+        if (filter.value) {
+          params[filter.name] = filter.value;
         }
-
+      });
+      dir = "";      
+      if (data.order[0].dir == "desc") {
+        dir = "-";
+      }
+      params.page_size = data.length;
+      params.page = data.start / data.length + 1;
+      params.ordering = dir + data.columns[data.order[0].column].data;
+      params.search = data.search.value;
+      
         axios
-          .get(`${url}`, {
-            params: {
-              page_size: data.length,
-              page: data.start / data.length + 1,
-              search: data.search.value,
-              ordering: dir + data.columns[data.order[0].column].data,
-            },
-          })
+          .get(`${url}`, {params})
           .then((res) => {
             callback({
               recordsTotal: res.data.count,
@@ -65,35 +71,52 @@ $(document).ready(function () {
       },
       
       columns: [
-        { data: "shop_product_name", title: "Producto" },
+        { data: "shop_product__product__name", title: "Producto" },
         { data: "quantity", title: "Cantidad" },
-        { data: "unit_price", title: "Precio unitario" },
+        { data: "shop_product__sell_price", title: "Precio unitario" },
         { data: "total_priced", title: "Monto total" },
         { data: "profits", title: "Ganancia"},
-        { data: "seller_name", title: "Vendedor" },
+        { data: "seller__first_name", title: "Vendedor" },
         { data: "created_timestamp", title: "Fecha" },
 
         {
           data: "id",
           title: "Acciones",
           render: (data, type, row) => {
-            return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product}')" >
+            return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product__product__name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
                           <i class="fas fa-trash"></i>
                         </button>                                          
                       </div>`;
           },
         },
       ],
+      order: [[6, 'desc']],
       //  esto es para truncar el texto de las celdas
       columnDefs: [],
     });
+    // Manejo del formulario de filtros
+  $("#filter-form").on("submit", function (event) {
+    event.preventDefault();
+     table.ajax.reload();
+  });
+
+  // Restablecer filtros
+  $("#reset-filters").on("click", function () {
+    $("#filter-form")[0].reset();
+    table.ajax.reload();
+  });
+
+  // Mostrar/Ocultar filtros
+  $("#toggle-filters").on("click", function () {
+    $("#filter-section").toggle();
+  });
 });
 
-function function_delete(id, name) {
+function function_delete(id, name, quantity, date, seller) {
   const table = $("#tabla-de-Datos").DataTable();
   Swal.fire({
-    title: "Eliminar",
-    text: `Esta seguro que desea eliminar el elemento ${name}?`,
+    title: "Confirmación requerida",
+    text: `¿Está seguro que desea eliminar la venta de ${quantity} ${name} hecha por ${seller} el día ${date}?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#3085d6",
@@ -144,3 +167,5 @@ function verificarGroups(numeros, verificarTodos = false) {
       return numerosArray.some(num => grupos.includes(num));
   }
 }
+
+

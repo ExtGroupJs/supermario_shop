@@ -16,7 +16,8 @@ smallboxdataSellCurrentMonth();
 smallboxdataSellProfits();
 smallboxdataSellProfitsCurrentMonth();
 smallboxdataSellProfitsLastMonth();
-smallboxdataSellProfitsCurrentWeek()
+smallboxdataSellProfitsCurrentWeek(),
+smallboxdataSellProfitsLastWeek()
 });
 
 function smallboxdataInvestment() {
@@ -362,3 +363,49 @@ function smallboxdataSellProfitsCurrentWeek() {
             console.error('Error fetching data:', error);
         });
 }
+function smallboxdataSellProfitsLastWeek() {
+    // Obtener la fecha actual
+    const today = new Date();
+    
+    // Calcular el primer día de la semana anterior (domingo)
+    const firstDayOfLastWeek = new Date(today);
+    firstDayOfLastWeek.setDate(today.getDate() - today.getDay() - 7);
+
+    // Calcular el último día de la semana anterior (sábado)
+    const lastDayOfLastWeek = new Date(today);
+    lastDayOfLastWeek.setDate(today.getDate() - today.getDay() - 1);
+
+    // Formatear las fechas a YYYY-MM-DD
+    const startDate = firstDayOfLastWeek.toISOString().split('T')[0];
+    const endDate = lastDayOfLastWeek.toISOString().split('T')[0];
+
+    // Parámetros para la solicitud
+    const params = {
+        "updated_timestamp__gte": startDate,
+        "updated_timestamp__lte": endDate,
+        "frequency": "day"  // Cambiamos a "day" para obtener datos diarios
+    };
+
+    axios.post('/business-gestion/dashboard/sell-profits/', params)
+        .then(response => {
+            // Procesar las ganancias por día
+            const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
+            
+            // Limpiar datos anteriores
+            profitsChart.data.labels = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            profitsChart.data.datasets[0].data = [];
+
+            // Llenar datos de la gráfica
+            dailyProfits.forEach(day => {
+                // profitsChart.data.labels.push(day.date); // Asegúrate de que 'date' es la propiedad correcta
+                profitsChart.data.datasets[0].data.push(day.total); // Asegúrate de que 'total' es la propiedad correcta
+            });
+
+            // Actualizar la gráfica
+            profitsChart.update();
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+

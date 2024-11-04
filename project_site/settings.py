@@ -69,8 +69,8 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
     "REDOC_DIST": "SIDECAR",
-    "TITLE": "Allele Viewer API",
-    "DESCRIPTION": "Sistema representación visual de alelos",
+    "TITLE": "Mario Shop API",
+    "DESCRIPTION": "Api de la tienda de Mario",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     # OTHER SETTINGS

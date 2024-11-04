@@ -8,6 +8,8 @@ from apps.business_app.serializers.product import (
     ProductSerializer,
     ReadProductSerializer,
 )
+from django.db.models import Count, Sum, F
+
 from apps.business_app.serializers.sell import SellSerializer
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
@@ -15,10 +17,15 @@ from apps.common.pagination import AllResultsSetPagination
 
 from apps.common.permissions import SellViewSetPermission
 from apps.users_app.models.system_user import SystemUser
+from apps.users_app.models.groups import Groups
 
 
 class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
-    queryset = Sell.objects.all().select_related("shop_product", "seller")
+    queryset = (
+        Sell.objects.all()
+        .select_related("shop_product", "seller")
+        .annotate(total_priced=F("quantity") * F("shop_product__sell_price"))
+    )
     serializer_class = SellSerializer
     filter_backends = [
         DjangoFilterBackend,
@@ -26,13 +33,17 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         CommonOrderingFilter,
     ]
     permission_classes = [SellViewSetPermission]
-    filterset_fields = [
-        "shop_product",
-        "shop_product__product",
-        "shop_product__product__model",
-        "shop_product__product__model__brand",
-        "seller",
-    ]
+    filterset_fields = { 
+        "shop_product": ["exact"],
+        "seller": ["exact"],
+        "shop_product__product": ["exact"],
+        "shop_product__product__model": ["exact"],
+        "shop_product__product__model__brand": ["exact"],
+        "shop_product__sell_price": ["gte", "lte", "exact"],
+        "quantity": ["gte", "lte", "exact"],
+        "created_timestamp": ["gte", "lte"],
+        "updated_timestamp": ["gte", "lte"],}
+
     search_fields = [
         "shop_product__product__name",
         "shop_product__product__model__name",
@@ -41,20 +52,18 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         "extra_info",
     ]
 
+    ordering_fields = SellSerializer.Meta.fields
+
     def perform_create(self, serializer):
         serializer.save(seller=SystemUser.objects.get(id=self.request.user.id))
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(
-                page, many=True, context={"request": request}
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.groups.filter(
+            id__in=[Groups.SHOP_OWNER.value, Groups.SUPER_ADMIN.value]
+        ).exists():
+            queryset = queryset.annotate(
+                profits=(F("shop_product__sell_price") - F("shop_product__cost_price"))
+                * F("quantity")
             )
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(
-            queryset, many=True, context={"request": request}
-        )
-        return Response(serializer.data)
+        return queryset

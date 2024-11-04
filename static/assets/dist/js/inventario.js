@@ -121,7 +121,7 @@ function verLogs(shopProductId,name) {
       },
       {
         data: "details",
-        title: "Existencia",
+        title: "Valor Inicial",
         render: function(data) {          
           try {
             const formattedData = data.replace(/'/g, '"');
@@ -135,7 +135,7 @@ function verLogs(shopProductId,name) {
       },
       {
         data: "details",
-        title: "Entrada",
+        title: "Valor final",
         render: function(data) {
           try {
             const formattedData = data.replace(/'/g, '"');
@@ -162,7 +162,7 @@ function verLogs(shopProductId,name) {
               action = "Entrada";
               difference = entrada - existencia;
             } else {
-              action = "Venta";
+              action = "Vendido";
               difference = existencia - entrada;
             }
             return `${action} ${difference}`; // Mostrar acción y diferencia
