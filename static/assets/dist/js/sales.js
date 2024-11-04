@@ -41,6 +41,7 @@ $(document).ready(function () {
       processing: true,
       ajax: function (data, callback, settings) {
         const filters = $("#filter-form").serializeArray();
+        
       const params = {};
       filters.forEach((filter) => {
         if (filter.value) {

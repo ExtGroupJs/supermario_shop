@@ -109,7 +109,7 @@
           </div>
           <!-- ./col -->
           <!-- ./col -->
-          <div class="col-lg-3 col-6">
+          <div class="col-lg-2 col-6">
             <!-- small box -->
             <div class="small-box bg-indigo">
               <div class="inner">
@@ -139,7 +139,7 @@
             </div>
           </div>
           <!-- ./col -->
-          <div class="col-lg-3 col-6">
+          <div class="col-lg-2 col-6">
             <!-- small box -->
             <div class="small-box bg-olive">
               <div class="inner">
@@ -168,27 +168,33 @@
               <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
               </div>
           </div>
-        </div>
-        <!-- /.row -->
-        <!-- ./col -->
-          <div class="col-lg-3 col-6">
+
+   <div class="col-lg-2 col-6">
             <!-- small box -->
             <div class="small-box bg-lightblue">
               <div class="inner">
                 <h3 id = "SellProfitscurrentweek">-</h3>
-
                 <p>Ganancias semana actual</p>
               </div>
               <div class="icon">
                 <i class="nav-icon fas fa-calendar-minus"></i>
               </div>
               <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
+            </div>            
+          </div>                  
           </div>
+          
+
+
+
+        </div>
+        <!-- /.row -->
+        <!-- ./col -->
+       
         <!-- Main row -->
         <div class="row">
           <!-- Left col -->
-          <section class="col-lg-7 connectedSortable">
+          <section class="col-lg-6 connectedSortable">
            <!-- AREA CHART -->
             <div class="card card-primary">
               <div class="card-header">
@@ -207,6 +213,36 @@
                 <div class="chart">
                   {% comment %} <canvas id="ventasChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas> {% endcomment %}
                 <canvas id="profitsChart" width="400" height="200"></canvas>
+                </div>
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card --> 
+               <!-- BAR CHART -->
+           <canvas id="ventasChart" width="400" height="200"></canvas>
+
+
+
+          </section>
+          <section class="col-lg-6 connectedSortable">
+           <!-- AREA CHART -->
+            <div class="card card-success">
+              <div class="card-header">
+                <h3 class="card-title">Ventas de la Semana Actual</h3>
+
+                <div class="card-tools">
+                  <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-tool" data-card-widget="remove">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="chart">
+                  {% comment %} <canvas id="ventasChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas> {% endcomment %}
+                <canvas id="profitsChartThisWeek" width="400" height="200"></canvas>
                 </div>
               </div>
               <!-- /.card-body -->
@@ -312,6 +348,46 @@
             }
         }
     });
+       let profitsChartThisWeek = new Chart(document.getElementById('profitsChartThisWeek'), {
+        type: 'line', // Tipo de gráfica (puede ser 'line', 'bar', etc.)
+        data: {
+            labels: [], // Etiquetas de los días
+            datasets: [{
+                label: 'Ganancias Diarias',
+                data: [], // Datos de ganancias
+                backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                        'rgba(255, 99, 132, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+
+
+    
     </script>
 
 {% endblock %}
