@@ -54,6 +54,8 @@ function smallboxdataInvestmentLastMonth() {
     const firstDayOfLastMonth = new Date(lastDayOfLastMonth.getFullYear(), lastDayOfLastMonth.getMonth(), 1);
     
     // Formatear las fechas a YYYY-MM-DD
+    firstDayOfLastMonth.setHours(0, 0, 0, 0);
+    lastDayOfLastMonth.setHours(0, 0, 0, 0);
     const startDate = firstDayOfLastMonth.toISOString().split('T')[0];
     const endDate = lastDayOfLastMonth.toISOString().split('T')[0];
 
@@ -90,6 +92,8 @@ function smallboxdataInvestmentCurrentMonth() {
     const lastDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     
     // Formatear las fechas a YYYY-MM-DD
+    firstDayOfCurrentMonth.setHours(0, 0, 0, 0);
+    lastDayOfCurrentMonth.setHours(0, 0, 0, 0);
     const startDate = firstDayOfCurrentMonth.toISOString().split('T')[0];
     const endDate = lastDayOfCurrentMonth.toISOString().split('T')[0];
 
@@ -128,6 +132,8 @@ function smallboxdataSellCurrentWeek() {
     lastDayOfCurrentWeek.setDate(today.getDate() + (6 - today.getDay()));
     
     // Formatear las fechas a YYYY-MM-DD
+    firstDayOfCurrentWeek.setHours(0, 0, 0, 0);
+    lastDayOfCurrentWeek.setHours(0, 0, 0, 0);
     const startDate = firstDayOfCurrentWeek.toISOString().split('T')[0];
     const endDate = lastDayOfCurrentWeek.toISOString().split('T')[0];
 
@@ -223,6 +229,8 @@ function smallboxdataSellProfitsLastMonth() {
     const firstDayOfLastMonth = new Date(lastDayOfLastMonth.getFullYear(), lastDayOfLastMonth.getMonth(), 1);
     
     // Formatear las fechas a YYYY-MM-DD
+    firstDayOfLastMonth.setHours(0, 0, 0, 0);
+    lastDayOfLastMonth.setHours(0, 0, 0, 0);
     const startDate = firstDayOfLastMonth.toISOString().split('T')[0];
     const endDate = lastDayOfLastMonth.toISOString().split('T')[0];
 
@@ -259,6 +267,8 @@ function smallboxdataSellProfitsCurrentMonth() {
     const lastDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     
     // Formatear las fechas a YYYY-MM-DD
+    firstDayOfCurrentMonth.setHours(0, 0, 0, 0);
+    lastDayOfCurrentMonth.setHours(0, 0, 0, 0);
     const startDate = firstDayOfCurrentMonth.toISOString().split('T')[0];
     const endDate = lastDayOfCurrentMonth.toISOString().split('T')[0];
 
@@ -339,7 +349,9 @@ function smallboxdataSellProfitsCurrentWeek() {
     lastDayOfCurrentWeek.setDate(today.getDate() + (6 - today.getDay()+1));
     
     // Formatear las fechas a YYYY-MM-DD
+    firstDayOfCurrentWeek.setHours(0, 0, 0, 0);
     const startDate = firstDayOfCurrentWeek.toISOString().split('T')[0];
+    lastDayOfCurrentWeek.setHours(0, 0, 0, 0);
     const endDate = lastDayOfCurrentWeek.toISOString().split('T')[0];
 
     // Parámetros para la solicitud
@@ -374,7 +386,9 @@ function smallboxdataSellProfitsLastWeek() {
     const lastDayOfLastWeek = new Date(today);
     lastDayOfLastWeek.setDate(today.getDate() - today.getDay() - 1);
     // Formatear las fechas a YYYY-MM-DD
+    firstDayOfLastWeek.setHours(0, 0, 0, 0);
     const startDate = firstDayOfLastWeek.toISOString().split('T')[0];
+    lastDayOfLastWeek.setHours(0, 0, 0, 0);
     const endDate = lastDayOfLastWeek.toISOString().split('T')[0];
     // Parámetros para la solicitud
     const params = {
@@ -387,17 +401,13 @@ function smallboxdataSellProfitsLastWeek() {
         .then(response => {
             // Procesar las ganancias por día
             const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
-console.log('✌️dailyProfits --->', dailyProfits);
-            
+           
             // Limpiar datos anteriores
             profitsChart.data.labels = [];
             profitsChart.data.datasets[0].data = [];
 
             // Llenar datos de la gráfica
             dailyProfits.forEach(day => {
-                
-console.log('✌️day.frequency --->', day.frequency);
-console.log('✌️getDayOfWeekmiaaaaa --->', getDayOfWeek(day.frequency));
                  profitsChart.data.labels.push(getDayOfWeek(day.frequency)); // Asegúrate de que 'date' es la propiedad correcta
                 profitsChart.data.datasets[0].data.push(day.total); // Asegúrate de que 'total' es la propiedad correcta
             });
@@ -418,13 +428,17 @@ function smallboxdataSellProfitsThisWeek() {
     // Calcular el último día de la semana anterior (sábado)
     const lastDayOfThisWeek = new Date(today);
     lastDayOfThisWeek.setDate(today.getDate() - today.getDay() + 1);
-    // Formatear las fechas a YYYY-MM-DD
+
+    // Establecer la hora a medianoche en la zona horaria local
+    firstDayOfThisWeek.setHours(0, 0, 0, 0);
+
+    // Convertir a formato YYYY-MM-DD
     const startDate = firstDayOfThisWeek.toISOString().split('T')[0];
+
+    lastDayOfThisWeek.setHours(0, 0, 0, 0);
     const endDate = lastDayOfThisWeek.toISOString().split('T')[0];
+
     // Parámetros para la solicitud
-    console.log('✌️startDate --->', startDate);
-    
-console.log('✌️endDate --->', endDate);
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
