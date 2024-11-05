@@ -9,6 +9,7 @@ const url = "/business-gestion/sell-products/";
 $(function () {
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
+  $('#reservationdatetime').datetimepicker({ icons: { time: 'far fa-clock' } });
 });
 
 $(function () {
@@ -18,6 +19,10 @@ $(function () {
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
       responsive: true,
+      lengthMenu: [
+        [10, 25, 50, 100, -1], // Valores
+        [10, 25, 50, 100, 'Todos'] // Etiquetas
+    ],
       dom: '<"top"l>Bfrtip',
       buttons: [
         {
@@ -41,7 +46,10 @@ $(document).ready(function () {
       processing: true,
       ajax: function (data, callback, settings) {
         const filters = $("#filter-form").serializeArray();
-        
+
+      if (filters[1].value!="") {
+        filters[1].value+=":23:59";
+        }        
       const params = {};
       filters.forEach((filter) => {
         if (filter.value) {
@@ -152,21 +160,7 @@ function function_delete(id, name, quantity, date, seller) {
     }
   });
 }
-function verificarGroups(numeros, verificarTodos = false) {
-  // Recuperar el grupo de números almacenados en localStorage
-  const grupos = JSON.parse(localStorage.getItem('groups')) || [];
 
-  // Convertir el argumento 'numeros' en un array si no lo es
-  const numerosArray = Array.isArray(numeros) ? numeros : [numeros];
 
-  // Verificar coincidencias
-  if (verificarTodos) {
-      // Verificar que todos los números pasados estén en el grupo
-      return numerosArray.every(num => grupos.includes(num));
-  } else {
-      // Verificar si al menos uno de los números pasa está en el grupo
-      return numerosArray.some(num => grupos.includes(num));
-  }
-}
 
 

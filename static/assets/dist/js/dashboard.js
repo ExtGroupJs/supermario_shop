@@ -435,7 +435,7 @@ function smallboxdataSellProfitsThisWeek() {
     // Convertir a formato YYYY-MM-DD
     const startDate = firstDayOfThisWeek.toISOString().split('T')[0];
 
-    lastDayOfThisWeek.setHours(0, 0, 0, 0);
+    lastDayOfThisWeek.setHours(23, 59, 0, 0);
     const endDate = lastDayOfThisWeek.toISOString().split('T')[0];
 
     // Parámetros para la solicitud
