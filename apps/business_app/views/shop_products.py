@@ -28,7 +28,7 @@ class ShopProductsViewSet(
     queryset = ShopProducts.objects.all()
     serializer_class = ShopProductsSerializer
     list_serializer_class = ReadShopProductsSerializer
-    list_for_sale_serializer_class = ReadShopProductsSerializer
+    retrieve_serializer_class = ReadShopProductsSerializer
     pagination_class = AllResultsSetPagination
     permission_classes = [ShopProductsViewSetPermission]
 
