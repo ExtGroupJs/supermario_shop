@@ -11,7 +11,7 @@ const url = "/business-gestion/shop-products/";
 $(function () {
   bsCustomFileInput.init();
   
-  poblarListas();
+  // poblarListas();
 });
 
 // Inicializar DataTable
@@ -27,14 +27,26 @@ $(document).ready(function () {
       {
         extend: "excel",
         text: "Excel",
+        exportOptions: {
+          columns: [2,3,4,5],
+          stripHtml: false, // No eliminar imágenes
+        },
       },
       {
         extend: "pdf",
         text: "PDF",
+        exportOptions: {
+          columns: [2,3,4,5],
+          stripHtml: false, // No eliminar imágenes
+        },
       },
       {
         extend: "print",
         text: "Print",
+        exportOptions: {
+          columns: [2,3,4,5],
+          stripHtml: false, // No eliminar imágenes
+        },
       },
     ],
     serverSide: true,

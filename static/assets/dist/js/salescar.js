@@ -21,6 +21,7 @@ function cargarProductos() {
     .then((res) => {
       const productos = res.data.results;
 
+
       productos.forEach((producto) => {
        if(producto.quantity>0){
         $("#producto").append(
@@ -48,8 +49,12 @@ function cargarProductoEspecifico(id) {
       $("#productoDescripcionPrec").text(
         `Precio: $${especificProducto.sell_price}`
       );
-      $("#productImagen").src = `${especificProducto.sell_price}`
-console.log('✌️especificProducto --->', especificProducto);
+      var nuevaUrl = especificProducto.product.image;
+console.log('✌️nuevaUrl --->', nuevaUrl);
+
+document.getElementById('productImagen').src = nuevaUrl;
+    
+
       ;
       load.hidden = true;
     })
