@@ -50,17 +50,22 @@
               <form id="filter-form" class="mb-2">
                 <div class="row"> 
                 <div class="form-group col-md-6">
-                    <label for="created_timestamp__gte">Fecha de Creación (Desde)</label>
+                    <label for="created_timestamp__gte">Ventas Desde </label>
                     <input type="date" class="form-control" id="created_timestamp__gte"
                       name="created_timestamp__gte">
                   </div>
                   <div class="form-group col-md-6">
-                    <label for="created_timestamp__lte">Fecha de Creación (Hasta, no incluye)</label>
+                    <label for="created_timestamp__lte">Ventas Hasta</label>
                     <input type="date" class="form-control" id="created_timestamp__lte"
                       name="created_timestamp__lte">
                                     
+                   </div>
                 </div>
-                </div>
+               
+              
+
+
+
                 <button type="submit" class="btn btn-primary"><i class="nav-icon fas fa-check"></i> Aplicar</button>
                 <button type="button" id="reset-filters" class="btn btn-secondary"><i class="nav-icon fas fa-redo"></i>
                   Restablecer</button>
@@ -113,6 +118,7 @@
 
 <script src="{% static 'assets/dist/js/sales.js' %}"></script>
 <script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
+<script src="{% static 'assets/plugins/moment/moment.min.js' %}"></script>
 <script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
 
 <!-- Page specific script -->

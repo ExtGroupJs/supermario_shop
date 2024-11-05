@@ -11,26 +11,42 @@ const url = "/business-gestion/shop-products/";
 $(function () {
   bsCustomFileInput.init();
   
-  poblarListas();
+  // poblarListas();
 });
 
 // Inicializar DataTable
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
     responsive: true,
+    lengthMenu: [
+      [10, 25, 50, 100, -1], // Valores
+      [10, 25, 50, 100, 'Todos'] // Etiquetas
+  ],
     dom: '<"top"l>Bfrtip',
     buttons: [
       {
         extend: "excel",
         text: "Excel",
+        exportOptions: {
+          columns: [2,3,4,5],
+          stripHtml: false, // No eliminar imágenes
+        },
       },
       {
         extend: "pdf",
         text: "PDF",
+        exportOptions: {
+          columns: [2,3,4,5],
+          stripHtml: false, // No eliminar imágenes
+        },
       },
       {
         extend: "print",
         text: "Print",
+        exportOptions: {
+          columns: [2,3,4,5],
+          stripHtml: false, // No eliminar imágenes
+        },
       },
     ],
     serverSide: true,
@@ -62,6 +78,16 @@ $(document).ready(function () {
     
     columns: [
       { data: "shop.name", title: "Tienda" },
+      {
+        data: "id",
+        title: "Foto",
+        render: (data,type, row) => {          
+          if (data) {
+            return `<div style="text-align: center;"><img src="${row.product.image}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${row.product.image}"></div>`;
+        
+          } else{return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;} 
+           },
+      },
       { data: "product.__str__", title: "Producto" },
       { data: "quantity", title: "Cantidad" },
      
@@ -70,7 +96,7 @@ $(document).ready(function () {
       {
         data: "id",
         title: "Acciones",
-        render: (data, type, row) => {
+        render: (data, type, row) => {          
           return `<div class="btn-group">           
                     <button type="button" title="Ver Logs" class="btn bg-olive" onclick="verLogs('${row.id}','${row.product.name}')">
                 <i class="fas fa-history"></i>
@@ -90,6 +116,18 @@ $(document).ready(function () {
  
 });
 
+$(document).on("click", ".thumbnail", function () {
+  const fullsizeImage = $(this).data("fullsize");
+
+  Swal.fire({
+    imageUrl: fullsizeImage,
+    imageWidth: 400, // Ajusta el ancho según sea necesario
+    imageHeight: 300, // Ajusta la altura según sea necesario
+    imageAlt: "Image",
+    showCloseButton: false,
+    showConfirmButton: true,
+  });
+});
 
 function verLogs(shopProductId,name) {
   // Función para formatear la fecha
@@ -173,6 +211,7 @@ function verLogs(shopProductId,name) {
         }
       },
     ],
+    order: [[0, 'desc']],
     columnDefs: [
       {className: "primera_col", targets: 0},
       
@@ -184,20 +223,3 @@ function verLogs(shopProductId,name) {
   $("#modal-logs").modal("show");
 }
 
-
-function verificarGroups(numeros, verificarTodos = false) {
-  // Recuperar el grupo de números almacenados en localStorage
-  const grupos = JSON.parse(localStorage.getItem('groups')) || [];
-
-  // Convertir el argumento 'numeros' en un array si no lo es
-  const numerosArray = Array.isArray(numeros) ? numeros : [numeros];
-
-  // Verificar coincidencias
-  if (verificarTodos) {
-      // Verificar que todos los números pasados estén en el grupo
-      return numerosArray.every(num => grupos.includes(num));
-  } else {
-      // Verificar si al menos uno de los números pasa está en el grupo
-      return numerosArray.some(num => grupos.includes(num));
-  }
-}

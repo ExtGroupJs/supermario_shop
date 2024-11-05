@@ -21,6 +21,7 @@ function cargarProductos() {
     .then((res) => {
       const productos = res.data.results;
 
+
       productos.forEach((producto) => {
        if(producto.quantity>0){
         $("#producto").append(
@@ -42,9 +43,19 @@ function cargarProductoEspecifico(id) {
     .get(url + id + "/")
     .then((res) => {
       especificProducto = res.data;
-      $("#productoDescripcion").text(
-        `Existencia: ${especificProducto.quantity}, Precio: $${especificProducto.sell_price}`
+      $("#productoDescripcionExt").text(
+        `Existencia: ${especificProducto.quantity}`
       );
+      $("#productoDescripcionPrec").text(
+        `Precio: $${especificProducto.sell_price}`
+      );
+      var nuevaUrl = especificProducto.product.image;
+console.log('✌️nuevaUrl --->', nuevaUrl);
+
+document.getElementById('productImagen').src = nuevaUrl;
+    
+
+      ;
       load.hidden = true;
     })
     .catch((error) => {
@@ -125,7 +136,7 @@ function actualizarTabla() {
             </tr>
         `);
   });
-  showimport.innerText=`Importe total:${importe_total}$`;
+  showimport.innerText=`Importe total: ${importe_total}$`;
   $("#cantidad").focus().select().val("");
 }
 
@@ -178,20 +189,20 @@ $("#crearVenta").on("click", function () {
   });
 
   let texto = "";
-  html = "<hr><ul style='justify-content: left'>";
+  html = "<hr><ul style='text-align: left;'>";
   productosSeleccionados.forEach((item) => {
 
     if (item.status === "error") {
-      html += `<li class="text-danger">${item.producto} - ${item.cantidad} - <i class="icon fas fa-ban"></i> </li>`;
+      html += `<li class="text-danger">${item.cantidad} - ${item.producto}   <i class="icon fas fa-ban"></i> </li>`;
     } else {
-      html += `<li class="text-success">${item.producto} - ${item.cantidad} - <i class="icon fas fa-check"></i> </li>`;
+      html += `<li class="text-success">${item.cantidad} - ${item.producto}   <i class="icon fas fa-check"></i> </li>`;
     }
   });
-  html += `</ul><h4>Importe Total: ${importe_total}</h4><hr>`;
+  html += `</ul><hr><h4>Importe Total: ${importe_total}</h4><hr>`;
   Swal.fire({
     icon: "success",
     title: "Venta creada con éxito",
-    html: `Productos vendidos: \n` + html,
+    html: `<hr>Productos vendidos: \n` + html,
   });
   // Limpiar la selección
   productosSeleccionados = [];
