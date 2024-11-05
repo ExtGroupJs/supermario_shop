@@ -54,7 +54,10 @@
               
               
 <form id="ventaForm" class="mb-4">
-            <span id="productoDescripcion" class="float-right badge bg-primary"></span>
+<div class="row">
+    <div class="col-md-8 col-sm-6 col-12">
+
+        {% comment %} <span id="productoDescripcion" class="float-right badge bg-primary"></span> {% endcomment %}
             <div class="form-group">
                 <label for="producto">Producto:</label>
                 <select class="form-control select2" id="producto" onchange="cargarProductoEspecifico(this.value)" >
@@ -66,18 +69,36 @@
                 <label for="cantidad">Cantidad:</label>
                 <input type="number" id="cantidad" class="form-control"  min="1" required>
             </div>
+     </div>
+            <div class="col-md-4 col-sm-6 col-12">
+            <div class="info-box">
+              <img id="productImagen" src="{% static 'assets/dist/img/prod-1.jpg' %}" alt="Imagen" class="img-fluid" style="width: 200px; height: auto;">
+
+              <div class="info-box-content">
+                <span class="info-box-text" id="productoDescripcionExt">Existencia:0</span>
+                <span class="info-box-number" id="productoDescripcionPrec">Precio: $0</span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+</div>
+           <div class="row">
+    <div class="col-md-6 col-sm-6 col-12">
             <button type="button" class="btn btn-primary" id="agregarProducto">Agregar Producto</button>
             <button type="button" class="btn btn-success" id="crearVenta">Crear Venta</button>
+      </div>
+</div>
         </form>
         <div class="row">
           <div class="col-md-9">
             <h2>Productos a Vender</h2>
           </div>
           <div class="col-md-3">
-           <blockquote>
-                  <h5 id="impTotal">Importe total: 0$</h5>
+           
+                  <h5 id="impTotal" class="direct-chat-text right">Importe total : 0$</h5>
                  
-                </blockquote>
+                
           </div>
         </div>
         <table class="table table-bordered" id="productosTable">

@@ -40,10 +40,7 @@ $(document).ready(function () {
           columns: [0, 1],
           stripHtml: false, // No eliminar imágenes
         },
-        exportOptions: {
-          columns: [0, 1],
-          stripHtml: false, // No eliminar imágenes
-        },
+        
         customize: function (doc) {
           let icono = `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
           doc.content[1].table.body.forEach((row) => {
@@ -55,7 +52,6 @@ $(document).ready(function () {
               getBase64Image(imgUrl)
                 .then((base64Image) => {
                   row[1] = { image: base64Image, width: 500, height: 500 }; // Ajustar el tamaño si es necesario
-console.log('✌️row[1] --->', row[1]);
                 })
                 .catch(() => {
                   row[1] = "sin imagen"; // Si falla la conversión, poner "sin imagen"
@@ -88,7 +84,7 @@ console.log('✌️row[1] --->', row[1]);
       params.page = data.start / data.length + 1;
       params.ordering = data.columns[data.order[0].column].data;
       params.search = data.search.value;
-      console.log("✌️params --->", params);
+      
 
       axios
         .get(`${url}`, { params })
@@ -140,7 +136,7 @@ console.log('✌️row[1] --->', row[1]);
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();
-    console.log("✌️event --->", event);
+   
     table.ajax.reload();
   });
 
