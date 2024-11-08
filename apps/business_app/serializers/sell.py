@@ -6,8 +6,7 @@ from datetime import datetime
 
 
 class SellSerializer(serializers.ModelSerializer):
-    sell_price = serializers.CharField(read_only=True
-    )
+    sell_price = serializers.CharField(read_only=True)
     product_name = serializers.CharField(read_only=True)
     seller__first_name = serializers.CharField(source="seller.__str__", read_only=True)
     total_priced = serializers.FloatField(read_only=True)

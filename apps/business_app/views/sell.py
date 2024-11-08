@@ -41,7 +41,7 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         "shop_product__product": ["exact"],
         "shop_product__product__model": ["exact"],
         "shop_product__product__model__brand": ["exact"],
-        "sell_price": ["gte", "lte", "exact"],
+        "shop_product__sell_price": ["gte", "lte", "exact"],
         "quantity": ["gte", "lte", "exact"],
         "created_timestamp": ["gte", "lte"],
         "updated_timestamp": ["gte", "lte"],
