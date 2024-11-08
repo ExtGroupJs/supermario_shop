@@ -16,8 +16,9 @@ from apps.common.permissions import ShopProductsViewSetPermission
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, F, Value
 from rest_framework.response import Response
+from django.db.models.functions import Concat
 
 
 class ShopProductsViewSet(
@@ -25,7 +26,20 @@ class ShopProductsViewSet(
     viewsets.ModelViewSet,
     GenericAPIView,
 ):
-    queryset = ShopProducts.objects.all()
+    queryset = (
+        ShopProducts.objects.all()
+        .annotate(shop_name=F("shop__name"))
+        .annotate(
+            product_name=Concat(
+                F("product__name"),
+                Value(" ("),
+                F("product__model__brand__name"),
+                Value(" - "),
+                F("product__model__name"),
+                Value(") "),
+            )
+        )
+    )
     serializer_class = ShopProductsSerializer
     list_serializer_class = ReadShopProductsSerializer
     retrieve_serializer_class = ReadShopProductsSerializer
@@ -52,6 +66,15 @@ class ShopProductsViewSet(
         "shop__name",
         "product__name",
     ]
+    ordering = ["shop_name"]
+    ordering_fields = [
+        "product_name",
+        "shop_name",
+        "extra_info",
+        "quantity",
+        "cost_price",
+        "sell_price",
+    ]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -65,7 +88,7 @@ class ShopProductsViewSet(
             ).exists()
         ):
             if self.action == "list_for_sale":
-                queryset =  queryset.filter(quantity__gt=0)
+                queryset = queryset.filter(quantity__gt=0)
             return queryset
         system_user = SystemUser.objects.get(id=self.request.user.id)
         return queryset.filter(quantity__gt=0, shop=system_user.shop)
@@ -84,6 +107,7 @@ class ShopProductsViewSet(
             queryset, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
     @action(
         detail=False,
         methods=["GET"],

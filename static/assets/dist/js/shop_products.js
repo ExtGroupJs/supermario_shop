@@ -44,6 +44,12 @@ $(document).ready(function () {
     processing: true,
     ajax: function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
+      dir = "";
+
+      if (data.order[0].dir == "desc") {
+        dir = "-";
+      }
+
       const params = {};
 
       filters.forEach((filter) => {
@@ -54,7 +60,7 @@ $(document).ready(function () {
       // Añadir parámetros de paginación
       params.page_size = data.length;
       params.page = data.start / data.length + 1;
-      params.ordering = data.columns[data.order[0].column].data;
+      params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
 
       axios
@@ -71,8 +77,8 @@ $(document).ready(function () {
         });
     },
     columns: [
-      { data: "shop.name", title: "Tienda" },
-      { data: "product.__str__", title: "Producto" },
+      { data: "shop_name", title: "Tienda" },
+      { data: "product_name", title: "Producto" },
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
