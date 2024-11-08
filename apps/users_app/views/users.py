@@ -1,5 +1,6 @@
 import random
-from django.db.models import Count
+from django.db.models import Q, QuerySet, Value
+from django.db.models.functions import Concat
 
 from django.contrib.auth import login, logout
 from django.core.mail import send_mail
@@ -28,9 +29,13 @@ class UserViewSet(viewsets.ModelViewSet, GenericAPIView):
     """
 
     queryset = (
-        SystemUser.objects.exclude(username="admin")
+        SystemUser.objects.exclude(username="admin").annotate(
+                    full_name=Concat(
+                        "first_name", Value(" "), "last_name"
+                    )
+                ))
         # .select_related("user_ptr", "country")
-    )
+    
     serializer_class = UserSerializer
     filter_backends = [
         DjangoFilterBackend,
@@ -46,7 +51,7 @@ class UserViewSet(viewsets.ModelViewSet, GenericAPIView):
         "first_name",
         "last_name",
     ]
-    ordering = ["username"]
+    ordering = ["username", "full_name"]
     ordering_fields = "__all__"
 
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
