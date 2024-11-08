@@ -50,8 +50,8 @@ class UserViewSet(viewsets.ModelViewSet, GenericAPIView):
         "first_name",
         "last_name",
     ]
-    ordering = ["username", "full_name"]
-    ordering_fields = "__all__"
+    ordering = ["username"]
+    ordering_fields = ["username", "full_name"]
 
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
