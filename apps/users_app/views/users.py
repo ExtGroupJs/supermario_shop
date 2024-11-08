@@ -1,5 +1,5 @@
 import random
-from django.db.models import Q, QuerySet, Value
+from django.db.models import Q, QuerySet, Value, F
 from django.db.models.functions import Concat
 
 from django.contrib.auth import login, logout
@@ -29,13 +29,12 @@ class UserViewSet(viewsets.ModelViewSet, GenericAPIView):
     """
 
     queryset = (
-        SystemUser.objects.exclude(username="admin").annotate(
-                    full_name=Concat(
-                        "first_name", Value(" "), "last_name"
-                    )
-                ))
-        # .select_related("user_ptr", "country")
-    
+        SystemUser.objects.exclude(username="admin")
+        .annotate(full_name=Concat("first_name", Value(" "), "last_name"))
+        .annotate(shop_name=F("shop__name"))
+    )
+    # .select_related("user_ptr", "country")
+
     serializer_class = UserSerializer
     filter_backends = [
         DjangoFilterBackend,
