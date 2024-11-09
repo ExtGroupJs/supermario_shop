@@ -17,7 +17,7 @@ class EnumsMixin(mixins.ListModelMixin, ViewSet):
             (
                 (
                     key,
-                    [{"name": label, "id": value} for value, label in enum.choices],
+                    [{"value": value, "label": label} for value, label in enum.choices],
                 )
                 for key, enum in self.items
             )
