@@ -15,6 +15,11 @@ $(function () {
 
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
+    
+    lengthMenu: [
+      [10, 25, 50, 100, -1], // Valores
+      [10, 25, 50, 100, 'Todos'] // Etiquetas
+  ],
     responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [

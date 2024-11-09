@@ -17,6 +17,10 @@ $(function () {
 // Inicializar DataTable
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
+   lengthMenu: [
+      [10, 25, 50, 100, -1], // Valores
+      [10, 25, 50, 100, 'Todos'] // Etiquetas
+  ],
     responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [
@@ -65,13 +69,25 @@ $(document).ready(function () {
             recordsFiltered: res.data.count,
             data: res.data.results,
           });
+          load.hidden = true;
         })
         .catch((error) => {
+          load.hidden = true;
           alert(error);
         });
     },
     columns: [
       { data: "shop.name", title: "Tienda" },
+      {
+        data: "id",
+        title: "Foto",
+        render: (data,type, row) => {          
+          if (data) {
+            return `<div style="text-align: center;"><img src="${row.product.image}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${row.product.image}"></div>`;
+        
+          } else{return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;} 
+           },
+      },
       { data: "product.__str__", title: "Producto" },
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
@@ -175,7 +191,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
     edit_shopProducts = true;
 
     modal.find(".modal-title").text("Editar Entrada de Producto ");
-
+    load.hidden = false;
     // Realizar la petición con Axios
     axios
       .get(`${url}` + selected_id + "/")
@@ -189,6 +205,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         form.elements.shop.value = shopProduct.shop;
         form.elements.product.value = shopProduct.product;
         $("#product").val(shopProduct.product).trigger("change");
+        load.hidden = true;
       })
       .catch(function (error) {});
   } else {
@@ -367,7 +384,10 @@ function poblarListas() {
       var option = new Option(element.__str__, element.id);
       $product.add(option);
     });
-  });
+  }) .then(() => {
+   cargarProductoEspecifico($product.value)
+    
+  })
 }
 
 function function_delete(id, name) {
@@ -560,3 +580,49 @@ function verLogs(shopProductId, name) {
   // Mostrar el modal
   $("#modal-logs").modal("show");
 }
+
+let especificProducto;
+function cargarProductoEspecifico(id) {
+  axios
+    .get("/business-gestion/products/" + id + "/")
+    .then((res) => {
+      especificProducto = res.data;      
+      var nuevaUrl = especificProducto.image;
+document.getElementById('productImagen').src = nuevaUrl;
+      load.hidden = true;
+    })
+    .catch((error) => {
+      load.hidden = true;
+      console.error("Error al cargar productos:", error);
+    });
+}
+
+
+$(document).on("click", "#productImagen", function () {
+  load.hidden = false;
+  const fullsizeImage = $(this).attr('src'); // Obtiene la URL de la imagen
+  console.log('✌️fullsizeImage --->', fullsizeImage);
+
+  Swal.fire({
+    imageUrl: fullsizeImage,
+    imageWidth: 400, // Ajusta el ancho según sea necesario
+    imageHeight: 300, // Ajusta la altura según sea necesario
+    imageAlt: "Image",
+    showCloseButton: false,
+    showConfirmButton: true,
+  });
+  load.hidden = true;
+});
+
+$(document).on("click", ".thumbnail", function () {
+  const fullsizeImage = $(this).data("fullsize");
+
+  Swal.fire({
+    imageUrl: fullsizeImage,
+    imageWidth: 400, // Ajusta el ancho según sea necesario
+    imageHeight: 300, // Ajusta la altura según sea necesario
+    imageAlt: "Image",
+    showCloseButton: false,
+    showConfirmButton: true,
+  });
+});
