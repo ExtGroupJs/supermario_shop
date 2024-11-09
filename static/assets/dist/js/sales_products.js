@@ -62,7 +62,7 @@ $(document).ready(function () {
         title: "Acciones",
         render: (data, type, row) => {
           return `<div class="btn-group">
-                   <button type="button" title="Venta" class="btn bg-primary active"  data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}"  onclick="sellProduct(${row.id},${row.quantity})">
+                   <button type="button" title="Venta" class="btn bg-primary active"  data-id="${row.id}" data-name="${row.full_name}" id="${row.id}"  onclick="sellProduct(${row.id},${row.quantity})">
                       
                   <i class="nav-icon fas fa-cash-register"></i>
                             </button>                      

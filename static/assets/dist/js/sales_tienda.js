@@ -44,7 +44,7 @@ $(document).ready(function () {
           params[filter.name] = filter.value;
         }
       });
-      dir = "";      
+      dir = "";
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
@@ -52,7 +52,6 @@ $(document).ready(function () {
       params.page = data.start / data.length + 1;
       params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
-      
 
       axios
         .get(`${url}`, { params })
@@ -62,7 +61,6 @@ $(document).ready(function () {
             recordsFiltered: res.data.count,
             data: res.data.results,
           });
-
         })
         .catch((error) => {
           alert(error);
@@ -70,9 +68,9 @@ $(document).ready(function () {
     },
 
     columns: [
-      { data: "shop_product__product__name", title: "Producto" },
+      { data: "product_name", title: "Producto" },
       { data: "quantity", title: "Cantidad" },
-      { data: "shop_product__sell_price", title: "Precio unitario" },
+      { data: "sell_price", title: "Precio unitario" },
       { data: "total_priced", title: "Monto total" },
       { data: "seller__first_name", title: "Vendedor" },
       { data: "created_timestamp", title: "Fecha" },
@@ -88,7 +86,7 @@ $(document).ready(function () {
         },
       },
     ],
-    order: [[5, 'desc']],
+    order: [[5, "desc"]],
     //  esto es para truncar el texto de las celdas
     columnDefs: [],
   });

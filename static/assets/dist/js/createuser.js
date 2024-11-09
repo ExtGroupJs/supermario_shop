@@ -68,7 +68,7 @@ $(document).ready(function () {
       },
       columns: [
         { data: "username", title: "User" },
-        { data: "get_full_name", title: "Name" },
+        { data: "full_name", title: "Name" },
         { data: "shop_name", title: "Shop" },
         { data: "email", title: "Mail" },
 
@@ -77,14 +77,14 @@ $(document).ready(function () {
           title: "Acciones",
           render: (data, type, row) => {
             return `<div class="btn-group">
-                        <button type="button" title="edit" class="btn bg-olive" data-toggle="modal" data-target="#modal-crear-usuario" data-id="${row.id}" data-type="edit" data-name="${row.get_full_name}" id="${row.id}"  >
+                        <button type="button" title="edit" class="btn bg-olive" data-toggle="modal" data-target="#modal-crear-usuario" data-id="${row.id}" data-type="edit" data-name="${row.full_name}" id="${row.id}"  >
                           <i class="fas fa-edit"></i>
                         </button>                       
                                              
-                        <button type="button" title="delete" class="btn bg-olive" data-toggle="modal" data-target="#modal-eliminar-usuario" data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}">
+                        <button type="button" title="delete" class="btn bg-olive" data-toggle="modal" data-target="#modal-eliminar-usuario" data-id="${row.id}" data-name="${row.full_name}" id="${row.id}">
                           <i class="fas fa-trash"></i>
                         </button>
-                        <button type="button" title="Roles y Tienda" class="btn bg-olive active"  data-id="${row.id}" data-name="${row.get_full_name}" id="${row.id}"  onclick="mostrarUserConfig(${row.id})">
+                        <button type="button" title="Roles y Tienda" class="btn bg-olive active"  data-id="${row.id}" data-name="${row.full_name}" id="${row.id}"  onclick="mostrarUserConfig(${row.id})">
                         <i class="nav-icon fas fa-users-cog"></i>
                             </button>                    
                       </div>`;

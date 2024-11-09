@@ -13,10 +13,14 @@ from apps.common.mixins.serializer_map import SerializerMapMixin
 from apps.common.pagination import AllResultsSetPagination
 
 from apps.common.permissions import CommonRolePermission
+from django.db.models import Q, QuerySet, Value, F
+from django.db.models.functions import Concat
 
 
 class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
-    queryset = Product.objects.all()
+    queryset = Product.objects.all().annotate(
+        model_name=Concat(F("model__brand__name"), Value(" - "), F("model__name"))
+    )
     serializer_class = ProductSerializer
     list_serializer_class = ReadProductSerializer
     permission_classes = [CommonRolePermission]
@@ -34,3 +38,5 @@ class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
         "name",
         "description",
     ]
+    ordering = ["name"]
+    ordering_fields = ["name", "model_name", "description"]
