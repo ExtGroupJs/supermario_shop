@@ -20,6 +20,8 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "shop",
             "product",
             "extra_info",
+            "created_timestamp",
+            "updated_timestamp",
             "__repr__",
         )
 

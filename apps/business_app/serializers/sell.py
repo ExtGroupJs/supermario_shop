@@ -30,6 +30,7 @@ class SellSerializer(serializers.ModelSerializer):
             "total_priced",
             "created_timestamp",
             "profits",
+            "payment_method",
         )
         read_only_fields = (
             "id",
