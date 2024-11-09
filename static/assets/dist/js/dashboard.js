@@ -17,8 +17,8 @@ smallboxdataSellProfits();
 smallboxdataSellProfitsCurrentMonth();
 smallboxdataSellProfitsLastMonth();
 smallboxdataSellProfitsCurrentWeek(),
-smallboxdataSellProfitsLastWeek(),
-smallboxdataSellProfitsThisWeek()
+chartSellProfitsLastWeek(),
+chartSellProfitsThisWeek()
 });
 
 function smallboxdataInvestment() {
@@ -295,47 +295,6 @@ console.log('✌️SellProfitsValue --->', SellProfitsValue);
         });
 }
 
-// function smallboxdataSellProfitsCurrentWeek() {
-//     // Obtener la fecha actual
-//     const today = new Date();
-    
-//     // Calcular el primer día de la semana actual (domingo)
-//     const firstDayOfCurrentWeek = new Date(today);
-//     firstDayOfCurrentWeek.setDate(today.getDate() - today.getDay());
-
-//     // Calcular el último día de la semana actual (sábado)
-//     const lastDayOfCurrentWeek = new Date(today);
-//     lastDayOfCurrentWeek.setDate(today.getDate() + (6 - today.getDay()));
-    
-//     // Formatear las fechas a YYYY-MM-DD
-//     const startDate = firstDayOfCurrentWeek.toISOString().split('T')[0];
-//     const endDate = lastDayOfCurrentWeek.toISOString().split('T')[0];
-
-//     // Parámetros para la solicitud
-//     const params = {
-//         "updated_timestamp__gte": startDate,
-//         "updated_timestamp__lte": endDate,
-//         "frequency": "week"
-        
-//     };
-
-//     axios.post('/business-gestion/dashboard/shop-product-sells-count/', params)
-//         .then(response => {
-//             // Obtener el valor de ventas de la respuesta
-//             const sellCount =  response.data.result[0] ? response.data.result[0].total : 0;
-//             // Modificar el contenido del small-box con el valor de las ventas
-//             const smallBox = document.getElementById('sellweek');
-//             if (smallBox) {
-//                 smallBox.textContent = sellCount + "";
-//             }
-//         })
-//         .catch(error => {
-//             console.error('Error fetching data:', error);
-//         });
-// }
-
-
-
 function smallboxdataSellProfitsCurrentWeek() {
     // Obtener la fecha actual
     const today = new Date();
@@ -376,7 +335,55 @@ function smallboxdataSellProfitsCurrentWeek() {
             console.error('Error fetching data:', error);
         });
 }
-function smallboxdataSellProfitsLastWeek() {
+
+function daterangeSellProfits(startDate, endDate) {
+    // Asegúrate de que las fechas están en el formato correcto
+    const formattedStartDate = new Date(startDate);
+    const formattedEndDate = new Date(endDate);
+
+    // Formatear las fechas a YYYY-MM-DD
+    formattedStartDate.setHours(0, 0, 0, 0);
+    const start = formattedStartDate.toISOString().split('T')[0];
+    formattedEndDate.setHours(23, 59, 59, 999);
+    const end = formattedEndDate.toISOString().split('T')[0];
+
+    // Parámetros para la solicitud
+    const params = {
+        "updated_timestamp__gte": start,
+        "updated_timestamp__lte": end,
+        "frequency": "day"
+    };
+
+    axios.post('/business-gestion/dashboard/sell-profits/', params)
+        .then(response => {
+            // Obtener el valor de ventas de la respuesta
+            const results = response.data.result;
+            let sellCount = 0; // Variable para la suma de totales
+            let itemCount = 0; // Variable para contar elementos
+
+            // Sumar los totales y contar los elementos
+            if (results && results.length > 0) {
+                results.forEach(item => {
+                    sellCount += item.total || 0; // Sumar el total
+                    itemCount++; // Contar el elemento
+                });
+            }
+            // Modificar el contenido del small-box con el valor de las ventas
+             const dateRangeProfits = document.getElementById('dateRangeProfits');
+             const dateRangeSales = document.getElementById('dateRangeSales');
+             if (dateRangeProfits && dateRangeSales) {
+                dateRangeProfits.textContent = sellCount + " $";
+                dateRangeSales.textContent =itemCount;
+             }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+
+
+// charts
+function chartSellProfitsLastWeek() {
     // Obtener la fecha actual
     const today = new Date();  
     // Calcular el primer día de la semana anterior (domingo)
@@ -419,7 +426,7 @@ function smallboxdataSellProfitsLastWeek() {
             console.error('Error fetching data:', error);
         });
 }
-function smallboxdataSellProfitsThisWeek() {
+function chartSellProfitsThisWeek() {
     // Obtener la fecha actual
     const today = new Date();  
     // Calcular el primer día de la semana  (domingo)
@@ -487,3 +494,32 @@ function getDayOfWeek(date) {
 
 
 
+$(function () {
+   //Date range as a button
+$('#daterange-btn').daterangepicker(
+    {
+      ranges   : {
+        'Today'       : [moment(), moment()],
+        'Yesterday'   : [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        'Last 7 Days' : [moment().subtract(6, 'days'), moment()],
+        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+        'This Month'  : [moment().startOf('month'), moment().endOf('month')],
+        'Last Month'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+      },
+      startDate: moment().subtract(29, 'days'),
+      endDate  : moment()
+    },
+    function (start, end) {
+      $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'))
+      selectedStartDate = start;
+  selectedEndDate = end;
+
+  // Puedes hacer algo con los valores aquí, por ejemplo:
+  console.log('Fecha de inicio:', selectedStartDate.format('YYYY-MM-DD'));
+  console.log('Fecha de fin:', selectedEndDate.format('YYYY-MM-DD'));
+  daterangeSellProfits(selectedStartDate,selectedEndDate);
+    
+    }
+    
+  )
+  });

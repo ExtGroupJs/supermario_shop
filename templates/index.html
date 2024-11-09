@@ -217,9 +217,21 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   </a>
                 </li>
                 <li class="nav-item">
+                  <a href="{% url 'create_products' %}" class="nav-link">
+                    <i class="fas fa-circle text-danger nav-icon"></i>
+                    <p>{% blocktranslate %}Crear Producto{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
                   <a href="{% url 'shop_products' %}" class="nav-link">
                     <i class="far fa-circle text-danger nav-icon"></i>
                     <p>{% blocktranslate %}Entrada{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'create_shop_products' %}" class="nav-link">
+                    <i class="fas fa-circle text-danger nav-icon"></i>
+                    <p>{% blocktranslate %}Crear Entrada{% endblocktranslate %}</p>
                   </a>
                 </li>
                 <li class="nav-item">
