@@ -14,6 +14,7 @@ from django.db.models.functions import Concat
 from apps.business_app.serializers.sell import SellSerializer
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
+from apps.common.mixins.enums_mixin import EnumsMixin
 from apps.common.pagination import AllResultsSetPagination
 
 from apps.common.permissions import SellViewSetPermission
@@ -86,3 +87,9 @@ class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
         else:
             queryset = queryset.annotate(product_name=product_name)
         return queryset
+
+
+class PaymentMethodsViewSet(EnumsMixin):
+    items = (
+        ("payment_methods", Sell.PAYMENT_METODS),
+    )
