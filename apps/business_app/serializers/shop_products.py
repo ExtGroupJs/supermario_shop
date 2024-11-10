@@ -34,7 +34,8 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "__repr__",
         )
     def get_updated_timestamp(self, object):
-        return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p")
+        return object.updated_timestamp.strftime("%d-%h-%Y")
+        # return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p") # con hora
 
 
 class ReadShopProductsSerializer(ShopProductsSerializer):
