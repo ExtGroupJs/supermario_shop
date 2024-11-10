@@ -16,9 +16,14 @@ smallboxdataSellCurrentMonth();
 smallboxdataSellProfits();
 smallboxdataSellProfitsCurrentMonth();
 smallboxdataSellProfitsLastMonth();
-smallboxdataSellProfitsCurrentWeek(),
-chartSellProfitsLastWeek(),
-chartSellProfitsThisWeek()
+smallboxdataSellProfitsCurrentWeek();
+chartSellProfitsLastWeek();
+chartSellProfitsThisWeek();
+const today = new Date();
+    const startDate = today.toISOString().split('T')[0]; // Fecha de inicio: hoy
+    const endDate = today.toISOString().split('T')[0];   // Fecha de fin: hoy
+
+    daterangeSellProfits(startDate, endDate);
 });
 
 function smallboxdataInvestment() {

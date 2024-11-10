@@ -88,7 +88,7 @@ $(document).ready(function () {
     },
     columns: [
 
-      { data: "shop.name", title: "Tienda" },
+      { data: "shop_name", title: "Tienda" },
       {
         data: "id",
         title: "Foto",
@@ -99,7 +99,7 @@ $(document).ready(function () {
           } else{return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;} 
            },
       },
-      { data: "product.__str__", title: "Producto" },
+      { data: "product_name", title: "Producto" },
 
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
