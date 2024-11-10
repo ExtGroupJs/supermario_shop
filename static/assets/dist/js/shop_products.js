@@ -104,7 +104,7 @@ $(document).ready(function () {
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
-      { data: "created_timestamp", title: "Fecha" },
+      { data: "updated_timestamp", title: "Fecha" },
       { data: "extra_info", title: "Información Extra" },
       {
         data: "id",
