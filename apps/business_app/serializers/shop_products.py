@@ -37,6 +37,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
 
 
 class ReadShopProductsSerializer(ShopProductsSerializer):
+    product = ProductSerializer(read_only = True)
     class Meta(ShopProductsSerializer.Meta):
         model = ShopProducts
         fields = ShopProductsSerializer.Meta.fields
