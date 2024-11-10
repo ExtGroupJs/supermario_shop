@@ -17,6 +17,7 @@ $(function () {
 // Inicializar DataTable
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
+    autoWidth: true,
    lengthMenu: [
       [10, 25, 50, 100, -1], // Valores
       [10, 25, 50, 100, 'Todos'] // Etiquetas
