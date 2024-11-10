@@ -117,7 +117,7 @@ $(document).ready(function () {
                     <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product}')" >
+                    <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.shop_name}')" >
                       <i class="fas fa-trash"></i>
                     </button>
                     <button type="button" title="Ver Logs" class="btn bg-olive" onclick="verLogs('${row.id}','${row.product.name}')">
@@ -484,11 +484,11 @@ function poblarListas() {
   })
 }
 
-function function_delete(id, name) {
+function function_delete(id, name, shop) {
   const table = $("#tabla-de-Datos").DataTable();
   Swal.fire({
     title: "Eliminar",
-    text: `¿Está seguro que desea eliminar el elemento ${name}?`,
+    text: `¿Está seguro que desea eliminar el producto ${name} de la tienda  ${shop}?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#3085d6",
