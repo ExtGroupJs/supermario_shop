@@ -336,10 +336,7 @@ $(function () {
 });
 
 // crear Producto
-
 let form = document.getElementById("form-create-products");
-form.addEventListener("submit", function (event) {
-});
 
 function poblarListas() {
   // Poblar la lista de modelos

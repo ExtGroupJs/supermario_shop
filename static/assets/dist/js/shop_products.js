@@ -194,7 +194,7 @@ $("#modal-crear-shop-products").on("hide.bs.modal", (event) => {
   const elements = [...form.elements];
   elements.forEach((elem) => elem.classList.remove("is-invalid"));
 });
-
+let form = document.getElementById("form-create-shop-products");
 let edit_shopProducts = false;
 $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
   var button = $(event.relatedTarget); // Button that triggered the modal
@@ -203,6 +203,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
   if (button.data("type") == "edit") {
     var dataName = button.data("name"); // Extract info from data-* attributes
     selected_id = button.data("id"); // Extract info from data-* attributes
+console.log('✌️selected_id --->', selected_id);
     edit_shopProducts = true;
 
     modal.find(".modal-title").text("Editar Entrada de Producto ");
@@ -218,8 +219,8 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         form.elements.sell_price.value = shopProduct.sell_price;
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
-        form.elements.product.value = shopProduct.product;
-        $("#product").val(shopProduct.product).trigger("change");
+        form.elements.product.value = shopProduct.product.id;
+        $("#product").val(shopProduct.product.id).trigger("change");
         load.hidden = true;
       })
       .catch(function (error) {});
