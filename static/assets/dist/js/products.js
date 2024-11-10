@@ -45,7 +45,7 @@ $(document).ready(function () {
           columns: [0, 1],
           stripHtml: false, // No eliminar imágenes
         },
-        
+
         customize: function (doc) {
           let icono = `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
           doc.content[1].table.body.forEach((row) => {
@@ -76,6 +76,11 @@ $(document).ready(function () {
     processing: true,
     ajax: function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
+      dir = "";
+
+      if (data.order[0].dir == "desc") {
+        dir = "-";
+      }
 
       const params = {};
 
@@ -87,9 +92,8 @@ $(document).ready(function () {
       // Añadir parámetros de paginación
       params.page_size = data.length;
       params.page = data.start / data.length + 1;
-      params.ordering = data.columns[data.order[0].column].data;
+      params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
-      
 
       axios
         .get(`${url}`, { params })
@@ -112,11 +116,12 @@ $(document).ready(function () {
         render: (data) => {
           if (data) {
             return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
-        
-          } else{return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;} 
-           },
+          } else {
+            return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+          }
+        },
       },
-      { data: "model.__str__", title: "Modelo" },
+      { data: "model_name", title: "Modelo" },
       { data: "description", title: "Descripción" },
       {
         data: "id",
@@ -126,7 +131,7 @@ $(document).ready(function () {
                             <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-products" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}">
                               <i class="fas fa-edit"></i>
                             </button>  
-                            <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}')" >
+                            <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}','${row.model_name}')" >
                               <i class="fas fa-trash"></i>
                             </button>                                          
                           </div>`;
@@ -141,7 +146,7 @@ $(document).ready(function () {
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();
-   
+
     table.ajax.reload();
   });
 
@@ -351,11 +356,11 @@ function poblarListas() {
   });
 }
 
-function function_delete(id, name) {
+function function_delete(id, name, model_name) {
   const table = $("#tabla-de-Datos").DataTable();
   Swal.fire({
     title: "Eliminar",
-    text: `¿Está seguro que desea eliminar el elemento ${name}?`,
+    text: `¿Está seguro que desea eliminar el Producto ${name} del modelo ${model_name}?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#3085d6",
@@ -391,12 +396,14 @@ function function_delete(id, name) {
   });
 }
 
-
 // Función para convertir una imagen a Base64
 async function getBase64Image(url) {
-  const response = await axios.get(url, { responseType: 'arraybuffer' });
+  const response = await axios.get(url, { responseType: "arraybuffer" });
   const base64String = btoa(
-    new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    new Uint8Array(response.data).reduce(
+      (data, byte) => data + String.fromCharCode(byte),
+      ""
+    )
   );
   return `data:image/jpeg;base64,${base64String}`; // Cambia el tipo MIME si es necesario
 }

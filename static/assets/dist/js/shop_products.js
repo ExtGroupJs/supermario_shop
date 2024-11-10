@@ -48,6 +48,12 @@ $(document).ready(function () {
     processing: true,
     ajax: function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
+      dir = "";
+
+      if (data.order[0].dir == "desc") {
+        dir = "-";
+      }
+
       const params = {};
 
       filters.forEach((filter) => {
@@ -81,6 +87,7 @@ $(document).ready(function () {
         });
     },
     columns: [
+
       { data: "shop.name", title: "Tienda" },
       {
         data: "id",
@@ -93,6 +100,7 @@ $(document).ready(function () {
            },
       },
       { data: "product.__str__", title: "Producto" },
+
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },

@@ -10,7 +10,13 @@ from apps.users_app.models.groups import Groups
 
 
 class ShopProductsSerializer(serializers.ModelSerializer):
+
     created_timestamp = serializers.SerializerMethodField()
+
+    shop_name = serializers.CharField(read_only=True)
+    product_name = serializers.CharField(read_only=True)
+
+
     class Meta:
         model = ShopProducts
         fields = (
@@ -19,7 +25,9 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "cost_price",
             "sell_price",
             "shop",
+            "shop_name",
             "product",
+            "product_name",
             "extra_info",
             "created_timestamp",
             "__repr__",
@@ -29,11 +37,9 @@ class ShopProductsSerializer(serializers.ModelSerializer):
 
 
 class ReadShopProductsSerializer(ShopProductsSerializer):
-    shop = ShopSerializer()
-    product = ReadProductSerializer()
-
     class Meta(ShopProductsSerializer.Meta):
         model = ShopProducts
+        fields = ShopProductsSerializer.Meta.fields
 
     def to_representation(self, instance):
         response = super().to_representation(instance)

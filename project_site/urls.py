@@ -48,6 +48,7 @@ urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     path("usuarios/", login_required(pages.usuarios), name="usuarios"),
     path("login/", pages.first_login, name="first_login"),
+    path("accounts/login/", pages.first_login, name="account_login"),
     path("register/", pages.register, name="register"),
     path("index/", login_required(pages.user_redirect), name="index"),
     path("", pages.first_login, name="first_login"),

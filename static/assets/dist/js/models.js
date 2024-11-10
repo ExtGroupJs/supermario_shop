@@ -74,16 +74,17 @@ $(document).ready(function () {
       },
       columns: [
         { data: "name", title: "Nombre" },
-        { data: "brand.name", title: "Marca" },
+        { data: "brand_name", title: "Marca" },
 
-        {data: "id",        
+        {
+          data: "id",
           title: "Acciones",
           render: (data, type, row) => {
             return `<div class="btn-group">
                         <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-models" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}"  >
                           <i class="fas fa-edit"></i>
                         </button>  
-                        <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}')" >
+                        <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}','${row.brand_name}')" >
                           <i class="fas fa-trash"></i>
                         </button>                                          
                       </div>`;
@@ -262,11 +263,11 @@ function poblarListas() {
   });
 }
 
-function function_delete(id, name) {
+function function_delete(id, name, brand_name) {
   const table = $("#tabla-de-Datos").DataTable();
   Swal.fire({
     title: "Eliminar",
-    text: `¿Está seguro que desea eliminar el elemento ${name}?`,
+    text: `¿Está seguro que desea eliminar el modelo ${name} de la marca ${brand_name}?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#3085d6",
@@ -282,8 +283,8 @@ function function_delete(id, name) {
             table.row(`#${id}`).remove().draw();
             Swal.fire({
               icon: "success",
-              title: "Eliminar Elemento",
-              text: "Elemento eliminado satisfactoriamente ",
+              title: "Eliminar Marca",
+              text: "Marca eliminada satisfactoriamente ",
               showConfirmButton: false,
               timer: 1500,
             });
