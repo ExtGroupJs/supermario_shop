@@ -15,6 +15,11 @@ $(function () {
 
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
+    
+    lengthMenu: [
+      [10, 25, 50, 100, -1], // Valores
+      [10, 25, 50, 100, 'Todos'] // Etiquetas
+  ],
     responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [
@@ -231,7 +236,89 @@ $(function () {
         required: true,
       },
     },
-    submitHandler: function (form) {},
+    submitHandler: function (form) {
+
+      event.preventDefault();
+      var table = $("#tabla-de-Datos").DataTable();
+      const csrfToken = document.cookie
+        .split(";")
+        .find((c) => c.trim().startsWith("csrftoken="))
+        ?.split("=")[1];
+      axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
+      let data = new FormData();
+      data.append("name", document.getElementById("name").value);
+      data.append("description", document.getElementById("description").value);
+      data.append("model", document.getElementById("model").value);
+      if (document.getElementById("image").files[0] != null) {
+        data.append("image", document.getElementById("image").files[0]);
+      }
+    
+      if (edit_products) {
+        axios
+          .patch(`${url}` + selected_id + "/", data)
+          .then((response) => {
+            if (response.status === 200) {
+              $("#modal-crear-products").modal("hide");
+              Swal.fire({
+                icon: "success",
+                title: "Producto actualizado con éxito",
+                showConfirmButton: false,
+                timer: 1500,
+              });
+              table.ajax.reload();
+    
+              edit_products = false;
+            }
+          })
+          .catch((error) => {
+            let dict = error.response.data;
+            let textError = "Revise los siguientes campos: ";
+            for (const key in dict) {
+              textError = textError + ", " + key;
+            }
+    
+            Swal.fire({
+              icon: "error",
+              title: "Error al crear el Producto",
+              text: textError,
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          });
+      } else {
+        axios
+          .post(`${url}`, data)
+          .then((response) => {
+            if (response.status === 201) {
+              Swal.fire({
+                icon: "success",
+                title: "Producto creado con éxito",
+                showConfirmButton: false,
+                timer: 1500,
+              });
+              table.ajax.reload();
+              $("#modal-crear-products").modal("hide");
+            }
+          })
+          .catch((error) => {
+            let dict = error.response.data;
+            let textError = "Revise los siguientes campos: ";
+            for (const key in dict) {
+              textError = textError + ", " + key;
+            }
+    
+            Swal.fire({
+              icon: "error",
+              title: "Error al crear el Producto",
+              text: textError,
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          });
+      }
+
+
+    },
 
     messages: {},
     errorElement: "span",
@@ -249,88 +336,7 @@ $(function () {
 });
 
 // crear Producto
-
 let form = document.getElementById("form-create-products");
-form.addEventListener("submit", function (event) {
-  event.preventDefault();
-  var table = $("#tabla-de-Datos").DataTable();
-  const csrfToken = document.cookie
-    .split(";")
-    .find((c) => c.trim().startsWith("csrftoken="))
-    ?.split("=")[1];
-  axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-  let data = new FormData();
-  data.append("name", document.getElementById("name").value);
-  data.append("description", document.getElementById("description").value);
-  data.append("model", document.getElementById("model").value);
-  if (document.getElementById("image").files[0] != null) {
-    data.append("image", document.getElementById("image").files[0]);
-  }
-
-  if (edit_products) {
-    axios
-      .patch(`${url}` + selected_id + "/", data)
-      .then((response) => {
-        if (response.status === 200) {
-          $("#modal-crear-products").modal("hide");
-          Swal.fire({
-            icon: "success",
-            title: "Producto actualizado con éxito",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          table.ajax.reload();
-
-          edit_products = false;
-        }
-      })
-      .catch((error) => {
-        let dict = error.response.data;
-        let textError = "Revise los siguientes campos: ";
-        for (const key in dict) {
-          textError = textError + ", " + key;
-        }
-
-        Swal.fire({
-          icon: "error",
-          title: "Error al crear el Producto",
-          text: textError,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      });
-  } else {
-    axios
-      .post(`${url}`, data)
-      .then((response) => {
-        if (response.status === 201) {
-          Swal.fire({
-            icon: "success",
-            title: "Producto creado con éxito",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          table.ajax.reload();
-          $("#modal-crear-products").modal("hide");
-        }
-      })
-      .catch((error) => {
-        let dict = error.response.data;
-        let textError = "Revise los siguientes campos: ";
-        for (const key in dict) {
-          textError = textError + ", " + key;
-        }
-
-        Swal.fire({
-          icon: "error",
-          title: "Error al crear el Producto",
-          text: textError,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      });
-  }
-});
 
 function poblarListas() {
   // Poblar la lista de modelos

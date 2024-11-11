@@ -74,6 +74,7 @@ class ShopProductsViewSet(
         "quantity",
         "cost_price",
         "sell_price",
+        "updated_timestamp",
     ]
 
     def get_queryset(self):
