@@ -48,6 +48,7 @@ urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     path("usuarios/", login_required(pages.usuarios), name="usuarios"),
     path("login/", pages.first_login, name="first_login"),
+    path("accounts/login/", pages.first_login, name="account_login"),
     path("register/", pages.register, name="register"),
     path("index/", login_required(pages.user_redirect), name="index"),
     path("", pages.first_login, name="first_login"),
@@ -55,7 +56,9 @@ urlpatterns = [
     path("models/", login_required(pages.models), name="models"),
     path("shops/", login_required(pages.shops), name="shops"),
     path("products/", login_required(pages.products), name="products"),
+    path("create_products/", login_required(pages.create_products), name="create_products"),
     path("catalogo/", login_required(pages.catalogo), name="catalogo"),
+    path("create_shop_products/", login_required(pages.create_shop_products), name="create_shop_products"),
     path("shop_products/", login_required(pages.shop_products), name="shop_products"),
     path("inventario/", login_required(pages.inventario), name="inventario"),
     path(

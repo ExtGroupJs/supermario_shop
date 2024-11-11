@@ -5,14 +5,13 @@ from apps.users_app.models.system_user import SystemUser
 
 
 class UserSerializer(serializers.ModelSerializer):
-    get_full_name = serializers.CharField(read_only=True)
+    full_name = serializers.CharField(read_only=True)
+    shop_name = serializers.CharField(read_only=True)
     # country = serializers.PrimaryKeyRelatedField(
     #     queryset=Country.objects.all(), write_only=True
     # )
     # uploaded_files_count = serializers.IntegerField(read_only=True)
     # country_name = serializers.CharField(read_only=True, source="country.name")
-
-    shop_name = serializers.SerializerMethodField()
 
     class Meta:
         model = SystemUser
@@ -20,9 +19,9 @@ class UserSerializer(serializers.ModelSerializer):
             "id",
             "username",
             "email",
-            "get_full_name",
             "first_name",
             "last_name",
+            "full_name",
             # "internal_status",
             "password",
             "groups",
@@ -34,9 +33,6 @@ class UserSerializer(serializers.ModelSerializer):
             "is_staff": {"write_only": True},
         }
         read_only_fields = ["shop_name"]
-
-    def get_shop_name(self, obj):
-        return obj.shop.name if obj.shop else None
 
     def create(self, validated_data):
         user = super().create(validated_data)

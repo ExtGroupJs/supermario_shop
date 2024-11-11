@@ -6,12 +6,8 @@ from datetime import datetime
 
 
 class SellSerializer(serializers.ModelSerializer):
-    shop_product__product__name = serializers.CharField(
-        source="shop_product.__str__", read_only=True
-    )
-    shop_product__sell_price = serializers.CharField(
-        source="shop_product.sell_price", read_only=True
-    )
+    sell_price = serializers.CharField(read_only=True)
+    product_name = serializers.CharField(read_only=True)
     seller__first_name = serializers.CharField(source="seller.__str__", read_only=True)
     total_priced = serializers.FloatField(read_only=True)
     created_timestamp = serializers.SerializerMethodField()
@@ -22,14 +18,14 @@ class SellSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "shop_product",
-            "shop_product__product__name",
             "seller__first_name",
             "extra_info",
             "quantity",
-            "shop_product__sell_price",
+            "sell_price",
             "total_priced",
             "created_timestamp",
             "profits",
+            "product_name",
         )
         read_only_fields = (
             "id",

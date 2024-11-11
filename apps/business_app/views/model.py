@@ -9,10 +9,11 @@ from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
 
 from apps.common.permissions import CommonRolePermission
+from django.db.models import F
 
 
 class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
-    queryset = Model.objects.all()
+    queryset = Model.objects.all().annotate(brand_name=F("brand__name"))
     serializer_class = ModelSerializer
     list_serializer_class = ReadModelSerializer
     permission_classes = [CommonRolePermission]
@@ -27,4 +28,9 @@ class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     search_fields = [
         "name",
         "extra_info",
+    ]
+    ordering = ["name"]
+    ordering_fields = [
+        "name",
+        "brand_name",
     ]
