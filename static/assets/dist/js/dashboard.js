@@ -504,6 +504,7 @@ $(function () {
 $('#daterange-btn').daterangepicker(
     {
       ranges   : {
+        'Todos': [moment('2000-01-01'), moment()],
         'Hoy': [moment(), moment()],
         'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
         'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],

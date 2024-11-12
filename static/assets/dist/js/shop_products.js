@@ -9,19 +9,19 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 const url = "/business-gestion/shop-products/";
 
 $(function () {
-  bsCustomFileInput.init();
+  // bsCustomFileInput.init();
   $("#filter-form")[0].reset();
-  poblarListas();
 });
 
 // Inicializar DataTable
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
     autoWidth: true,
-   lengthMenu: [
+    lengthMenu: [
       [10, 25, 50, 100, -1], // Valores
-      [10, 25, 50, 100, 'Todos'] // Etiquetas
-  ],
+      [10, 25, 50, 100, "Todos"], // Etiquetas
+    ],
+
     responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [
@@ -54,7 +54,6 @@ $(document).ready(function () {
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
-
       const params = {};
 
       filters.forEach((filter) => {
@@ -62,7 +61,13 @@ $(document).ready(function () {
           params[filter.name] = filter.value;
         }
       });
-      dir = "";      
+
+      if (myDateStart !== null && myDateStart !== null) {
+        params["updated_timestamp__gte"] = myDateStart;
+        params["updated_timestamp__lte"] = myDateEnd;
+      }
+      dir = "";
+
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
@@ -88,17 +93,19 @@ $(document).ready(function () {
         });
     },
     columns: [
-
       { data: "shop_name", title: "Tienda" },
       {
         data: "id",
         title: "Foto",
-        render: (data,type, row) => {          
+
+        render: (data, type, row) => {
           if (data) {
             return `<div style="text-align: center;"><img src="${row.product.image}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${row.product.image}"></div>`;
-        
-          } else{return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;} 
-           },
+          } else {
+            return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+          }
+        },
+
       },
       { data: "product_name", title: "Producto" },
 
@@ -128,7 +135,7 @@ $(document).ready(function () {
         },
       },
     ],
-    
+
     createdRow: function (row, data, dataIndex) {
       if (data.quantity === 0) {
         $(row).addClass("table-danger"); // Rojo
@@ -136,7 +143,9 @@ $(document).ready(function () {
         $(row).addClass("table-warning"); // Amarillo
       }
     },
-    order: [[6, 'desc']],
+
+    order: [[6, "desc"]],
+    
   });
   function convertirFecha(fecha, hora) {
     // Dividir la fecha en partes
@@ -168,7 +177,6 @@ $(document).ready(function () {
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();
-    console.log("✌️event --->", event);
     table.ajax.reload();
   });
 
@@ -198,6 +206,7 @@ $("#modal-crear-shop-products").on("hide.bs.modal", (event) => {
 let form = document.getElementById("form-create-shop-products");
 let edit_shopProducts = false;
 $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
+  poblarListas();
   var button = $(event.relatedTarget); // Button that triggered the modal
 
   var modal = $(this);
@@ -210,6 +219,7 @@ console.log('✌️selected_id --->', selected_id);
     modal.find(".modal-title").text("Editar Entrada de Producto ");
     load.hidden = false;
     // Realizar la petición con Axios
+    console.log('✌️selected_id --->', selected_id);
     axios
       .get(`${url}` + selected_id + "/")
       .then(function (response) {
@@ -230,7 +240,7 @@ console.log('✌️selected_id --->', selected_id);
   }
 });
 
-// form validator
+
 // form validator
 $(function () {
   $.validator.setDefaults({
@@ -290,6 +300,7 @@ $(function () {
       data.append("cost_price", document.getElementById("cost_price").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       data.append("extra_info", document.getElementById("extra_info").value);
+
     
       if (edit_shopProducts) {
         axios
@@ -304,7 +315,7 @@ $(function () {
                 timer: 1500,
               });
               table.ajax.reload();
-    
+
               edit_shopProducts = false;
             }
           })
@@ -314,7 +325,7 @@ $(function () {
             for (const key in dict) {
               textError = textError + ", " + key;
             }
-    
+
             Swal.fire({
               icon: "error",
               title: "Error al crear la Entrada de Producto",
@@ -344,7 +355,7 @@ $(function () {
             for (const key in dict) {
               textError = textError + ", " + key;
             }
-    
+
             Swal.fire({
               icon: "error",
               title: "Error al crear la Entrada de Producto",
@@ -379,90 +390,6 @@ $.validator.addMethod(
   "El precio de venta debe ser mayor que el precio de costo."
 );
 
-// crear Entrada de Producto
-
-// let form = document.getElementById("form-create-shop-products");
-// form.addEventListener("submit", function (event) {
-//   event.preventDefault();
-//   var table = $("#tabla-de-Datos").DataTable();
-//   const csrfToken = document.cookie
-//     .split(";")
-//     .find((c) => c.trim().startsWith("csrftoken="))
-//     ?.split("=")[1];
-//   axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-//   let data = new FormData();
-//   data.append("shop", document.getElementById("shop").value);
-//   data.append("product", document.getElementById("product").value);
-//   data.append("quantity", document.getElementById("quantity").value);
-//   data.append("cost_price", document.getElementById("cost_price").value);
-//   data.append("sell_price", document.getElementById("sell_price").value);
-//   data.append("extra_info", document.getElementById("extra_info").value);
-
-//   if (edit_shopProducts) {
-//     axios
-//       .patch(`${url}` + selected_id + "/", data)
-//       .then((response) => {
-//         if (response.status === 200) {
-//           $("#modal-crear-shop-products").modal("hide");
-//           Swal.fire({
-//             icon: "success",
-//             title: "Entrada de Producto actualizada con éxito",
-//             showConfirmButton: false,
-//             timer: 1500,
-//           });
-//           table.ajax.reload();
-
-//           edit_shopProducts = false;
-//         }
-//       })
-//       .catch((error) => {
-//         let dict = error.response.data;
-//         let textError = "Revise los siguientes campos: ";
-//         for (const key in dict) {
-//           textError = textError + ", " + key;
-//         }
-
-//         Swal.fire({
-//           icon: "error",
-//           title: "Error al crear la Entrada de Producto",
-//           text: textError,
-//           showConfirmButton: false,
-//           timer: 1500,
-//         });
-//       });
-//   } else {
-//     axios
-//       .post(`${url}`, data)
-//       .then((response) => {
-//         if (response.status === 201) {
-//           Swal.fire({
-//             icon: "success",
-//             title: "Entrada de Producto creada con éxito",
-//             showConfirmButton: false,
-//             timer: 1500,
-//           });
-//           table.ajax.reload();
-//           $("#modal-crear-shop-products").modal("hide");
-//         }
-//       })
-//       .catch((error) => {
-//         let dict = error.response.data;
-//         let textError = "Revise los siguientes campos: ";
-//         for (const key in dict) {
-//           textError = textError + ", " + key;
-//         }
-
-//         Swal.fire({
-//           icon: "error",
-//           title: "Error al crear la Entrada de Producto",
-//           text: textError,
-//           showConfirmButton: false,
-//           timer: 1500,
-//         });
-//       });
-//   }
-// });
-
 function poblarListas() {
   // Poblar la lista de tiendas
   var $shop = document.getElementById("shop");
@@ -475,15 +402,20 @@ function poblarListas() {
 
   // Poblar la lista de productos
   var $product = document.getElementById("product");
-  axios.get("/business-gestion/products/").then(function (response) {
-    response.data.results.forEach(function (element) {
-      var option = new Option(element.__str__, element.id);
-      $product.add(option);
+  axios
+    .get("/business-gestion/products/")
+    .then(function (response) {
+      response.data.results.forEach(function (element) {
+        var option = new Option(element.__str__, element.id);
+        $product.add(option);
+      });
+    })
+    .then(() => {
+      if ($product.value != null) {
+        cargarProductoEspecifico($product.value);
+      }
     });
-  }) .then(() => {
-   cargarProductoEspecifico($product.value)
-    
-  })
+
 }
 
 function function_delete(id, name, shop) {
@@ -679,13 +611,14 @@ function verLogs(shopProductId, name) {
 
 let especificProducto;
 function cargarProductoEspecifico(id) {
+
   axios
     .get("/business-gestion/products/" + id + "/")
     .then((res) => {
       especificProducto = res.data;      
       var nuevaUrl = especificProducto.image;
 document.getElementById('productImagen').src = nuevaUrl;
-      load.hidden = true;
+     load.hidden = true;
     })
     .catch((error) => {
       load.hidden = true;
@@ -696,8 +629,9 @@ document.getElementById('productImagen').src = nuevaUrl;
 
 $(document).on("click", "#productImagen", function () {
   load.hidden = false;
-  const fullsizeImage = $(this).attr('src'); // Obtiene la URL de la imagen
-  console.log('✌️fullsizeImage --->', fullsizeImage);
+  const fullsizeImage = $(this).attr("src"); // Obtiene la URL de la imagen
+  console.log("✌️fullsizeImage --->", fullsizeImage);
+
 
   Swal.fire({
     imageUrl: fullsizeImage,
@@ -721,4 +655,37 @@ $(document).on("click", ".thumbnail", function () {
     showCloseButton: false,
     showConfirmButton: true,
   });
+
 });
+let myDateStart = null;
+let myDateEnd = null;
+$(function () {
+  //Date range as a button
+  $("#daterange-btn").daterangepicker(
+    {
+      ranges: {
+        Todos: [moment("2000-01-01"), moment()],
+        Hoy: [moment(), moment()],
+        Ayer: [moment().subtract(1, "days"), moment().subtract(1, "days")],
+        "Últimos 7 Días": [moment().subtract(6, "days"), moment()],
+        "Últimos 30 Días": [moment().subtract(29, "days"), moment()],
+        "Este Mes": [moment().startOf("month"), moment().endOf("month")],
+        "El Mes Pasado": [
+          moment().subtract(1, "month").startOf("month"),
+          moment().subtract(1, "month").endOf("month"),
+        ],
+      },
+      startDate: moment().subtract(29, "days"),
+      endDate: moment(),
+    },
+    function (start, end) {
+      $("#reportrange span").html(
+        start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY")
+      );
+      myDateStart = start.format("YYYY-MM-DD HH:mm:ss");
+      myDateEnd = end.format("YYYY-MM-DD HH:mm:ss");
+      //  daterangeSellProfits(selectedStartDate,selectedEndDate);
+    }
+  );
+});
+
