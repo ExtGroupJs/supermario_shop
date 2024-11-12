@@ -21,6 +21,7 @@ $(document).ready(function () {
       [10, 25, 50, 100, -1], // Valores
       [10, 25, 50, 100, "Todos"], // Etiquetas
     ],
+
     responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [
@@ -60,11 +61,13 @@ $(document).ready(function () {
           params[filter.name] = filter.value;
         }
       });
+
       if (myDateStart !== null && myDateStart !== null) {
         params["updated_timestamp__gte"] = myDateStart;
         params["updated_timestamp__lte"] = myDateEnd;
       }
       dir = "";
+
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
@@ -94,6 +97,7 @@ $(document).ready(function () {
       {
         data: "id",
         title: "Foto",
+
         render: (data, type, row) => {
           if (data) {
             return `<div style="text-align: center;"><img src="${row.product.image}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${row.product.image}"></div>`;
@@ -101,6 +105,7 @@ $(document).ready(function () {
             return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
           }
         },
+
       },
       { data: "product_name", title: "Producto" },
 
@@ -138,6 +143,7 @@ $(document).ready(function () {
         $(row).addClass("table-warning"); // Amarillo
       }
     },
+
     order: [[6, "desc"]],
     
   });
@@ -207,6 +213,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
   if (button.data("type") == "edit") {
     var dataName = button.data("name"); // Extract info from data-* attributes
     selected_id = button.data("id"); // Extract info from data-* attributes
+console.log('✌️selected_id --->', selected_id);
     edit_shopProducts = true;
 
     modal.find(".modal-title").text("Editar Entrada de Producto ");
@@ -294,9 +301,8 @@ $(function () {
       data.append("sell_price", document.getElementById("sell_price").value);
       data.append("extra_info", document.getElementById("extra_info").value);
 
+    
       if (edit_shopProducts) {
-        
-console.log('✌️selected_id --->', selected_id);
         axios
           .patch(`${url}` + selected_id + "/", data)
           .then((response) => {
@@ -409,6 +415,7 @@ function poblarListas() {
         cargarProductoEspecifico($product.value);
       }
     });
+
 }
 
 function function_delete(id, name, shop) {
@@ -604,14 +611,14 @@ function verLogs(shopProductId, name) {
 
 let especificProducto;
 function cargarProductoEspecifico(id) {
-console.log('✌️id --->', id);
+
   axios
     .get("/business-gestion/products/" + id + "/")
     .then((res) => {
-      especificProducto = res.data;
+      especificProducto = res.data;      
       var nuevaUrl = especificProducto.image;
-      document.getElementById("productImagen").src = nuevaUrl;
-      load.hidden = true;
+document.getElementById('productImagen').src = nuevaUrl;
+     load.hidden = true;
     })
     .catch((error) => {
       load.hidden = true;
@@ -619,10 +626,12 @@ console.log('✌️id --->', id);
     });
 }
 
+
 $(document).on("click", "#productImagen", function () {
   load.hidden = false;
   const fullsizeImage = $(this).attr("src"); // Obtiene la URL de la imagen
   console.log("✌️fullsizeImage --->", fullsizeImage);
+
 
   Swal.fire({
     imageUrl: fullsizeImage,
@@ -646,6 +655,7 @@ $(document).on("click", ".thumbnail", function () {
     showCloseButton: false,
     showConfirmButton: true,
   });
+
 });
 let myDateStart = null;
 let myDateEnd = null;
@@ -678,3 +688,4 @@ $(function () {
     }
   );
 });
+
