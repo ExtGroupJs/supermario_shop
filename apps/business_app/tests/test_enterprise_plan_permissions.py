@@ -17,7 +17,7 @@ class TestEnterprisePlanViewSet(BaseTestClass):
         """
         Este test comprueba que solo un superadmin o un Gestor de asignaciones del CUPET puede acceder al EP
         """
-        self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user,)
 
         url = reverse("enterprise_plan-list")
         # User has no role, so has no permissions to access the endpoint.

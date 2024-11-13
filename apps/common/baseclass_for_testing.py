@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from django.utils import timezone
 from model_bakery import baker
-from oauth2_provider.models import AccessToken, Application
+# from oauth2_provider.models import AccessToken, Application
 from rest_framework.test import APIClient
 from django.core.management import call_command
 from faker import Faker
