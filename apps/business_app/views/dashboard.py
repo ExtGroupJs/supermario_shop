@@ -18,6 +18,7 @@ from django.db.models.functions import (
 from django.db.models import F, ExpressionWrapper, FloatField
 
 
+from apps.common.mixins.enums_mixin import EnumsMixin
 from apps.common.mixins.serializer_map import SerializerMapMixin
 
 from rest_framework.decorators import action
@@ -189,3 +190,9 @@ class DashboardViewSet(
             return TruncQuarter
         if frequency == AllowedFrequencies.YEAR:
             return TruncYear
+
+
+class AllowedFrequenciesViewSet(EnumsMixin):
+    items = (
+        ("allowed_frequencies", AllowedFrequencies),
+    )
