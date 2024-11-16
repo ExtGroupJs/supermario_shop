@@ -29,7 +29,8 @@ class TestInitialAssignmentViewSet(BaseTestClassForIncomingFileTesting):
         para cada uno de estos períodos se colocó un valor fijo de 10
 
         """
-        # self.client.force_authenticate(self.user, self.oauth2_token)
+        # # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         enterprise = baker.make(Enterprise, name="AZCUBA - GE AZCUBA")
         current_year = datetime.datetime.today().year
         current_month = Months.FEB
@@ -110,7 +111,8 @@ class TestInitialAssignmentViewSet(BaseTestClassForIncomingFileTesting):
         para cada uno de estos períodos se colocó un valor fijo de 10
 
         """
-        # self.client.force_authenticate(self.user, self.oauth2_token)
+        # # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         enterprise = baker.make(Enterprise, name="AZCUBA - GE AZCUBA")
         enterprise_planner = baker.make(
             SystemUser,
@@ -155,7 +157,8 @@ class TestInitialAssignmentViewSet(BaseTestClassForIncomingFileTesting):
         para cada uno de estos períodos se colocó un valor fijo de 10
 
         """
-        # self.client.force_authenticate(self.user, self.oauth2_token)
+        # # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         enterprise = baker.make(Enterprise, name="AZCUBA - GE AZCUBA")
         current_year = datetime.datetime.today().year
         current_month = Months.ENE
@@ -235,7 +238,8 @@ class TestInitialAssignmentViewSet(BaseTestClassForIncomingFileTesting):
         para cada uno de estos períodos se colocó un valor fijo de 10
 
         """
-        # self.client.force_authenticate(self.user, self.oauth2_token)
+        # # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         enterprise = baker.make(Enterprise, name="AZCUBA - GE AZCUBA")
         current_year = datetime.datetime.today().year
         current_month = Months.DIC

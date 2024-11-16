@@ -25,7 +25,8 @@ class TestEnterprisePlanViewSet(BaseTestClassForIncomingFileTesting):
     fixtures = ["auth.group.json"]
 
     def test_create_enterprise_plan_plan_by_planner_and_notificate_cupet_gestor(self):
-        self.client.force_authenticate(self.user, self.oauth2_token)
+        # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         qty = baker.random_gen.gen_integer(
             min_int=2, max_int=10
         )  # Random number between 2 and 10
@@ -86,7 +87,8 @@ class TestEnterprisePlanViewSet(BaseTestClassForIncomingFileTesting):
         self.assertTrue(Notification.objects.count(), fuel_gestor.notifications.count())
 
     def test_update_enterprise_plan_by_planner_and_notificate_cupet_gestor(self):
-        self.client.force_authenticate(self.user, self.oauth2_token)
+        # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         qty = baker.random_gen.gen_integer(
             min_int=2, max_int=10
         )  # Random number between 2 and 10
@@ -156,7 +158,8 @@ class TestEnterprisePlanViewSet(BaseTestClassForIncomingFileTesting):
         self.assertTrue(Notification.objects.count(), fuel_gestor.notifications.count())
 
     def test_update_enterprise_plan_by_cupet_gestor_fails_if_not_correct_role(self):
-        self.client.force_authenticate(self.user, self.oauth2_token)
+        # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         qty = baker.random_gen.gen_integer(
             min_int=2, max_int=10
         )  # Random number between 2 and 10
@@ -205,7 +208,8 @@ class TestEnterprisePlanViewSet(BaseTestClassForIncomingFileTesting):
         )
 
     def test_update_enterprise_plan_by_cupet_gestor_with_notification_to_planner(self):
-        self.client.force_authenticate(self.user, self.oauth2_token)
+        # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         qty = baker.random_gen.gen_integer(
             min_int=2, max_int=10
         )  # Random number between 2 and 10
@@ -305,7 +309,8 @@ class TestEnterprisePlanViewSet(BaseTestClassForIncomingFileTesting):
         )
 
     def test_create_enterprise_plan_fails_if_try_to_insert_existing_date(self):
-        self.client.force_authenticate(self.user, self.oauth2_token)
+        # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         qty = baker.random_gen.gen_integer(
             min_int=2, max_int=10
         )  # Random number between 2 and 10
@@ -360,7 +365,8 @@ class TestEnterprisePlanViewSet(BaseTestClassForIncomingFileTesting):
         self.assertEqual(EnterprisePlan.objects.count(), qty)
 
     def test_create_enterprise_plan_fails_with_incorrect_dates(self):
-        self.client.force_authenticate(self.user, self.oauth2_token)
+        # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         qty = baker.random_gen.gen_integer(
             min_int=2, max_int=10
         )  # Random number between 2 and 10
@@ -445,7 +451,8 @@ class TestEnterprisePlanViewSet(BaseTestClassForIncomingFileTesting):
         )
 
     def test_retreive_enterprise_plan_happy_path(self):
-        self.client.force_authenticate(self.user, self.oauth2_token)
+        # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.client.force_authenticate(self.user)
         qty = baker.random_gen.gen_integer(
             min_int=2, max_int=10
         )  # Random number between 2 and 10
