@@ -65,6 +65,8 @@ class ShopProductsViewSet(
         "extra_info",
         "shop__name",
         "product__name",
+        "product__model__name",
+        "product__model__brand__name",
     ]
     ordering = ["shop_name"]
     ordering_fields = [
