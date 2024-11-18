@@ -68,6 +68,7 @@ class BaseTestClass(TestCase):
         self.user.is_staff = False
         self.client.force_authenticate(self.user)
 
+
         # User has no role, so has no permissions to access the endpoint.
         self.assertEqual(
             request_using_protocol(url, format="json").status_code,
