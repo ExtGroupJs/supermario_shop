@@ -25,7 +25,9 @@ class TestProductsViewSet(BaseTestClass):
         url = reverse("products-list")
 
         self._test_permissions(
-            url, allowed_roles=self.allowed_groups, request_using_protocol=self.client.get
+            url,
+            allowed_roles=self.allowed_groups,
+            request_using_protocol=self.client.get,
         )
         test_product = baker.make(
             Product,
@@ -33,9 +35,10 @@ class TestProductsViewSet(BaseTestClass):
         url = reverse("products-detail", kwargs={"pk": test_product.id})
 
         self._test_permissions(
-            url, allowed_roles=self.allowed_groups, request_using_protocol=self.client.get
+            url,
+            allowed_roles=self.allowed_groups,
+            request_using_protocol=self.client.get,
         )
-
 
     def test_post_protocol(self):
         """
@@ -44,7 +47,9 @@ class TestProductsViewSet(BaseTestClass):
         url = reverse("products-list")
 
         self._test_permissions(
-            url, allowed_roles=self.allowed_groups, request_using_protocol=self.client.post
+            url,
+            allowed_roles=self.allowed_groups,
+            request_using_protocol=self.client.post,
         )
 
     def test_put_patch_delete_protocols(self):

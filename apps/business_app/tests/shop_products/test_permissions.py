@@ -13,6 +13,9 @@ from apps.users_app.models.system_user import SystemUser
 class TestShopProductsViewSet(BaseTestClass):
     fixtures = ["auth.group.json"]
 
+    def setUp(self):
+        super().setUp()
+
     def test_get_protocol(self):
         """
         Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
@@ -23,18 +26,22 @@ class TestShopProductsViewSet(BaseTestClass):
         self._test_permissions(
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
         )
+
+    def test_get_one_protocol(self):
+        """
+        Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
+        """
         test_shop_product = baker.make(
             ShopProducts,
             cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
             sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
         )
-
         url = reverse("shop-products-detail", kwargs={"pk": test_shop_product.id})
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
+
         self._test_permissions(
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
         )
-
-
 
     def test_post_protocol(self):
         """
