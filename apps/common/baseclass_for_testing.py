@@ -48,7 +48,12 @@ class BaseTestClass(TestCase):
     def _test_permissions(self, url, allowed_roles, protocol):
         """
         Función genérica para comprobar los permisos sobre determinado EP para un grupo de Roles
-
+        Ejemplo de uso. En cualquier clase que herede de BaseTestClass:
+        self._test_permissions(
+            url,
+            allowed_roles=allowed_groups, # esto es un listado de roles
+            protocol=self.client.post # puede ser cualquiera de los protocolos
+        )
         """
         # self.client.force_authenticate(self.user, self.oauth2_token)
         self.client.force_authenticate(self.user)
