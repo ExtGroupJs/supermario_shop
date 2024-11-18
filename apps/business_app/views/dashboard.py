@@ -62,7 +62,6 @@ class DashboardViewSet(
         url_name="sell-profits",
         url_path="sell-profits",
         permission_classes=[CommonRolePermission],
-
     )
     def sell_profits(self, request):
         """
@@ -119,7 +118,6 @@ class DashboardViewSet(
         url_name="shop-product-sell-count",
         url_path="shop-product-sell-count",
         permission_classes=[CommonRolePermission],
-
     )
     def shop_product_sells_count(self, request):
         """

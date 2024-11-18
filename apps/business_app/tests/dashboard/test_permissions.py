@@ -13,7 +13,6 @@ class TestDashboardViewSet(BaseTestClass):
         super().setUp()
         self.allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER]
 
-
     def test_shop_product_investment_permissions(self):
         """
         Este test comprueba que solo un superadmin o un SHOP_OWNER pueden acceder a la funcionalidad
@@ -22,7 +21,7 @@ class TestDashboardViewSet(BaseTestClass):
         self._test_permissions(
             url,
             allowed_roles=self.allowed_groups,
-            protocol=self.client.post
+            request_using_protocol=self.client.post,
         )
 
     def test_sell_profits_permissions(self):
@@ -33,7 +32,7 @@ class TestDashboardViewSet(BaseTestClass):
         self._test_permissions(
             url,
             allowed_roles=self.allowed_groups,
-            protocol=self.client.post
+            request_using_protocol=self.client.post,
         )
 
     def test_shop_product_sell_count_permissions(self):
@@ -44,7 +43,7 @@ class TestDashboardViewSet(BaseTestClass):
         self._test_permissions(
             url,
             allowed_roles=self.allowed_groups,
-            protocol=self.client.post
+            request_using_protocol=self.client.post,
         )
 
     def test_shop_product_sell_products_count_permissions(self):
@@ -55,5 +54,5 @@ class TestDashboardViewSet(BaseTestClass):
         self._test_permissions(
             url,
             allowed_roles=self.allowed_groups,
-            protocol=self.client.post
+            request_using_protocol=self.client.post,
         )

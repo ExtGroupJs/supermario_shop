@@ -11,8 +11,9 @@ from rest_framework import status
 from apps.users_app.models.groups import Groups
 
 
-
 from django.contrib.auth.models import User
+
+from apps.users_app.models.system_user import SystemUser
 
 
 class BaseTestClass(TestCase):
@@ -26,7 +27,9 @@ class BaseTestClass(TestCase):
                 **{"verbosity": 0},
             )
 
-        self.user = baker.make(User, _fill_optional=True)  # User.objects.create_user(
+        self.user = baker.make(
+            SystemUser, _fill_optional=True
+        )  # User.objects.create_user(
 
         # This code is for oauth, i.e. if the FE were in a separated application with a Js framework
         # self.oauth2_app = baker.make(
@@ -45,7 +48,12 @@ class BaseTestClass(TestCase):
         #     scope="read,write",
         # )
 
-    def _test_permissions(self, url, allowed_roles, protocol):
+    def _test_permissions(
+        self,
+        url,
+        allowed_roles,
+        request_using_protocol,
+    ):
         """
         Función genérica para comprobar los permisos sobre determinado EP para un grupo de Roles
         Ejemplo de uso. En cualquier clase que herede de BaseTestClass:
@@ -56,29 +64,30 @@ class BaseTestClass(TestCase):
         )
         """
         # self.client.force_authenticate(self.user, self.oauth2_token)
+        self.user.is_superuser = False
+        self.user.is_staff = False
         self.client.force_authenticate(self.user)
 
         # User has no role, so has no permissions to access the endpoint.
         self.assertEqual(
-            protocol(url, format="json").status_code, status.HTTP_403_FORBIDDEN
+            request_using_protocol(url, format="json").status_code,
+            status.HTTP_403_FORBIDDEN,
         )
         for role in allowed_roles:
             self.user.groups.clear()  # Remove the group to avoid side effects in other tests.
             self.user.groups.add(role)
             self.assertNotEqual(
-                protocol(url, format="json").status_code,
+                request_using_protocol(url, format="json").status_code,
                 status.HTTP_403_FORBIDDEN,
             )
 
-        for group in self._get_not_allowed_groups(self.allowed_groups):
+        for group in self._get_not_allowed_groups(allowed_roles):
             self.user.groups.clear()  # Remove the group to avoid side effects in other tests.
             self.user.groups.add(group.value)
             self.assertEqual(
-                protocol(url, format="json").status_code,
+                request_using_protocol(url, format="json").status_code,
                 status.HTTP_403_FORBIDDEN,
             )
 
     def _get_not_allowed_groups(self, allowed_groups):
-        return [
-            group for group in Groups if group not in allowed_groups
-        ]
+        return [group for group in Groups if group not in allowed_groups]
