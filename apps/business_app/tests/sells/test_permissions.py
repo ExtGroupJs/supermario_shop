@@ -55,9 +55,8 @@ class TestSellViewSet(BaseTestClass):
         Solo el SUPER_ADMIN y el SHOP_OWNER pueden introducir datos
         """
         url = reverse("sell-products-list")
-        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER]
-        payload = 
-
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
+        
         self._test_permissions(
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.post
         )
@@ -77,7 +76,7 @@ class TestSellViewSet(BaseTestClass):
             quantity=baker.random_gen.gen_integer(min_int=1, max_int=2),
         )
         url = reverse("sell-products-detail", kwargs={"pk": test_sell.id})
-        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER]
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
         test_protocols = [self.client.put, self.client.patch, self.client.delete]
         for protocol in test_protocols:
             self._test_permissions(
