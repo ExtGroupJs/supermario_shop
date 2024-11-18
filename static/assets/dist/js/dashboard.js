@@ -501,7 +501,7 @@ function getDayOfWeek(date) {
 
 $(function () {
    //Date range as a button
-$('#daterange-btn').daterangepicker(
+   $('#daterange-btn').daterangepicker(
     {
       ranges   : {
         'Todos': [moment('2000-01-01'), moment()],
@@ -510,22 +510,29 @@ $('#daterange-btn').daterangepicker(
         'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
         'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
         'Este Mes': [moment().startOf('month'), moment().endOf('month')],
-        'El Mes Pasado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        'El Mes Pasado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+        // 'Día Específico': [moment(), moment()] // Opción para seleccionar un día específico
       },
       startDate: moment().subtract(29, 'days'),
-      endDate  : moment()
+      endDate  : moment(),
+      opens: 'right' // Puedes ajustar la posición del calendario
     },
     function (start, end) {
-      $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'))
+      $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
       selectedStartDate = start;
-  selectedEndDate = end;
+      selectedEndDate = end;
 
-  // Puedes hacer algo con los valores aquí, por ejemplo:
-  console.log('Fecha de inicio:', selectedStartDate.format('YYYY-MM-DD'));
-  console.log('Fecha de fin:', selectedEndDate.format('YYYY-MM-DD'));
-  daterangeSellProfits(selectedStartDate,selectedEndDate);
-    
+      console.log('Fecha de inicio:', selectedStartDate.format('YYYY-MM-DD'));
+      console.log('Fecha de fin:', selectedEndDate.format('YYYY-MM-DD'));
+      daterangeSellProfits(selectedStartDate, selectedEndDate);
     }
-    
-  )
+);
+
+// Agregar evento para seleccionar un día específico
+$('#daterange-btn').on('apply.daterangepicker', function(ev, picker) {
+    if (picker.startDate.isSame(picker.endDate)) {
+        console.log('Día específico seleccionado:', picker.startDate.format('YYYY-MM-DD'));
+    }
+});
+
   });
