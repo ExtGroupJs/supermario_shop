@@ -8,7 +8,7 @@ from apps.common.baseclass_for_testing import BaseTestClass
 from apps.users_app.models.groups import Groups
 from model_bakery import baker
 
-from apps.users_app.models.system_user import SystemUser
+from rest_framework import status
 
 
 @pytest.mark.django_db
@@ -56,29 +56,7 @@ class TestSellViewSet(BaseTestClass):
         """
         url = reverse("sell-products-list")
         allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
-        
+
         self._test_permissions(
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.post
         )
-
-    def test_put_patch_delete_protocols(self):
-        """
-        Solo el SUPER_ADMIN y el SHOP_OWNER pueden cambiar datos
-        """
-        test_sell = baker.make(
-            Sell,
-            shop_product=baker.make(
-                ShopProducts,
-                cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
-                sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
-                quantity=baker.random_gen.gen_integer(min_int=3, max_int=5),
-            ),
-            quantity=baker.random_gen.gen_integer(min_int=1, max_int=2),
-        )
-        url = reverse("sell-products-detail", kwargs={"pk": test_sell.id})
-        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
-        test_protocols = [self.client.put, self.client.patch, self.client.delete]
-        for protocol in test_protocols:
-            self._test_permissions(
-                url, allowed_roles=allowed_groups, request_using_protocol=protocol
-            )

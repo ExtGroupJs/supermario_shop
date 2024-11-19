@@ -18,9 +18,17 @@ from apps.common.pagination import AllResultsSetPagination
 from apps.common.permissions import SellViewSetPermission
 from apps.users_app.models.system_user import SystemUser
 from apps.users_app.models.groups import Groups
+from rest_framework import mixins
+from rest_framework.viewsets import GenericViewSet
 
 
-class SellViewSet(viewsets.ModelViewSet, GenericAPIView):
+class SellViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
     queryset = (
         Sell.objects.all()
         .select_related("shop_product", "seller")

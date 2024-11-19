@@ -53,6 +53,7 @@ class BaseTestClass(TestCase):
         url,
         allowed_roles,
         request_using_protocol,
+        expected_status=status.HTTP_403_FORBIDDEN,
     ):
         """
         Función genérica para comprobar los permisos sobre determinado EP para un grupo de Roles
@@ -66,20 +67,25 @@ class BaseTestClass(TestCase):
         # self.client.force_authenticate(self.user, self.oauth2_token)
         self.user.is_superuser = False
         self.user.is_staff = False
-        self.client.force_authenticate(self.user)
 
+        # User is not authenticated, so has no permissions to access the endpoint.
+        self.assertEqual(
+            request_using_protocol(url, format="json").status_code,
+            expected_status,
+        )
+        self.client.force_authenticate(self.user)
 
         # User has no role, so has no permissions to access the endpoint.
         self.assertEqual(
             request_using_protocol(url, format="json").status_code,
-            status.HTTP_403_FORBIDDEN,
+            expected_status,
         )
         for role in allowed_roles:
             self.user.groups.clear()  # Remove the group to avoid side effects in other tests.
             self.user.groups.add(role)
             self.assertNotEqual(
                 request_using_protocol(url, format="json").status_code,
-                status.HTTP_403_FORBIDDEN,
+                expected_status,
             )
 
         for group in self._get_not_allowed_groups(allowed_roles):
@@ -87,7 +93,7 @@ class BaseTestClass(TestCase):
             self.user.groups.add(group.value)
             self.assertEqual(
                 request_using_protocol(url, format="json").status_code,
-                status.HTTP_403_FORBIDDEN,
+                expected_status,
             )
 
     def _get_not_allowed_groups(self, allowed_groups):
