@@ -4,6 +4,8 @@ from rest_framework import serializers
 from apps.business_app.models.sell import Sell
 from datetime import datetime
 
+from apps.business_app.serializers.sell_group import SellGroupSerializer
+
 
 class SellSerializer(serializers.ModelSerializer):
     shop_product__product__name = serializers.CharField(
@@ -16,6 +18,7 @@ class SellSerializer(serializers.ModelSerializer):
     total_priced = serializers.FloatField(read_only=True)
     created_timestamp = serializers.SerializerMethodField()
     profits = serializers.FloatField(read_only=True)
+    sell_group = SellGroupSerializer(read_only=True)
 
     class Meta:
         model = Sell
@@ -30,6 +33,7 @@ class SellSerializer(serializers.ModelSerializer):
             "total_priced",
             "created_timestamp",
             "profits",
+            "sell_group",
         )
         read_only_fields = (
             "id",

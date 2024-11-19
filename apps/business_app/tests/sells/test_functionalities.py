@@ -12,7 +12,7 @@ from rest_framework import status
 
 
 @pytest.mark.django_db
-class TestSellViewSetPermissions(BaseTestClass):
+class TestSellViewSetFunctionalities(BaseTestClass):
     fixtures = ["auth.group.json"]
 
     def setUp(self):
