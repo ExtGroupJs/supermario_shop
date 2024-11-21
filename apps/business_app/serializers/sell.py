@@ -1,10 +1,9 @@
 from email.policy import default
+from math import e
 from rest_framework import serializers
 
 from apps.business_app.models.sell import Sell
 from datetime import datetime
-
-from apps.business_app.serializers.sell_group import SellGroupSerializer
 
 
 class SellSerializer(serializers.ModelSerializer):
@@ -18,7 +17,6 @@ class SellSerializer(serializers.ModelSerializer):
     total_priced = serializers.FloatField(read_only=True)
     created_timestamp = serializers.SerializerMethodField()
     profits = serializers.FloatField(read_only=True)
-    sell_group = SellGroupSerializer(read_only=True)
 
     class Meta:
         model = Sell
@@ -37,6 +35,7 @@ class SellSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             "id",
+            "sell_group",
             "__str__",
         )
 
