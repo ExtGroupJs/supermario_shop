@@ -69,6 +69,10 @@
                 <label for="cantidad">Cantidad:</label>
                 <input type="number" id="cantidad" class="form-control"  min="1" required>
             </div>
+            <div class="form-group">
+                 <input type="checkbox" name="my-checkbox" id="seller" checked data-bootstrap-switch data-off-color="danger" data-on-color="success">
+              
+            </div>
      </div>
             <div class="col-md-4 col-sm-6 col-12">
             <div class="info-box">
@@ -94,11 +98,13 @@
           <div class="col-md-9">
             <h2>Productos a Vender</h2>
           </div>
+         
           <div class="col-md-3">
-           
+            
                   <h5 id="impTotal" class="direct-chat-text right">Importe total : 0$</h5>
                  
                 
+          </div>
           </div>
         </div>
         <table class="table table-bordered" id="productosTable">
@@ -165,8 +171,16 @@
 
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
 <script src="{% static 'assets/dist/js/salescar.js' %}"></script>
+<script src="{% static 'assets/plugins/bootstrap-switch/js/bootstrap-switch.min.js' %}"></script>
+
 <script>
   $('.select2').select2({ dropdownParent: $('#ventaForm'), theme: 'bootstrap4' })
-  
+  $("input[data-bootstrap-switch]").each(function(){
+    $(this).bootstrapSwitch({
+        state: $(this).prop('checked'),
+        onText: 'MLC',  // Cambia 'Activado' por el texto que desees
+        offText: 'Zelle' // Cambia 'Desactivado' por el texto que desees
+    });
+});
 </script>
 {% endblock %}
