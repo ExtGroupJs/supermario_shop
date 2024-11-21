@@ -16,12 +16,13 @@ class SellGroup(BaseModel):
         ZELLE = "Z", _("ZELLE")
 
     discount = models.PositiveSmallIntegerField(verbose_name=_("Descuento"), default=0)
-    # seller = models.ForeignKey(
-    #     to=SystemUser,
-    #     on_delete=models.DO_NOTHING,
-    #     verbose_name="Vendedor",
-    #     related_name="sells",
-    # )
+    seller = models.ForeignKey(
+        to=SystemUser,
+        on_delete=models.DO_NOTHING,
+        verbose_name="Vendedor",
+        related_name="sell_groups",
+        null=True,
+    )
     extra_info = models.TextField(
         verbose_name="Información Extra", null=True, blank=True
     )
@@ -33,8 +34,8 @@ class SellGroup(BaseModel):
     )
 
     class Meta:
-        verbose_name = "Venta"
-        verbose_name_plural = "Ventas"
+        verbose_name = "Grupo de Venta"
+        verbose_name_plural = "Grupos de Ventas"
 
-    def __str__(self):
-        return f"{self.shop_product} ({self.shop_product.shop})"
+    # def __str__(self):
+    #     return f"{self.shop_product} ({self.shop_product.shop})"
