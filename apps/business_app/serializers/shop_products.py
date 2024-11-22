@@ -39,7 +39,9 @@ class ShopProductsSerializer(serializers.ModelSerializer):
 
 
 class ReadShopProductsSerializer(ShopProductsSerializer):
-    product = ProductSerializer(read_only = True)
+    product = ReadProductSerializer(read_only = True)
+    product_name = serializers.CharField(read_only=True)
+
     class Meta(ShopProductsSerializer.Meta):
         model = ShopProducts
         fields = ShopProductsSerializer.Meta.fields
