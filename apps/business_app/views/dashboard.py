@@ -24,6 +24,7 @@ from rest_framework.decorators import action
 from django.db.models import Count, Sum
 from rest_framework.response import Response
 
+from apps.common.permissions import CommonRolePermission
 from apps.common.utils.allowed_frequencies import AllowedFrequencies
 
 
@@ -40,6 +41,7 @@ class DashboardViewSet(
         url_name="shop-product-investment",
         url_path="shop-product-investment",
         serializer_class=DashboardInvestmentSerializer,
+        permission_classes=[CommonRolePermission],
     )
     def shop_product_investment(self, request):
         """
@@ -59,6 +61,7 @@ class DashboardViewSet(
         methods=["POST"],
         url_name="sell-profits",
         url_path="sell-profits",
+        permission_classes=[CommonRolePermission],
     )
     def sell_profits(self, request):
         """
@@ -113,7 +116,8 @@ class DashboardViewSet(
         detail=False,
         methods=["POST"],
         url_name="shop-product-sell-count",
-        url_path="shop-product-sells-count",
+        url_path="shop-product-sell-count",
+        permission_classes=[CommonRolePermission],
     )
     def shop_product_sells_count(self, request):
         """
@@ -147,7 +151,8 @@ class DashboardViewSet(
         detail=False,
         methods=["POST"],
         url_name="shop-product-sell-products-count",
-        url_path="shop-product-sells-products-count",
+        url_path="shop-product-sell-products-count",
+        permission_classes=[CommonRolePermission],
     )
     def shop_product_sells_products_count(self, request):
         """
