@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.business_app.models.product import Product
-from apps.business_app.serializers.model import ModelSerializer
+from apps.business_app.serializers.model import ModelSerializer, ReadModelSerializer
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -17,7 +17,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ReadProductSerializer(ProductSerializer):
-    model_name = serializers.CharField(read_only=True)
+    model = ReadModelSerializer()
 
     class Meta(ProductSerializer.Meta):
         model = Product
