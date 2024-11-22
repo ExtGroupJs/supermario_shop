@@ -9,7 +9,9 @@
 <link rel="stylesheet" href="{% static 'assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
-<link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">{% endblock %}
+<link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/daterangepicker/daterangepicker.css' %}">
+{% endblock %}
 
 {% block content %}
 
@@ -34,6 +36,9 @@
 
   <!-- Main content -->
   <section class="content">
+    <div class="overlay" id="load">
+      <i class="fas fa-2x fa-sync fa-spin"></i>
+    </div>
     <div class="container-fluid">
       <div class="row">
         <div class="col-12">
@@ -41,8 +46,11 @@
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">Gestionar Entrada de Producto</h3>
+              
+                    
+                   
               <button class="btn btn-secondary float-right" id="toggle-filters"><i class="nav-icon fas fa-filter"></i>
-                Filtros</button>
+                Filtros</button> 
             </div>
             <!-- /.card-header -->
 
@@ -106,7 +114,7 @@
                     </div>
                   </div>
 
-                  <div class="form-group col-md-6">
+                  {% comment %} <div class="form-group col-md-6">
                     <label for="created_timestamp__gte">Fecha de Creación (Desde)</label>
                     <input type="datetime-local" class="form-control" id="created_timestamp__gte"
                       name="created_timestamp__gte">
@@ -115,26 +123,13 @@
                     <label for="created_timestamp__lte">Fecha de Creación (Hasta)</label>
                     <input type="datetime-local" class="form-control" id="created_timestamp__lte"
                       name="created_timestamp__lte">
-                  </div>
-
-                 
-                    <!-- Date range -->
-                    <!-- <div class="form-group col-md-4">
-                      <label>Date range:</label>
-                      <div class="input-group">
-                        <div class="input-group-prepend">
-                          <span class="input-group-text">
-                            <i class="far fa-calendar-alt"></i>
-                          </span>
-                        </div>
-                        <input type="text" class="form-control" id="range_created_timestamp" name="range_created_timestamp">
-                      </div>
-                    </div> -->
-                    <!-- /.input group -->
-
-
-
-                  
+                  </div> {% endcomment %}
+                    <div class="form-group col-md-6 input-group">
+                      <button type="button" class="btn btn-default float-right" id="daterange-btn">
+                       Filtro por Fecha <i class="far fa-calendar-alt"></i>
+                        <i class="fas fa-caret-down"></i>
+                      </button>
+                    </div> 
                 </div>
                 <button type="submit" class="btn btn-primary"><i class="nav-icon fas fa-check"></i> Aplicar</button>
                 <button type="button" id="reset-filters" class="btn btn-secondary"><i class="nav-icon fas fa-redo"></i>
@@ -177,29 +172,40 @@
         <div class="card-body">
 
           <div class="row">
-            <div class="form-group col-sm-6">
+            <div class="col-sm-9">
+            <div class="form-group ">
               <label for="shop">Tienda</label>
               <select class="form-control" id="shop" name="shop" tabindex="-1"></select>
             </div>
-            <div class="form-group col-sm-6">
+            <div class="form-group ">
               <label for="product" >Producto</label>
-              <select class="form-control select2" id="product" name="product"></select>
+              <select class="form-control select2" id="product" name="product" onchange="cargarProductoEspecifico(this.value)"></select>
             </div>
+            </div>
+            <div class="col-sm-3" style="display: flex;">
+               <div class="info-box">
+                 <img id="productImagen" src="{% static 'assets/dist/img/AdminLTELogo.png' %}" alt="Imagen" class="img-fluid productImagen" style="width: 200px; height: auto;">
+                  </div>
+            <!-- /.info-box -->
           </div>
+           
+          </div>
+          <div class="row">
 
-          <div class="form-group">
+          <div class="form-group col-md-4 col-sm-4 col-12">
             <label>Cantidad</label>
             <input type="number" class="form-control" id="quantity" name="quantity" required>
           </div>
 
-          <div class="form-group">
+          <div class="form-group col-md-4 col-sm-4 col-12">
             <label>Precio de Costo</label>
             <input type="text" class="form-control" id="cost_price" name="cost_price" required>
           </div>
 
-          <div class="form-group">
+          <div class="form-group col-md-4 col-sm-4 col-12">
             <label>Precio de Venta</label>
             <input type="text" class="form-control" id="sell_price" name="sell_price" required>
+          </div>
           </div>
 
           <div class="form-group">
@@ -280,6 +286,9 @@
 
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
 <script src="{% static 'assets/dist/js/shop_products.js' %}"></script>
+<script src="{% static 'assets/plugins/moment/moment.min.js' %}"></script>
+<script src="{% static 'assets/plugins/inputmask/jquery.inputmask.min.js' %}"></script>
+<script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
 <script>
   $('.select2').select2({ dropdownParent: $('#modal-crear-shop-products'), theme: 'bootstrap4' })
   

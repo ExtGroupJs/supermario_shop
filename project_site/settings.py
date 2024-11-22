@@ -180,19 +180,19 @@ if DEBUG:
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
 
-# LANGUAGE_CODE = "es-es"
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es-es"
+# LANGUAGE_CODE = "en-us"
 
 # LANGUAGES = [
 #     ("es", "German"),
 #     ("en", "English"),
 # ]
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Havana"
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # when the static files are outside the application folder this code is put:

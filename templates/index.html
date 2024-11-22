@@ -212,8 +212,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 </li>
                 <li class="nav-item">
                   <a href="{% url 'products' %}" class="nav-link">
-                    <i class="far fa-circle text-danger nav-icon"></i>
+                    <i class="far fa-circle text-success nav-icon"></i>
                     <p>{% blocktranslate %}Producto{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'create_products' %}" class="nav-link">
+                    <i class="fas fa-circle text-success nav-icon"></i>
+                    <p>{% blocktranslate %}Crear Producto{% endblocktranslate %}</p>
                   </a>
                 </li>
                 <li class="nav-item">
@@ -223,9 +229,21 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   </a>
                 </li>
                 <li class="nav-item">
+                  <a href="{% url 'create_shop_products' %}" class="nav-link">
+                    <i class="fas fa-circle text-danger nav-icon"></i>
+                    <p>{% blocktranslate %}Crear Entrada{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
                   <a href="{% url 'sales' %}" class="nav-link">
                     <i class="far fa-circle text-warning nav-icon"></i>
                     <p>{% blocktranslate %}Gestion de Ventas{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="#" class="nav-link" data-toggle="modal" data-target="#salesDataModal">
+                    <i class="far fa-circle text-warning nav-icon"></i>
+                    <p>{% blocktranslate %}Ganancias{% endblocktranslate %}</p>
                   </a>
                 </li>
                 

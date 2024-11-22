@@ -9,14 +9,19 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 const url = "/business-gestion/shop-products/";
 
 $(function () {
-  bsCustomFileInput.init();
+  // bsCustomFileInput.init();
   $("#filter-form")[0].reset();
-  poblarListas();
 });
 
 // Inicializar DataTable
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
+    autoWidth: true,
+    lengthMenu: [
+      [10, 25, 50, 100, -1], // Valores
+      [10, 25, 50, 100, "Todos"], // Etiquetas
+    ],
+
     responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [
@@ -44,6 +49,11 @@ $(document).ready(function () {
     processing: true,
     ajax: function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
+      dir = "";
+
+      if (data.order[0].dir == "desc") {
+        dir = "-";
+      }
       const params = {};
 
       filters.forEach((filter) => {
@@ -51,10 +61,20 @@ $(document).ready(function () {
           params[filter.name] = filter.value;
         }
       });
+
+      if (myDateStart !== null && myDateStart !== null) {
+        params["updated_timestamp__gte"] = myDateStart;
+        params["updated_timestamp__lte"] = myDateEnd;
+      }
+      dir = "";
+
+      if (data.order[0].dir == "desc") {
+        dir = "-";
+      }
       // Añadir parámetros de paginación
       params.page_size = data.length;
       params.page = data.start / data.length + 1;
-      params.ordering = data.columns[data.order[0].column].data;
+      params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
 
       axios
@@ -65,17 +85,34 @@ $(document).ready(function () {
             recordsFiltered: res.data.count,
             data: res.data.results,
           });
+          load.hidden = true;
         })
         .catch((error) => {
+          load.hidden = true;
           alert(error);
         });
     },
     columns: [
-      { data: "shop.name", title: "Tienda" },
-      { data: "product.__str__", title: "Producto" },
+      { data: "shop_name", title: "Tienda" },
+      {
+        data: "id",
+        title: "Foto",
+
+        render: (data, type, row) => {
+          if (data) {
+            return `<div style="text-align: center;"><img src="${row.product.image}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${row.product.image}"></div>`;
+          } else {
+            return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+          }
+        },
+
+      },
+      { data: "product_name", title: "Producto" },
+
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
+      { data: "updated_timestamp", title: "Fecha" },
       { data: "extra_info", title: "Información Extra" },
       {
         data: "id",
@@ -88,7 +125,7 @@ $(document).ready(function () {
                     <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product}')" >
+                    <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.shop_name}')" >
                       <i class="fas fa-trash"></i>
                     </button>
                     <button type="button" title="Ver Logs" class="btn bg-olive" onclick="verLogs('${row.id}','${row.product.name}')">
@@ -98,6 +135,7 @@ $(document).ready(function () {
         },
       },
     ],
+
     createdRow: function (row, data, dataIndex) {
       if (data.quantity === 0) {
         $(row).addClass("table-danger"); // Rojo
@@ -105,6 +143,9 @@ $(document).ready(function () {
         $(row).addClass("table-warning"); // Amarillo
       }
     },
+
+    order: [[6, "desc"]],
+    
   });
   function convertirFecha(fecha, hora) {
     // Dividir la fecha en partes
@@ -136,7 +177,6 @@ $(document).ready(function () {
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();
-    console.log("✌️event --->", event);
     table.ajax.reload();
   });
 
@@ -163,20 +203,23 @@ $("#modal-crear-shop-products").on("hide.bs.modal", (event) => {
   const elements = [...form.elements];
   elements.forEach((elem) => elem.classList.remove("is-invalid"));
 });
-
+let form = document.getElementById("form-create-shop-products");
 let edit_shopProducts = false;
 $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
+  poblarListas();
   var button = $(event.relatedTarget); // Button that triggered the modal
 
   var modal = $(this);
   if (button.data("type") == "edit") {
     var dataName = button.data("name"); // Extract info from data-* attributes
     selected_id = button.data("id"); // Extract info from data-* attributes
+console.log('✌️selected_id --->', selected_id);
     edit_shopProducts = true;
 
     modal.find(".modal-title").text("Editar Entrada de Producto ");
-
+    load.hidden = false;
     // Realizar la petición con Axios
+    console.log('✌️selected_id --->', selected_id);
     axios
       .get(`${url}` + selected_id + "/")
       .then(function (response) {
@@ -187,8 +230,9 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         form.elements.sell_price.value = shopProduct.sell_price;
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
-        form.elements.product.value = shopProduct.product;
-        $("#product").val(shopProduct.product).trigger("change");
+        form.elements.product.value = shopProduct.product.id;
+        $("#product").val(shopProduct.product.id).trigger("change");
+        load.hidden = true;
       })
       .catch(function (error) {});
   } else {
@@ -196,7 +240,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
   }
 });
 
-// form validator
+
 // form validator
 $(function () {
   $.validator.setDefaults({
@@ -241,7 +285,87 @@ $(function () {
           "El precio de venta debe ser mayor que el precio de costo.",
       },
     },
-    submitHandler: function (form) {},
+    submitHandler: function (form) {
+      event.preventDefault();
+      var table = $("#tabla-de-Datos").DataTable();
+      const csrfToken = document.cookie
+        .split(";")
+        .find((c) => c.trim().startsWith("csrftoken="))
+        ?.split("=")[1];
+      axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
+      let data = new FormData();
+      data.append("shop", document.getElementById("shop").value);
+      data.append("product", document.getElementById("product").value);
+      data.append("quantity", document.getElementById("quantity").value);
+      data.append("cost_price", document.getElementById("cost_price").value);
+      data.append("sell_price", document.getElementById("sell_price").value);
+      data.append("extra_info", document.getElementById("extra_info").value);
+
+    
+      if (edit_shopProducts) {
+        axios
+          .patch(`${url}` + selected_id + "/", data)
+          .then((response) => {
+            if (response.status === 200) {
+              $("#modal-crear-shop-products").modal("hide");
+              Swal.fire({
+                icon: "success",
+                title: "Entrada de Producto actualizada con éxito",
+                showConfirmButton: false,
+                timer: 1500,
+              });
+              table.ajax.reload();
+
+              edit_shopProducts = false;
+            }
+          })
+          .catch((error) => {
+            let dict = error.response.data;
+            let textError = "Revise los siguientes campos: ";
+            for (const key in dict) {
+              textError = textError + ", " + key;
+            }
+
+            Swal.fire({
+              icon: "error",
+              title: "Error al crear la Entrada de Producto",
+              text: textError,
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          });
+      } else {
+        axios
+          .post(`${url}`, data)
+          .then((response) => {
+            if (response.status === 201) {
+              Swal.fire({
+                icon: "success",
+                title: "Entrada de Producto creada con éxito",
+                showConfirmButton: false,
+                timer: 1500,
+              });
+              table.ajax.reload();
+              $("#modal-crear-shop-products").modal("hide");
+            }
+          })
+          .catch((error) => {
+            let dict = error.response.data;
+            let textError = "Revise los siguientes campos: ";
+            for (const key in dict) {
+              textError = textError + ", " + key;
+            }
+
+            Swal.fire({
+              icon: "error",
+              title: "Error al crear la Entrada de Producto",
+              text: textError,
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          });
+      }
+    },
 
     errorElement: "span",
     errorPlacement: function (error, element) {
@@ -266,90 +390,6 @@ $.validator.addMethod(
   "El precio de venta debe ser mayor que el precio de costo."
 );
 
-// crear Entrada de Producto
-
-let form = document.getElementById("form-create-shop-products");
-form.addEventListener("submit", function (event) {
-  event.preventDefault();
-  var table = $("#tabla-de-Datos").DataTable();
-  const csrfToken = document.cookie
-    .split(";")
-    .find((c) => c.trim().startsWith("csrftoken="))
-    ?.split("=")[1];
-  axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-  let data = new FormData();
-  data.append("shop", document.getElementById("shop").value);
-  data.append("product", document.getElementById("product").value);
-  data.append("quantity", document.getElementById("quantity").value);
-  data.append("cost_price", document.getElementById("cost_price").value);
-  data.append("sell_price", document.getElementById("sell_price").value);
-  data.append("extra_info", document.getElementById("extra_info").value);
-
-  if (edit_shopProducts) {
-    axios
-      .patch(`${url}` + selected_id + "/", data)
-      .then((response) => {
-        if (response.status === 200) {
-          $("#modal-crear-shop-products").modal("hide");
-          Swal.fire({
-            icon: "success",
-            title: "Entrada de Producto actualizada con éxito",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          table.ajax.reload();
-
-          edit_shopProducts = false;
-        }
-      })
-      .catch((error) => {
-        let dict = error.response.data;
-        let textError = "Revise los siguientes campos: ";
-        for (const key in dict) {
-          textError = textError + ", " + key;
-        }
-
-        Swal.fire({
-          icon: "error",
-          title: "Error al crear la Entrada de Producto",
-          text: textError,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      });
-  } else {
-    axios
-      .post(`${url}`, data)
-      .then((response) => {
-        if (response.status === 201) {
-          Swal.fire({
-            icon: "success",
-            title: "Entrada de Producto creada con éxito",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          table.ajax.reload();
-          $("#modal-crear-shop-products").modal("hide");
-        }
-      })
-      .catch((error) => {
-        let dict = error.response.data;
-        let textError = "Revise los siguientes campos: ";
-        for (const key in dict) {
-          textError = textError + ", " + key;
-        }
-
-        Swal.fire({
-          icon: "error",
-          title: "Error al crear la Entrada de Producto",
-          text: textError,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      });
-  }
-});
-
 function poblarListas() {
   // Poblar la lista de tiendas
   var $shop = document.getElementById("shop");
@@ -362,19 +402,27 @@ function poblarListas() {
 
   // Poblar la lista de productos
   var $product = document.getElementById("product");
-  axios.get("/business-gestion/products/").then(function (response) {
-    response.data.results.forEach(function (element) {
-      var option = new Option(element.__str__, element.id);
-      $product.add(option);
+  axios
+    .get("/business-gestion/products/")
+    .then(function (response) {
+      response.data.results.forEach(function (element) {
+        var option = new Option(element.__str__, element.id);
+        $product.add(option);
+      });
+    })
+    .then(() => {
+      if ($product.value != null) {
+        cargarProductoEspecifico($product.value);
+      }
     });
-  });
+
 }
 
-function function_delete(id, name) {
+function function_delete(id, name, shop) {
   const table = $("#tabla-de-Datos").DataTable();
   Swal.fire({
     title: "Eliminar",
-    text: `¿Está seguro que desea eliminar el elemento ${name}?`,
+    text: `¿Está seguro que desea eliminar el producto ${name} de la tienda  ${shop}?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#3085d6",
@@ -560,3 +608,84 @@ function verLogs(shopProductId, name) {
   // Mostrar el modal
   $("#modal-logs").modal("show");
 }
+
+let especificProducto;
+function cargarProductoEspecifico(id) {
+
+  axios
+    .get("/business-gestion/products/" + id + "/")
+    .then((res) => {
+      especificProducto = res.data;      
+      var nuevaUrl = especificProducto.image;
+document.getElementById('productImagen').src = nuevaUrl;
+     load.hidden = true;
+    })
+    .catch((error) => {
+      load.hidden = true;
+      console.error("Error al cargar productos:", error);
+    });
+}
+
+
+$(document).on("click", "#productImagen", function () {
+  load.hidden = false;
+  const fullsizeImage = $(this).attr("src"); // Obtiene la URL de la imagen
+  console.log("✌️fullsizeImage --->", fullsizeImage);
+
+
+  Swal.fire({
+    imageUrl: fullsizeImage,
+    imageWidth: 400, // Ajusta el ancho según sea necesario
+    imageHeight: 300, // Ajusta la altura según sea necesario
+    imageAlt: "Image",
+    showCloseButton: false,
+    showConfirmButton: true,
+  });
+  load.hidden = true;
+});
+
+$(document).on("click", ".thumbnail", function () {
+  const fullsizeImage = $(this).data("fullsize");
+
+  Swal.fire({
+    imageUrl: fullsizeImage,
+    imageWidth: 400, // Ajusta el ancho según sea necesario
+    imageHeight: 300, // Ajusta la altura según sea necesario
+    imageAlt: "Image",
+    showCloseButton: false,
+    showConfirmButton: true,
+  });
+
+});
+let myDateStart = null;
+let myDateEnd = null;
+$(function () {
+  //Date range as a button
+  $("#daterange-btn").daterangepicker(
+    {
+      ranges: {
+        Todos: [moment("2000-01-01"), moment()],
+        Hoy: [moment(), moment()],
+        Ayer: [moment().subtract(1, "days"), moment().subtract(1, "days")],
+        "Últimos 7 Días": [moment().subtract(6, "days"), moment()],
+        "Últimos 30 Días": [moment().subtract(29, "days"), moment()],
+        "Este Mes": [moment().startOf("month"), moment().endOf("month")],
+        "El Mes Pasado": [
+          moment().subtract(1, "month").startOf("month"),
+          moment().subtract(1, "month").endOf("month"),
+        ],
+      },
+      startDate: moment().subtract(29, "days"),
+      endDate: moment(),
+    },
+    function (start, end) {
+      $("#reportrange span").html(
+        start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY")
+      );
+      myDateStart = start.format("YYYY-MM-DD HH:mm:ss");
+      myDateEnd = end.format("YYYY-MM-DD HH:mm:ss");
+      //  daterangeSellProfits(selectedStartDate,selectedEndDate);
+    }
+  );
+});
+

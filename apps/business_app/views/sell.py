@@ -8,7 +8,8 @@ from apps.business_app.serializers.product import (
     ProductSerializer,
     ReadProductSerializer,
 )
-from django.db.models import Count, Sum, F
+from django.db.models import Q, QuerySet, Value, F
+from django.db.models.functions import Concat
 
 from apps.business_app.serializers.sell import SellSerializer
 
@@ -33,6 +34,7 @@ class SellViewSet(
         Sell.objects.all()
         .select_related("shop_product", "seller")
         .annotate(total_priced=F("quantity") * F("shop_product__sell_price"))
+        .annotate(sell_price=F("shop_product__sell_price"))
     )
     serializer_class = SellSerializer
     filter_backends = [
@@ -68,11 +70,27 @@ class SellViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        product_name = Concat(
+            F("shop_product__product__name"),
+            Value(" ("),
+            F("shop_product__product__model__brand__name"),
+            Value(" - "),
+            F("shop_product__product__model__name"),
+            Value(") "),
+        )
         if self.request.user.groups.filter(
             id__in=[Groups.SHOP_OWNER.value, Groups.SUPER_ADMIN.value]
         ).exists():
             queryset = queryset.annotate(
                 profits=(F("shop_product__sell_price") - F("shop_product__cost_price"))
                 * F("quantity")
+            ).annotate(
+                product_name=Concat(
+                    product_name,
+                    Value(" - "),
+                    F("shop_product__shop__name"),
+                )
             )
+        else:
+            queryset = queryset.annotate(product_name=product_name)
         return queryset
