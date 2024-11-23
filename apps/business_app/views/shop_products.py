@@ -19,6 +19,9 @@ from rest_framework.decorators import action
 from django.db.models import Count, Sum, F, Value
 from rest_framework.response import Response
 from django.db.models.functions import Concat
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
 
 class ShopProductsViewSet(
@@ -95,7 +98,9 @@ class ShopProductsViewSet(
             return queryset
         system_user = SystemUser.objects.get(id=self.request.user.id)
         return queryset.filter(quantity__gt=0, shop=system_user.shop)
-
+    
+    @method_decorator(cache_page(60 * 5))
+    @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 

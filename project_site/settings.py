@@ -285,6 +285,5 @@ CACHES = {
         else "django.core.cache.backends.redis.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379",
         "TIMEOUT": CACHE_DEFAULT_TIMEOUT,
-        "OPTIONS": {"MAX_ENTRIES": env.int("CACHE_MAX_ENTRIES", default=1000)},
     }
 }
