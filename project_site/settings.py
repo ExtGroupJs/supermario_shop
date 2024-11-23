@@ -236,6 +236,8 @@ EMAIL_PORT = env("EMAIL_PORT", cast=int, default=587)
 EMAIL_USE_TLS = True
 
 
+
+
 LOGGING = {
     "version": 1,  # the dictConfig format version
     "disable_existing_loggers": False,  # retain the default loggers
@@ -275,5 +277,14 @@ LOGGING = {
     },
 }
 
-SPREADSHEET_ID = env("SPREADSHEET_ID")
-CREDENTIAL_FILE_NAME = env("CREDENTIAL_FILE_NAME", default="credentials.json")
+CACHE_DEFAULT_TIMEOUT = env.int("CACHE_DEFAULT_TIMEOUT", default=300)
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache"
+        if DEBUG
+        else "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+        "TIMEOUT": CACHE_DEFAULT_TIMEOUT,
+        "OPTIONS": {"MAX_ENTRIES": env.int("CACHE_MAX_ENTRIES", default=1000)},
+    }
+}
