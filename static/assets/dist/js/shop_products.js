@@ -218,7 +218,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
 
     edit_shopProducts = true;
 
-    modal.find(".modal-title").text("Editar Entrada de Producto ");
+    
     load.hidden = false;
     // Realizar la petición con Axios
     
@@ -227,6 +227,8 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
       .then(function (response) {
         // Recibir la respuesta
         const shopProduct = response.data;
+console.log('✌️shopProduct --->', shopProduct);
+        modal.find(".modal-title").text("Editar "+ shopProduct.product_name );
         form.elements.quantity.value = shopProduct.quantity;
         form.elements.cost_price.value = shopProduct.cost_price;
         form.elements.sell_price.value = shopProduct.sell_price;
