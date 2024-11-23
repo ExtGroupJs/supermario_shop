@@ -104,7 +104,6 @@ class DashboardViewSet(
                     )
                 )
             ).values("total")
-            print(tmp_queryset)
             results = {
                 "frequency": "None",
                 "total": sum(item["total"] for item in tmp_queryset),
