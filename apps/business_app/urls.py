@@ -5,7 +5,7 @@ from apps.business_app.views.brand import BrandViewSet
 from apps.business_app.views.dashboard import DashboardViewSet
 from apps.business_app.views.model import ModelViewSet
 from apps.business_app.views.product import ProductViewSet
-from apps.business_app.views.sell_group import SellGroupViewSet
+from apps.business_app.views.sell_group import PaymentMethodsViewSet, SellGroupViewSet
 from apps.business_app.views.shop import ShopViewSet
 from apps.business_app.views.shop_products import ShopProductsViewSet
 from apps.business_app.views.sell import SellViewSet
@@ -87,6 +87,11 @@ router.register(
     "dashboard",
     DashboardViewSet,
     basename="dashboard",
+)
+router.register(
+    "payment-methods",
+    PaymentMethodsViewSet,
+    basename="payment-methods",
 )
 # (
 # router.register(
