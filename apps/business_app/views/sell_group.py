@@ -15,6 +15,7 @@ from apps.business_app.serializers.sell import SellSerializer
 
 from apps.business_app.serializers.sell_group import SellGroupSerializer
 from apps.common.common_ordering_filter import CommonOrderingFilter
+from apps.common.mixins.enums_mixin import EnumsMixin
 from apps.common.pagination import AllResultsSetPagination
 
 from apps.common.permissions import SellViewSetPermission
@@ -79,3 +80,9 @@ class SellGroupViewSet(
 
     def perform_create(self, serializer):
         return serializer.save(seller=SystemUser.objects.get(id=self.request.user.id))
+    
+class PaymentMethodsViewSet(EnumsMixin):
+    items = (
+        ("payment_methods", SellGroup.PAYMENT_METODS),
+    )
+
