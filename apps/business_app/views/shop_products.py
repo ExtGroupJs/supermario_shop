@@ -98,7 +98,7 @@ class ShopProductsViewSet(
             return queryset
         system_user = SystemUser.objects.get(id=self.request.user.id)
         return queryset.filter(quantity__gt=0, shop=system_user.shop)
-    
+
     @method_decorator(cache_page(60 * 5))
     @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):

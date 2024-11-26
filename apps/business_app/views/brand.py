@@ -27,7 +27,6 @@ class BrandViewSet(viewsets.ModelViewSet, GenericAPIView):
         "name",
     ]
 
-
     @method_decorator(cache_page(settings.CACHE_DEFAULT_TIMEOUT))
     @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):

@@ -14,7 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
-from project_site import settings 
+from project_site import settings
 
 
 class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
@@ -39,7 +39,6 @@ class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
         "name",
         "brand_name",
     ]
-
 
     @method_decorator(cache_page(settings.CACHE_DEFAULT_TIMEOUT))
     @method_decorator(vary_on_headers("Authorization"))

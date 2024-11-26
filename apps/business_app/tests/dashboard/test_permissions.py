@@ -6,7 +6,7 @@ from apps.users_app.models.groups import Groups
 
 
 @pytest.mark.django_db
-class TestDashboardViewSet(BaseTestClass):
+class TestDashboardViewSetPermisions(BaseTestClass):
     fixtures = ["auth.group.json"]
 
     def setUp(self):

@@ -80,9 +80,7 @@ class SellGroupViewSet(
 
     def perform_create(self, serializer):
         return serializer.save(seller=SystemUser.objects.get(id=self.request.user.id))
-    
-class PaymentMethodsViewSet(EnumsMixin):
-    items = (
-        ("payment_methods", SellGroup.PAYMENT_METODS),
-    )
 
+
+class PaymentMethodsViewSet(EnumsMixin):
+    items = (("payment_methods", SellGroup.PAYMENT_METODS),)

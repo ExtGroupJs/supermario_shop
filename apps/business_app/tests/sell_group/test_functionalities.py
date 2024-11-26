@@ -48,7 +48,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_sell_group_create_happy_path(self):
-        """ Prueba que en una venta con varios productos individuales se crea un solo
+        """Prueba que en una venta con varios productos individuales se crea un solo
         grupo de ventas y varias ventas asociadas a él, todos con mismo vendedor."""
         url = reverse("sell-groups-list")
         self.user.groups.add(Groups.SHOP_SELLER)
@@ -66,7 +66,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             }
             for _ in range(random_qty)
         ]
-        
+
         payload = {
             "discount": 0,
             "extra_info": "",
@@ -83,7 +83,6 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-
         self.assertEqual(sell_group_query.filter(seller=self.user).count(), 1)
         self.assertEqual(
             sell_query.filter(
@@ -91,4 +90,3 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             ).count(),
             random_qty,
         )
-
