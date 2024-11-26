@@ -120,7 +120,7 @@ class DashboardViewSet(
                 "total": sum(item["total"] for item in tmp_queryset),
             }
         result = {"result": results}
-        has_discount = sell_group_discounts.get("discount__sum", 0)
+        has_discount = sell_group_discounts.get("discount__sum")
         if has_discount:
             result["discounts"] = has_discount
             result["sell_group_ids"] = list(sell_group_ids)
