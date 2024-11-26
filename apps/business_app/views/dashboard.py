@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 
 from apps.business_app.models.sell import Sell
+from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.dashboard import (
     DashboardCountsSerializer,
@@ -71,10 +72,14 @@ class DashboardViewSet(
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
         frequency = serializer.validated_data.pop("frequency", None)
-        objects = Sell.objects.filter(**serializer.validated_data)
+        sell_objects = Sell.objects.filter(**serializer.validated_data)
+        sell_group_ids = sell_objects.values_list("sell_group_id", flat=True).distinct()
+        sell_group_discounts = SellGroup.objects.filter(
+            id__in=sell_group_ids
+        ).aggregate(Sum(F("discount")))
         if frequency:
             results = (
-                objects.annotate(
+                sell_objects.annotate(
                     frequency=self._get_frequency_function_given_payload_string(
                         frequency
                     )("updated_timestamp")
@@ -95,7 +100,7 @@ class DashboardViewSet(
                 .order_by("frequency")
             )
         else:
-            tmp_queryset = objects.annotate(
+            tmp_queryset = sell_objects.annotate(
                 total=Sum(
                     ExpressionWrapper(
                         (F("shop_product__sell_price") - F("shop_product__cost_price"))
@@ -104,13 +109,16 @@ class DashboardViewSet(
                     )
                 )
             ).values("total")
-            print(tmp_queryset)
             results = {
                 "frequency": "None",
                 "total": sum(item["total"] for item in tmp_queryset),
             }
+        result = {"result": results}
+        result["discounts"] = sell_group_discounts.get("discount__sum", 0)
+        if result["discounts"]:
+            result["sell_group_ids"] = list(sell_group_ids)
 
-        return Response({"result": results})
+        return Response(result)
 
     @action(
         detail=False,
