@@ -39,7 +39,7 @@ class TestDashboardViewSetPermisions(BaseTestClass):
         """
         Este test comprueba que solo un superadmin o un SHOP_OWNER pueden acceder a la funcionalidad
         """
-        url = reverse("dashboard-shop-product-sell-count")
+        url = reverse("dashboard-shop-product-sells-count")
         self._test_permissions(
             url,
             allowed_roles=self.allowed_groups,
