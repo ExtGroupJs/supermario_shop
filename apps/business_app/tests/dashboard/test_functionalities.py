@@ -24,26 +24,39 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
         self.client.force_authenticate(self.user)
 
     def test_shop_product_investment(self):
-        test_shop1 = baker.make(Shop)
-        test_shop2 = baker.make(Shop)
-        random_qty_for_test_shop1 = baker.random_gen.gen_integer(min_int=1, max_int=10)
-        random_qty_for_test_shop2 = baker.random_gen.gen_integer(min_int=1, max_int=10)
+        shops = [baker.make(Shop), 
+        baker.make(Shop)]
+        
+        shop_products_per_shop = baker.random_gen.gen_integer(min_int=1, max_int=10)
         random_equal_cost = baker.random_gen.gen_integer(min_int=10, max_int=20)
-
-        baker.make(
-            ShopProducts,
-            shop=test_shop1,
-            cost_price=random_equal_cost,
-            quantity=1,
-            _quantity=random_qty_for_test_shop1,
-        )
-        baker.make(
-            ShopProducts,
-            shop=test_shop2,
-            cost_price=random_equal_cost,
-            quantity=1,
-            _quantity=random_qty_for_test_shop1,
-        )
+        for shop in shops:
+            baker.make(
+                ShopProducts,
+                shop=shop,
+                cost_price=random_equal_cost,
+                quantity=1,
+                _quantity=shop_products_per_shop,
+            )
+        
 
         url = reverse("dashboard-shop-product-investment")
-        self.client.post(url, format="json")
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("investments"),
+            shop_products_per_shop * random_equal_cost * len(shops)
+            
+        )
+
+        # Testing filter by shop
+        for shop in shops: 
+            payload = {
+                "shop": shop.id
+            }
+            response = self.client.post(url, data=payload, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(
+                response.data.get("investments"),
+                shop_products_per_shop * random_equal_cost
+                
+            )
