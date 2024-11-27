@@ -57,6 +57,8 @@ class ShopProductsViewSet(
     filterset_fields = {
         "shop": ["exact"],
         "product": ["exact"],
+        "product__model": ["exact"],
+        "product__model__brand": ["exact"],
         "quantity": ["gte", "lte", "exact"],
         "cost_price": ["gte", "lte", "exact"],
         "sell_price": ["gte", "lte", "exact"],
