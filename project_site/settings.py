@@ -29,7 +29,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static_output/")
 
 # Initialise environment variables
 env = environ.Env()
-environ.Env.read_env()
+environ.Env.read_env("../.env")
 
 
 # Quick-start development settings - unsuitable for production
