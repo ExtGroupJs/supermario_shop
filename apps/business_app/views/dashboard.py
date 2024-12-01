@@ -106,7 +106,7 @@ class DashboardViewSet(
                 .order_by("frequency")
             )
         else:
-            tmp_queryset = sell_objects.annotate(
+            tmp_queryset = sell_objects.aggregate(
                 total=Sum(
                     ExpressionWrapper(
                         (F("shop_product__sell_price") - F("shop_product__cost_price"))
@@ -114,10 +114,10 @@ class DashboardViewSet(
                         output_field=FloatField(),
                     )
                 )
-            ).values("total")
+            )
             results = {
                 "frequency": "None",
-                "total": sum(item["total"] for item in tmp_queryset),
+                "total": tmp_queryset.get("total"),
             }
         result = {"result": results}
         has_discount = sell_group_discounts.get("discount__sum")
