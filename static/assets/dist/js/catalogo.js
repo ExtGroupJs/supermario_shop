@@ -338,7 +338,7 @@ async function showProductDetails(productId) {
   try {
     // Realizar la petición al endpoint
     const response = await axios.get(
-      `/business-gestion/shop-products/${productId}/`
+      `/business-gestion/shop-products/${productId}/catalog-shop-product-detail/`
     );
     const product = response.data;
 

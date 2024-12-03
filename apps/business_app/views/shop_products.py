@@ -124,3 +124,14 @@ class ShopProductsViewSet(
     )
     def catalog(self, request):
         return self.list(request)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        permission_classes=[AllowAny],
+        serializer_class=CatalogShopProductSerializer,
+        url_name="catalog-shop-product-detail",
+        url_path="catalog-shop-product-detail",
+    )
+    def catalog_shop_product_detail(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)

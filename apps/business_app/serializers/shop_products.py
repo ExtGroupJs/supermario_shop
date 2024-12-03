@@ -66,5 +66,6 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
             "id",
             "sell_price",
             "product",
+            "shop_name",
             "__repr__",
         )
