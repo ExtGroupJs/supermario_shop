@@ -52,54 +52,45 @@
 
             <div class="card-body">
               
-              
 <form id="ventaForm" class="mb-4">
-<div class="row">
+  <div class="row">
     <div class="col-md-8 col-sm-6 col-12">
-
-        {% comment %} <span id="productoDescripcion" class="float-right badge bg-primary"></span> {% endcomment %}
-            <div class="form-group">
-                <label for="producto">Producto:</label>
-                <select class="form-control select2" id="producto" onchange="cargarProductoEspecifico(this.value)" >
-                    <!-- Los productos se cargarán aquí dinámicamente -->
-                </select>                
-            </div>
-           
-            <div class="form-group">
-                <label for="cantidad">Cantidad:</label>
-                <input type="number" id="cantidad" class="form-control"  min="1" required>
-            </div>
-     </div>
-            <div class="col-md-4 col-sm-6 col-12">
-            <div class="info-box">
-              <img id="productImagen" src="{% static 'assets/dist/img/AdminLTELogo.png' %}" alt="Imagen" class="img-fluid" style="width: 200px; height: auto;">
-
-              <div class="info-box-content">
-                <span class="info-box-text" id="productoDescripcionExt">Existencia:0</span>
-                <span class="info-box-number" id="productoDescripcionPrec">Precio: $0</span>
-              </div>
-              <!-- /.info-box-content -->
-            </div>
-            <!-- /.info-box -->
-          </div>
-</div>
-           <div class="row">
-    <div class="col-md-6 col-sm-6 col-12">
-            <button type="button" class="btn btn-primary" id="agregarProducto">Agregar Producto</button>
-            <button type="button" class="btn btn-success" id="crearVenta">Crear Venta</button>
+      <div class="form-group">
+        <label for="producto">Producto:</label>
+        <select class="form-control select2" id="producto" onchange="cargarProductoEspecifico(this.value)">
+          <!-- Los productos se cargarán aquí dinámicamente -->
+        </select>
       </div>
-</div>
-        </form>
-        <div class="row">
+
+      <div class="form-group">
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" id="cantidad" class="form-control" min="1" required>
+      </div>
+
+      <button type="button" class="btn btn-primary" id="agregarProducto">Agregar Producto</button>
+    </div>
+
+    <div class="col-md-4 col-sm-6 col-12">
+      <div class="info-box">
+        <img id="productImagen" src="{% static 'assets/dist/img/AdminLTELogo.png' %}" alt="Imagen" class="img-fluid" style="width: 200px; height: auto;">
+        <div class="info-box-content">
+          <span class="info-box-text" id="productoDescripcionExt">Existencia: 0</span>
+          <span class="info-box-number" id="productoDescripcionPrec">Precio: $0</span>
+        </div>
+      </div>
+    </div>
+   
+  </div>
+ <hr>
+  <!-- Tabla de productos seleccionados -->
+  <div class="row">
           <div class="col-md-9">
             <h2>Productos a Vender</h2>
           </div>
+         
           <div class="col-md-3">
-           
-                  <h5 id="impTotal" class="direct-chat-text right">Importe total : 0$</h5>
-                 
-                
-          </div>
+               <h5 id="impTotal" class="direct-chat-text right">Importe total : 0$</h5>
+           </div>
         </div>
         <table class="table table-bordered" id="productosTable">
             <thead>
@@ -113,6 +104,42 @@
             </thead>
             <tbody></tbody>
         </table>
+
+  <!-- Sección de detalles de venta -->
+  <div class="row">
+    <div class="col-md-6 col-sm-6 col-12">
+      <div class="form-group">
+        <label for="descuento">Descuento:</label>
+        <input type="number" id="descuento" class="form-control" min="0" placeholder="Opcional">
+      </div>
+      </div>
+    <div class="col-md-6 col-sm-6 col-12">
+      <div class="form-group">
+        <label for="payment_method">Método de Pago:</label>
+        <select id="payment_method" class="form-control">
+          <option value="U">USD</option>
+          <option value="Z">ZELLE</option>
+        </select>
+      </div>
+      </div>
+      </div>
+<div class="row">
+      <div class="col-md-12 col-sm-12 col-12">
+      <div class="form-group">
+        <label for="extra_info">Información Adicional:</label>
+        <textarea id="extra_info" class="form-control" placeholder="Opcional"></textarea>
+      </div>
+
+      <button type="button" class="btn btn-success" id="crearVenta">Crear Venta</button>
+    </div>
+    </div>
+    </div>
+  </div>
+</form>
+
+  
+
+        
     </div>
 
 
@@ -165,8 +192,16 @@
 
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
 <script src="{% static 'assets/dist/js/salescar.js' %}"></script>
+<script src="{% static 'assets/plugins/bootstrap-switch/js/bootstrap-switch.min.js' %}"></script>
+
 <script>
   $('.select2').select2({ dropdownParent: $('#ventaForm'), theme: 'bootstrap4' })
-  
+  $("input[data-bootstrap-switch]").each(function(){
+    $(this).bootstrapSwitch({
+        state: $(this).prop('checked'),
+        onText: 'MLC',  // Cambia 'Activado' por el texto que desees
+        offText: 'Zelle' // Cambia 'Desactivado' por el texto que desees
+    });
+});
 </script>
 {% endblock %}

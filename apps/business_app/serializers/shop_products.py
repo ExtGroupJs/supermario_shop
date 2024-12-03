@@ -10,12 +10,10 @@ from apps.users_app.models.groups import Groups
 
 
 class ShopProductsSerializer(serializers.ModelSerializer):
-
     updated_timestamp = serializers.SerializerMethodField()
 
     shop_name = serializers.CharField(read_only=True)
     product_name = serializers.CharField(read_only=True)
-
 
     class Meta:
         model = ShopProducts
@@ -33,13 +31,16 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "updated_timestamp",
             "__repr__",
         )
+
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y")
         # return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p") # con hora
 
 
 class ReadShopProductsSerializer(ShopProductsSerializer):
-    product = ProductSerializer(read_only = True)
+    product = ReadProductSerializer(read_only=True)
+    product_name = serializers.CharField(read_only=True)
+
     class Meta(ShopProductsSerializer.Meta):
         model = ShopProducts
         fields = ShopProductsSerializer.Meta.fields

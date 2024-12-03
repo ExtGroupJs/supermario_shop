@@ -7,6 +7,9 @@ from apps.business_app.serializers.product import (
     ProductSerializer,
     ReadProductSerializer,
 )
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
@@ -40,3 +43,7 @@ class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     ]
     ordering = ["name"]
     ordering_fields = ["name", "model_name", "description"]
+
+    @method_decorator(cache_page(60 * 60 * 2))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)

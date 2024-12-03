@@ -13,12 +13,16 @@ from apps.common.mixins.serializer_map import SerializerMapMixin
 
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.permissions import ShopProductsViewSetPermission
+from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
 from django.db.models import Count, Sum, F, Value
 from rest_framework.response import Response
 from django.db.models.functions import Concat
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
 
 class ShopProductsViewSet(
@@ -43,6 +47,7 @@ class ShopProductsViewSet(
     serializer_class = ShopProductsSerializer
     list_serializer_class = ReadShopProductsSerializer
     retrieve_serializer_class = ReadShopProductsSerializer
+    catalog_serializer_class = ReadShopProductsSerializer
     pagination_class = AllResultsSetPagination
     permission_classes = [ShopProductsViewSetPermission]
 
@@ -54,6 +59,8 @@ class ShopProductsViewSet(
     filterset_fields = {
         "shop": ["exact"],
         "product": ["exact"],
+        "product__model": ["exact"],
+        "product__model__brand": ["exact"],
         "quantity": ["gte", "lte", "exact"],
         "cost_price": ["gte", "lte", "exact"],
         "sell_price": ["gte", "lte", "exact"],
@@ -90,12 +97,16 @@ class ShopProductsViewSet(
                 )
             ).exists()
         ):
-            if self.action == "list_for_sale":
+            if self.action in ("list_for_sale",):
                 queryset = queryset.filter(quantity__gt=0)
             return queryset
-        system_user = SystemUser.objects.get(id=self.request.user.id)
-        return queryset.filter(quantity__gt=0, shop=system_user.shop)
+        if self.request.user.pk:
+            system_user = SystemUser.objects.get(id=self.request.user.pk)
+            queryset = queryset.filter(shop=system_user.shop)
+        return queryset.filter(quantity__gt=0)
 
+    @method_decorator(cache_page(60 * 5))
+    @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -118,4 +129,8 @@ class ShopProductsViewSet(
         url_path="list-for-sale",
     )
     def list_for_sale(self, request):
+        return self.list(request)
+
+    @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
+    def catalog(self, request):
         return self.list(request)
