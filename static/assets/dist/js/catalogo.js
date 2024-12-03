@@ -11,7 +11,7 @@ let orderingValue = "";
 // Función para cargar productos
 function loadProducts(page) {
   currentPage = page;
-  const url = "/business-gestion/shop-products/"; // Asegúrate de que esta URL sea correcta
+  const url = "/business-gestion/shop-products/catalog/"; // Asegúrate de que esta URL sea correcta
   const params = {
     page_size: productsPerPage === "all" ? Infinity : productsPerPage, // Ajustar según la selección
     page: page,
@@ -163,7 +163,7 @@ function loadModels(id) {
     brand: id,
   };
   axios
-    .get(`/business-gestion/models/`, { params })
+    .get(`/business-gestion/models/catalog/`, { params })
     .then((res) => {
       const models = res.data.results;
       populateModelsList(models);
@@ -210,7 +210,7 @@ function populateModelsList(models) {
 }
 
 function loadProductsByModel(modelId) {
-  const url = "/business-gestion/shop-products/";
+  const url = "/business-gestion/shop-products/catalog/";
   currentPage = 1;
   product__model = modelId;
   loadProducts(currentPage);
@@ -229,7 +229,7 @@ function searchProducts() {
 
 function loadBrands() {
   axios
-    .get("/business-gestion/brands/")
+    .get("/business-gestion/brands/catalog/")
     .then((res) => {
       const brands = res.data.results;
       populateBrandsSelect(brands);
@@ -265,7 +265,7 @@ function populateBrandsSelect(brands) {
 
 function populateShopsList() {
   axios
-    .get("/business-gestion/shops/")
+    .get("/business-gestion/shops/catalog/")
     .then((response) => {
       const shops = response.data.results; // Obtener los datos de la respuesta
       console.log("Respuesta de shops:", shops); // Verificar la respuesta
@@ -335,28 +335,36 @@ function captureOrderingValue() {
 }
 // Función para mostrar los detalles del producto
 async function showProductDetails(productId) {
-    try {
-        // Realizar la petición al endpoint
-        const response = await axios.get(`/business-gestion/shop-products/${productId}/`);
-        const product = response.data;
+  try {
+    // Realizar la petición al endpoint
+    const response = await axios.get(
+      `/business-gestion/shop-products/${productId}/`
+    );
+    const product = response.data;
 
-        // Actualizar los elementos de la modal con los datos del producto
-        document.getElementById('modalProductImage').src = product.product.image;
-        document.getElementById('modalProductName').textContent = product.product_name;
-        document.getElementById('modalBrandName').textContent = product.product.model.brand.name;
-        document.getElementById('modalModelName').textContent = product.product.model.__str__;
-        document.getElementById('modalPrice').textContent = `$${product.sell_price}`;
-        document.getElementById('modalShopName').textContent = product.shop_name;
-        document.getElementById('modalDescription').textContent = product.product.description || 'Sin descripción';
-       
-        // Mostrar la modal
-        const productModal = new bootstrap.Modal(document.getElementById('productDetailModal'));
-        productModal.show();
+    // Actualizar los elementos de la modal con los datos del producto
+    document.getElementById("modalProductImage").src = product.product.image;
+    document.getElementById("modalProductName").textContent =
+      product.product_name;
+    document.getElementById("modalBrandName").textContent =
+      product.product.model.brand.name;
+    document.getElementById("modalModelName").textContent =
+      product.product.model.__str__;
+    document.getElementById(
+      "modalPrice"
+    ).textContent = `$${product.sell_price}`;
+    document.getElementById("modalShopName").textContent = product.shop_name;
+    document.getElementById("modalDescription").textContent =
+      product.product.description || "Sin descripción";
 
-    } catch (error) {
-        console.error('Error al cargar los detalles del producto:', error);
-        // Aquí puedes agregar algún manejo de error, como mostrar una alerta
-        alert('Error al cargar los detalles del producto');
-    }
+    // Mostrar la modal
+    const productModal = new bootstrap.Modal(
+      document.getElementById("productDetailModal")
+    );
+    productModal.show();
+  } catch (error) {
+    console.error("Error al cargar los detalles del producto:", error);
+    // Aquí puedes agregar algún manejo de error, como mostrar una alerta
+    alert("Error al cargar los detalles del producto");
+  }
 }
-

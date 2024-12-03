@@ -13,6 +13,8 @@ from django.db.models import F
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie, vary_on_headers
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 
 from project_site import settings 
 
@@ -45,3 +47,12 @@ class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+    
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes = [AllowAny]
+    )
+    def catalog(self, request):
+        return self.list(request)
+
