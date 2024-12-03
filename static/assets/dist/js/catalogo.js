@@ -57,7 +57,7 @@ function renderProducts(products) {
             <div class="col-lg-4 col-md-4 col-sm-6 mt-40">
                 <div class="single-product-wrap">
                     <div class="product-image">
-                        <a href="single-product.html">
+                        <a href="#">
                             <img src="${product.product.image}" alt="${product.product.name}">
                         </a>
                         <span class="sticker">New</span>
@@ -66,7 +66,7 @@ function renderProducts(products) {
                         <div class="product_desc_info">
                             <div class="product-review">
                                 <h5 class="manufacturer">
-                                    <a href="product-details.html">${product.product.model.brand.name} ${product.product.model.name}</a>
+                                    <a href="#">${product.product.model.brand.name} ${product.product.model.name}</a>
                                 </h5>
                                 <div class="rating-box">
                                     <ul class="rating">
@@ -78,7 +78,7 @@ function renderProducts(products) {
                                     </ul>
                                 </div>
                             </div>
-                            <h4><a class="product_name" href="single-product.html">${product.product.name}</a></h4>
+                            <h4><a class="product_name" href="#">${product.product.name}</a></h4>
                             <div class="price-box">
                                 <span class="new-price">$${product.sell_price}</span>
                             </div>
@@ -128,6 +128,7 @@ function updatePagination() {
 function viewProductDetails(productId) {
   // Aquí puedes implementar la lógica para mostrar los detalles del producto en un modal
   console.log(`Ver detalles del producto con ID: ${productId}`);
+  showProductDetails(productId);
   // Puedes cargar los detalles del producto y mostrarlos en el modal correspondiente
 }
 
@@ -332,3 +333,30 @@ function captureOrderingValue() {
   currentPage = 1;
   loadProducts(currentPage);
 }
+// Función para mostrar los detalles del producto
+async function showProductDetails(productId) {
+    try {
+        // Realizar la petición al endpoint
+        const response = await axios.get(`/business-gestion/shop-products/${productId}/`);
+        const product = response.data;
+
+        // Actualizar los elementos de la modal con los datos del producto
+        document.getElementById('modalProductImage').src = product.product.image;
+        document.getElementById('modalProductName').textContent = product.product_name;
+        document.getElementById('modalBrandName').textContent = product.product.model.brand.name;
+        document.getElementById('modalModelName').textContent = product.product.model.__str__;
+        document.getElementById('modalPrice').textContent = `$${product.sell_price}`;
+        document.getElementById('modalShopName').textContent = product.shop_name;
+        document.getElementById('modalDescription').textContent = product.product.description || 'Sin descripción';
+       
+        // Mostrar la modal
+        const productModal = new bootstrap.Modal(document.getElementById('productDetailModal'));
+        productModal.show();
+
+    } catch (error) {
+        console.error('Error al cargar los detalles del producto:', error);
+        // Aquí puedes agregar algún manejo de error, como mostrar una alerta
+        alert('Error al cargar los detalles del producto');
+    }
+}
+
