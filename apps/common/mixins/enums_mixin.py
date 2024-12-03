@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
 
-
 class EnumsMixin(mixins.ListModelMixin, ViewSet):
     pagination_class = None
     search_fields = None

@@ -236,8 +236,6 @@ EMAIL_PORT = env("EMAIL_PORT", cast=int, default=587)
 EMAIL_USE_TLS = True
 
 
-
-
 LOGGING = {
     "version": 1,  # the dictConfig format version
     "disable_existing_loggers": False,  # retain the default loggers

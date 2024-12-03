@@ -14,6 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
+
 class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     queryset = Shop.objects.all()
     serializer_class = ShopSerializer
@@ -32,11 +33,7 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-    
-    @action(
-        detail=False,
-        methods=["GET"],
-        permission_classes = [AllowAny]
-    )
+
+    @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):
         return self.list(request)

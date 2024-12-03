@@ -16,7 +16,6 @@ from project_site import settings
 from rest_framework.decorators import action
 
 
-
 class BrandViewSet(viewsets.ModelViewSet, GenericAPIView):
     queryset = Brand.objects.all()
     serializer_class = BrandSerializer
@@ -31,17 +30,11 @@ class BrandViewSet(viewsets.ModelViewSet, GenericAPIView):
         "name",
     ]
 
-
     @method_decorator(cache_page(settings.CACHE_DEFAULT_TIMEOUT))
     @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    @action(
-        detail=False,
-        methods=["GET"],
-        permission_classes = [AllowAny]
-
-    )
+    @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):
         return self.list(request)

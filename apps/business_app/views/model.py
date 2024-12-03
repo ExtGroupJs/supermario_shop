@@ -16,7 +16,7 @@ from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 
-from project_site import settings 
+from project_site import settings
 
 
 class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
@@ -42,17 +42,11 @@ class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
         "brand_name",
     ]
 
-
     @method_decorator(cache_page(settings.CACHE_DEFAULT_TIMEOUT))
     @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-    
-    @action(
-        detail=False,
-        methods=["GET"],
-        permission_classes = [AllowAny]
-    )
+
+    @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):
         return self.list(request)
-

@@ -100,11 +100,11 @@ class ShopProductsViewSet(
             if self.action in ("list_for_sale",):
                 queryset = queryset.filter(quantity__gt=0)
             return queryset
-        if self.request.user.pk: 
+        if self.request.user.pk:
             system_user = SystemUser.objects.get(id=self.request.user.pk)
             queryset = queryset.filter(shop=system_user.shop)
         return queryset.filter(quantity__gt=0)
-    
+
     @method_decorator(cache_page(60 * 5))
     @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):
@@ -130,11 +130,7 @@ class ShopProductsViewSet(
     )
     def list_for_sale(self, request):
         return self.list(request)
-    
-    @action(
-        detail=False,
-        methods=["GET"],
-        permission_classes = [AllowAny]
-    )
+
+    @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):
         return self.list(request)

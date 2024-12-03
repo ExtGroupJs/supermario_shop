@@ -19,6 +19,7 @@ from apps.common.permissions import CommonRolePermission
 from django.db.models import Q, QuerySet, Value, F
 from django.db.models.functions import Concat
 
+
 class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     queryset = Product.objects.all().annotate(
         model_name=Concat(F("model__brand__name"), Value(" - "), F("model__name"))
@@ -42,7 +43,6 @@ class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     ]
     ordering = ["name"]
     ordering_fields = ["name", "model_name", "description"]
-
 
     @method_decorator(cache_page(60 * 60 * 2))
     def list(self, request, *args, **kwargs):
