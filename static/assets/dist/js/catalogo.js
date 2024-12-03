@@ -278,7 +278,7 @@ function populateShopsList() {
         shops.forEach((shop) => {
           const listItem = document.createElement("li");
           listItem.innerHTML = `
-                        <input type="checkbox" name="product-categori" id="shop-${shop.id}" class="shop-checkbox">
+                        <input type="checkbox" name="product-category" id="shop-${shop.id}" class="shop-checkbox">
                         <label for="shop-${shop.id}">${shop.name}</label>
                     `;
 
