@@ -39,6 +39,8 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
+    path("catalogo/", pages.catalogo, name="catalogo"),
+
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("common/", include("apps.common.urls")),
     path("user-gestion/", include("apps.users_app.urls")),
@@ -57,7 +59,6 @@ urlpatterns = [
     path("shops/", login_required(pages.shops), name="shops"),
     path("products/", login_required(pages.products), name="products"),
     path("create_products/", login_required(pages.create_products), name="create_products"),
-    path("catalogo/", login_required(pages.catalogo), name="catalogo"),
     path("create_shop_products/", login_required(pages.create_shop_products), name="create_shop_products"),
     path("shop_products/", login_required(pages.shop_products), name="shop_products"),
     path("inventario/", login_required(pages.inventario), name="inventario"),

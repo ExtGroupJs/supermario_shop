@@ -56,7 +56,6 @@ def create_products(request):
     return render(request, "products/create_products.html")
 
 @cache_page(settings.CACHE_DEFAULT_TIMEOUT)
-@user_passes_test(is_owner)
 def catalogo(request):
     return render(request, "catalogo/catalogo.html")
 
