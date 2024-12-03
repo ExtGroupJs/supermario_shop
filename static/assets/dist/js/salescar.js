@@ -161,51 +161,63 @@ $("#crearVenta").on("click", function () {
     return;
   }
 
-  productosSeleccionados.forEach((item) => {
-    const payload = {
+  const descuento = parseInt($("#descuento").val()) || 0;
+  const extraInfo = $("#extra_info").val() || '';
+  const paymentMethod = $("#payment_method").val();
+  const sellerId = localStorage.getItem('id'); 
+
+  // Calcular el importe total
+  let importe_total = productosSeleccionados.reduce((total, item) => total + item.importe, 0);
+  const importe_total_con_descuento = importe_total - descuento;
+
+  const payload = {
+    discount: descuento,
+    extra_info: extraInfo,
+    payment_method: paymentMethod,
+    seller: sellerId,
+    sells: productosSeleccionados.map(item => ({
       shop_product: item.id,
       quantity: item.cantidad,
-    };
-    axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-    axios
-      .post("/business-gestion/sell-products/", payload)
-      .then((response) => {
-        item.status = "vendido";
-        importe_total=0;
-        actualizarTabla();
-        $('#producto').empty();
-        cargarProductos();
-      })
-      .catch((error) => {
-        item.status = "error";
-        load.hidden = true;
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Error al completar la venta: " + error.message,
-        });
+      extra_info: extraInfo
+    }))
+  };
 
+  axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
+  axios
+    .post("/business-gestion/sell-groups/", payload)
+    .then((response) => {
+      let html = "<hr><ul style='text-align: left;'>";
+      productosSeleccionados.forEach((item) => {
+        html += `<li>${item.cantidad} - ${item.producto} (Precio: $${item.precio})</li>`;
       });
-  });
 
-  let texto = "";
-  html = "<hr><ul style='text-align: left;'>";
-  productosSeleccionados.forEach((item) => {
+      html += `</ul><hr><h4>Importe Total: $${importe_total}</h4>`;
+      if (descuento>0) {
+        html += `<h4>Importe Total con Descuento: $${importe_total_con_descuento}</h4><hr>`; 
+      }
+      
+      Swal.fire({
+        icon: "success",
+        title: "Venta creada con éxito",
+        html: `<hr>Productos vendidos: \n` + html,
+      });
 
-    if (item.status === "error") {
-      html += `<li class="text-danger">${item.cantidad} - ${item.producto}   <i class="icon fas fa-ban"></i> </li>`;
-    } else {
-      html += `<li class="text-success">${item.cantidad} - ${item.producto}   <i class="icon fas fa-check"></i> </li>`;
-    }
-  });
-  html += `</ul><hr><h4>Importe Total: ${importe_total}</h4><hr>`;
-  Swal.fire({
-    icon: "success",
-    title: "Venta creada con éxito",
-    html: `<hr>Productos vendidos: \n` + html,
-  });
-  // Limpiar la selección
-  productosSeleccionados = [];
-  $("#productosTable tbody").empty();
-  load.hidden = true;
+      productosSeleccionados = [];
+      $("#productosTable tbody").empty();
+      $("#descuento").val("");
+      $("#extra_info").val("");
+      $("#payment_method").val("U"); // Restablecer a USD por defecto
+     
+      load.hidden = true;
+    })
+    .catch((error) => {
+      load.hidden = true;
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al completar la venta: " + error.message,
+      });
+    });
 });
+
+

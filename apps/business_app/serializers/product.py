@@ -1,7 +1,11 @@
 from rest_framework import serializers
 
 from apps.business_app.models.product import Product
-from apps.business_app.serializers.model import ModelSerializer
+from apps.business_app.serializers.model import (
+    CatalogModelSerializer,
+    ModelSerializer,
+    ReadModelSerializer,
+)
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -17,8 +21,19 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ReadProductSerializer(ProductSerializer):
+    model = ReadModelSerializer()
+    model = ReadModelSerializer()
     model_name = serializers.CharField(read_only=True)
 
     class Meta(ProductSerializer.Meta):
         model = Product
         fields = ProductSerializer.Meta.fields + ("id", "model_name", "__str__")
+
+
+class CatalogProductSerializer(ProductSerializer):
+    model = CatalogModelSerializer()
+    model_name = serializers.CharField(read_only=True)
+
+    class Meta(ProductSerializer.Meta):
+        model = Product
+        fields = ("name", "model", "image", "model_name", "__str__")

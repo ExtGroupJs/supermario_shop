@@ -4,9 +4,8 @@
     // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    {"name":"Depurador de Python: Django","type":"debugpy","request":"launch","args":["runserver"],"django":true,"autoStartBrowser":false,"program":"${workspaceFolder}/manage.py"},
         {
-            "name": "Depurador de Python: Django",
+            "name": "Django",
             "type": "debugpy",
             "request": "launch",
             "args": [
@@ -14,7 +13,21 @@
             ],
             "django": true,
             "autoStartBrowser": false,
-            "program": "${workspaceFolder}\\manage.py"
-        }
+            "program": "manage.py"
+        },
+        // {
+        //     "name": "Python: Celery Worker",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "module": "celery",
+        //     "args": [
+        //         "--workdir=/",
+        //         "-A", "django_celery", // Replace with your project's ASGI module
+        //         "worker",
+        //         "-l", "info" // Adjust logging level as needed
+        //     ],
+        //     "justMyCode": true // Optional: Focus debugging on your project's code
+        // }
     ]
+    
 }

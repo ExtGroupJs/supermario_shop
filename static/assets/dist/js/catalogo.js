@@ -1,418 +1,370 @@
-// Variable con el token
-const csrfToken = document.cookie
-  .split(";")
-  .find((c) => c.trim().startsWith("csrftoken="))
-  ?.split("=")[1];
-axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-// url del endpoint principal
-const url = "/business-gestion/products/";
+// Variables globales
+let currentPage = 1;
+let productsPerPage = 12;
+let totalProducts = 0; // Cambia esto si deseas mostrar más o menos productos por página
+let totalPages = 0; // Variable global para almacenar la cantidad de páginas
+let product__model = "";
+let searchValue = "";
+let shopValue = "";
+let orderingValue = "";
 
-$(function () {
-  bsCustomFileInput.init();
-  $("#filter-form")[0].reset();
-  poblarListas();
-});
+// Función para cargar productos
+function loadProducts(page) {
+  currentPage = page;
+  const url = "/business-gestion/shop-products/catalog/"; // Asegúrate de que esta URL sea correcta
+  const params = {
+    page_size: productsPerPage === "all" ? Infinity : productsPerPage, // Ajustar según la selección
+    page: page,
+    search: searchValue, // Aquí puedes agregar la lógica para manejar la búsqueda si es necesario
+    ordering: orderingValue, // Aquí puedes agregar la lógica para manejar el ordenamiento si es necesario
+    product__model: product__model,
+    shop: shopValue,
+  };
 
-$(document).ready(function () {
-  const table = $("#tabla-de-Datos").DataTable({
-    responsive: true,
-    dom: '<"top"l>Bfrtip',
-    buttons: [
-      {
-        text: "Crear",
-        className: "btn btn-primary btn-info",
-        action: function (e, dt, node, config) {
-          $("#modal-crear-products").modal("show");
-        },
-      },
-      {
-        extend: "excel",
-        text: "Excel",
-      },
-      {
-        extend: "pdf",
-        text: "PDF",
-      },
-      {
-        extend: "print",
-        text: "Print",
-        exportOptions: {
-          columns: [0, 1],
-          stripHtml: false, // No eliminar imágenes
-        },
-        exportOptions: {
-          columns: [0, 1, 2],
-          stripHtml: false, // No eliminar imágenes
-        },
-        customize: function (doc) {
-          let icono = `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
-          doc.content[1].table.body.forEach((row) => {
-            if (row[1] && row[1].text.includes("src")) {
-              const regex = /src="([^"]+)"/;
-              const resultado = row[1].text.match(regex);
+  axios
+    .get(url, { params })
+    .then((res) => {
+      const { count, results } = res.data; // Desestructuramos la respuesta
+      totalProducts = count;
+      renderProducts(results); // Renderiza los productos
 
-              const imgUrl = resultado[1]; // Extraer la URL
-              getBase64Image(imgUrl)
-                .then((base64Image) => {
-                  row[1] = { image: base64Image, width: 500, height: 500 }; // Ajustar el tamaño si es necesario
-console.log('✌️row[1] --->', row[1]);
-                })
-                .catch(() => {
-                  row[1] = "sin imagen"; // Si falla la conversión, poner "sin imagen"
-                });
-            } else {
-              row[1] = "sin imagen"; // Cambia a "sin imagen" si no hay imagen
-            }
-          });
-        },
-      },
-    ],
-    // Adding server-side processing
-    serverSide: true,
-    search: {
-      return: true,
-    },
-    processing: true,
-    ajax: function (data, callback, settings) {
-      const filters = $("#filter-form").serializeArray();
+      // Calcular el número total de páginas
+      totalPages = Math.ceil(
+        totalProducts / (productsPerPage === "all" ? 1 : productsPerPage)
+      );
 
-      const params = {};
+      // Actualizar el conteo de productos mostrados
+      const start = (page - 1) * productsPerPage + 1;
+      const end = Math.min(start + results.length - 1, count);
+      updatePagination(); // Actualiza la paginación
 
-      filters.forEach((filter) => {
-        if (filter.value) {
-          params[filter.name] = filter.value;
-        }
-      });
-      // Añadir parámetros de paginación
-      params.page_size = data.length;
-      params.page = data.start / data.length + 1;
-      params.ordering = data.columns[data.order[0].column].data;
-      params.search = data.search.value;
-      console.log("✌️params --->", params);
-
-      axios
-        .get(`${url}`, { params })
-        .then((res) => {
-          callback({
-            recordsTotal: res.data.count,
-            recordsFiltered: res.data.count,
-            data: res.data.results,
-          });
-        })
-        .catch((error) => {
-          alert(error);
-        });
-    },
-    columns: [
-      { data: "name", title: "Nombre" },
-      { data: "model.__str__", title: "Modelo" },
-      {
-        data: "image",
-        title: "Foto",
-        render: (data) => {
-          if (data) {
-            return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 200px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
-        
-          } else{return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;} 
-           },
-      },
-    ],
-
-    //  esto es para truncar el texto de las celdas
-    columnDefs: [],
-  });
-
-  // Manejo del formulario de filtros
-  $("#filter-form").on("submit", function (event) {
-    event.preventDefault();
-    console.log("✌️event --->", event);
-    table.ajax.reload();
-  });
-
-  // Restablecer filtros
-  $("#reset-filters").on("click", function () {
-    $("#filter-form")[0].reset();
-
-    table.ajax.reload();
-  });
-
-  // Mostrar/Ocultar filtros
-  $("#toggle-filters").on("click", function () {
-    $("#filter-section").toggle();
-  });
-});
-
-let selected_id;
-
-$(document).on("click", ".thumbnail", function () {
-  const fullsizeImage = $(this).data("fullsize");
-
-  Swal.fire({
-    imageUrl: fullsizeImage,
-    imageWidth: 400, // Ajusta el ancho según sea necesario
-    imageHeight: 300, // Ajusta la altura según sea necesario
-    imageAlt: "Image",
-    showCloseButton: false,
-    showConfirmButton: true,
-  });
-});
-
-$("#modal-crear-products").on("hide.bs.modal", (event) => {
-  const form = event.currentTarget.querySelector("form");
-  form.reset();
-  edit_products = false;
-  const elements = [...form.elements];
-  elements.forEach((elem) => elem.classList.remove("is-invalid"));
-});
-
-let edit_products = false;
-$("#modal-crear-products").on("show.bs.modal", function (event) {
-  var button = $(event.relatedTarget); // Button that triggered the modal
-
-  var modal = $(this);
-  if (button.data("type") == "edit") {
-    var dataName = button.data("name"); // Extract info from data-* attributes
-    selected_id = button.data("id"); // Extract info from data-* attributes
-    edit_products = true;
-
-    modal.find(".modal-title").text("Editar Producto " + dataName);
-
-    // Realizar la petición con Axios
-    axios
-      .get(`${url}` + selected_id + "/")
-      .then(function (response) {
-        // Recibir la respuesta
-        const product = response.data;
-        form.elements.name.value = product.name;
-        form.elements.description.value = product.description;
-        form.elements.model.value = product.model;
-        $("#model").val(product.model).trigger("change");
-      })
-      .catch(function (error) {});
-  } else {
-    modal.find(".modal-title").text("Crear Producto");
-  }
-});
-
-// form validator
-$(function () {
-  $.validator.setDefaults({
-    language: "es",
-    submitHandler: function () {
-      // alert("Form successful submitted!");
-    },
-  });
-
-  $("#form-create-products").validate({
-    rules: {
-      name: {
-        required: true,
-      },
-      description: {
-        required: false,
-      },
-      model: {
-        required: true,
-      },
-    },
-    submitHandler: function (form) {},
-
-    messages: {},
-    errorElement: "span",
-    errorPlacement: function (error, element) {
-      error.addClass("invalid-feedback");
-      element.closest(".form-group").append(error);
-    },
-    highlight: function (element, errorClass, validClass) {
-      $(element).addClass("is-invalid");
-    },
-    unhighlight: function (element, errorClass, validClass) {
-      $(element).removeClass("is-invalid");
-    },
-  });
-});
-
-// crear Producto
-
-let form = document.getElementById("form-create-products");
-form.addEventListener("submit", function (event) {
-  event.preventDefault();
-  var table = $("#tabla-de-Datos").DataTable();
-  const csrfToken = document.cookie
-    .split(";")
-    .find((c) => c.trim().startsWith("csrftoken="))
-    ?.split("=")[1];
-  axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-  let data = new FormData();
-  data.append("name", document.getElementById("name").value);
-  data.append("description", document.getElementById("description").value);
-  data.append("model", document.getElementById("model").value);
-  if (document.getElementById("image").files[0] != null) {
-    data.append("image", document.getElementById("image").files[0]);
-  }
-
-  if (edit_products) {
-    axios
-      .patch(`${url}` + selected_id + "/", data)
-      .then((response) => {
-        if (response.status === 200) {
-          $("#modal-crear-products").modal("hide");
-          Swal.fire({
-            icon: "success",
-            title: "Producto actualizado con éxito",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          table.ajax.reload();
-
-          edit_products = false;
-        }
-      })
-      .catch((error) => {
-        let dict = error.response.data;
-        let textError = "Revise los siguientes campos: ";
-        for (const key in dict) {
-          textError = textError + ", " + key;
-        }
-
-        Swal.fire({
-          icon: "error",
-          title: "Error al crear el Producto",
-          text: textError,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      });
-  } else {
-    axios
-      .post(`${url}`, data)
-      .then((response) => {
-        if (response.status === 201) {
-          Swal.fire({
-            icon: "success",
-            title: "Producto creado con éxito",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          table.ajax.reload();
-          $("#modal-crear-products").modal("hide");
-        }
-      })
-      .catch((error) => {
-        let dict = error.response.data;
-        let textError = "Revise los siguientes campos: ";
-        for (const key in dict) {
-          textError = textError + ", " + key;
-        }
-
-        Swal.fire({
-          icon: "error",
-          title: "Error al crear el Producto",
-          text: textError,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      });
-  }
-});
-
-function poblarListas() {
-  // Poblar la lista de modelos
-  var $model = document.getElementById("model");
-  var $filterModel = document.getElementById("filter-model");
-  $filterModel.add(new Option("ninguno", ""));
-  axios.get("/business-gestion/models/").then(function (response) {
-    response.data.results.forEach(function (element) {
-      var option = new Option(element.name, element.id);
-      $model.add(option);
-      var option = new Option(element.name, element.id);
-      $filterModel.add(option);
+      document.getElementById(
+        "product-count"
+      ).innerText = `mostrando ${start}-${end} de ${count} productos`;
+    })
+    .catch((error) => {
+      alert("Error al cargar los productos: " + error.message);
     });
+}
+
+// Función para renderizar productos en la interfaz
+function renderProducts(products) {
+  const productArea = document.querySelector(".shop-products-wrapper .row");
+  productArea.innerHTML = ""; // Limpiar productos existentes
+
+  products.forEach((product) => {
+    const productHTML = `
+            <div class="col-lg-4 col-md-4 col-sm-6 mt-40">
+                <div class="single-product-wrap">
+                    <div class="product-image">
+                        <a href="#">
+                            <img src="${product.product.image}" alt="${product.product.name}">
+                        </a>
+                        <span class="sticker">New</span>
+                    </div>
+                    <div class="product_desc">
+                        <div class="product_desc_info">
+                            <div class="product-review">
+                                <h5 class="manufacturer">
+                                    <a href="#">${product.product.model.brand.name} ${product.product.model.name}</a>
+                                </h5>
+                                <div class="rating-box">
+                                    <ul class="rating">
+                                        <li><i class="fa fa-star-o"></i></li>
+                                        <li><i class="fa fa-star-o"></i></li>
+                                        <li><i class="fa fa-star-o"></i></li>
+                                        <li class="no-star"><i class="fa fa-star-o"></i></li>
+                                        <li class="no-star"><i class="fa fa-star-o"></i></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <h4><a class="product_name" href="#">${product.product.name}</a></h4>
+                            <div class="price-box">
+                                <span class="new-price">$${product.sell_price}</span>
+                            </div>
+                        </div>
+                        <div class="add-actions">
+                            <ul class="add-actions-link">
+                                <li><a href="#" title="quick view" class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter" onclick="viewProductDetails(${product.id})"><i class="fa fa-eye"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    productArea.insertAdjacentHTML("beforeend", productHTML);
   });
 }
 
-function function_delete(id, name) {
-  const table = $("#tabla-de-Datos").DataTable();
-  Swal.fire({
-    title: "Eliminar",
-    text: `¿Está seguro que desea eliminar el elemento ${name}?`,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Sí, Eliminar",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-      axios
-        .delete(`${url}${id}/`)
-        .then((response) => {
-          if (response.status === 204) {
-            table.row(`#${id}`).remove().draw();
-            Swal.fire({
-              icon: "success",
-              title: "Eliminar Elemento",
-              text: "Elemento eliminado satisfactoriamente",
-              showConfirmButton: false,
-              timer: 1500,
-            });
-          }
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: "error",
-            title: "Error eliminando elemento",
-            text: error.response.data.detail,
-            showConfirmButton: false,
-            timer: 3000,
-          });
-        });
-    }
-  });
-}
+// Función para actualizar la paginación
+function updatePagination() {
+  const paginationArea = document.querySelector(".pagination-box");
+  paginationArea.innerHTML = ""; // Limpiar paginación existente
 
-function poblarModelosFiltro() {}
+  if (currentPage - 1 > 0) {
+    paginationArea.insertAdjacentHTML(
+      "beforeend",
+      `<li><a href="#" class="Previous" onclick="loadProducts(${
+        currentPage - 1
+      })"><i class="fa fa-chevron-left"></i> Previous</a></li>`
+    );
+  } else {
+    paginationArea.insertAdjacentHTML("beforeend", ``);
+  }
 
+  const currentPageItem = `<li class="active"><a href="#">${currentPage}</a></li>`;
+  paginationArea.insertAdjacentHTML("beforeend", currentPageItem);
 
-
-async function generarCatalogo() {
-  const { jsPDF } = window.jspdf;
-
-  try {
-    // Llamar al endpoint para obtener los productos
-    const response = await axios.get('/business-gestion/products/');
-    const productos = response.data.results; // Suponiendo que los datos vienen en un array
-    // Crear un nuevo PDF
-    const doc = new jsPDF();
-    const imgWidth = 50; // Ancho de la imagen
-    const imgHeight = 50; // Alto de la imagen
-
-    // Iterar sobre los productos y agregar al PDF
-    for (let i = 0; i < productos.length; i++) {
-      const producto = productos[i];
-if (producto.image!=null) {
-  const imgUrl = producto.image; // Suponiendo que hay un campo 'image'
-
-  // Cargar la imagen y agregarla al PDF
-  const imgData = await getBase64Image(imgUrl);
-  doc.addImage(imgData, 'JPEG', 10, 10 + (i * (imgHeight + 10)), imgWidth, imgHeight);
-  doc.text(producto.name, 70, 20 + (i * (imgHeight + 10))); // Ajustar la posición del texto
-}
-     
-    }
-
-    // Guardar el PDF
-    doc.save('catalogo_productos.pdf');
-  } catch (error) {
-    console.error('Error al generar el catálogo:', error);
+  if (currentPage + 1 <= totalPages) {
+    paginationArea.insertAdjacentHTML(
+      "beforeend",
+      `<li><a href="#" class="Next" onclick="loadProducts(${
+        currentPage + 1
+      })"> Next <i class="fa fa-chevron-right"></i></a></li>`
+    );
   }
 }
 
-// Función para convertir una imagen a Base64
-async function getBase64Image(url) {
-  const response = await axios.get(url, { responseType: 'arraybuffer' });
-  const base64String = btoa(
-    new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
-  );
-  return `data:image/jpeg;base64,${base64String}`; // Cambia el tipo MIME si es necesario
+// Función para ver detalles del producto
+function viewProductDetails(productId) {
+  // Aquí puedes implementar la lógica para mostrar los detalles del producto en un modal
+  console.log(`Ver detalles del producto con ID: ${productId}`);
+  showProductDetails(productId);
+  // Puedes cargar los detalles del producto y mostrarlos en el modal correspondiente
+}
+
+// Cargar productos al iniciar la página
+document.addEventListener("DOMContentLoaded", () => {
+  loadProducts(currentPage);
+  loadModels("");
+  loadBrands();
+  populateShopsList();
+});
+
+function updateProductsPerPage() {
+  const selectElement = document.getElementById("products-per-page");
+  const selectedValue = selectElement.value;
+
+  // Ajustar la cantidad de productos por página
+  productsPerPage =
+    selectedValue === "all" ? Infinity : parseInt(selectedValue);
+
+  // Reiniciar a la primera página
+  currentPage = 1;
+
+  // Cargar productos de la primera página con el nuevo valor
+  loadProducts(currentPage);
+
+  // Mantener el valor seleccionado en el select
+  selectElement.value = selectedValue;
+}
+
+function loadModels(id) {
+  const params = {
+    brand: id,
+  };
+  axios
+    .get(`/business-gestion/models/catalog/`, { params })
+    .then((res) => {
+      const models = res.data.results;
+      populateModelsList(models);
+    })
+    .catch((error) => {
+      console.error("Error al cargar los modelos: ", error.message);
+    });
+}
+
+function populateModelsList(models) {
+  const modelList = document.getElementById("model-list");
+  modelList.innerHTML = ""; // Limpiar opciones anteriores
+
+  // Opción para mostrar todos los modelos
+  const showAllItem = document.createElement("li");
+  const showAllLink = document.createElement("a");
+  showAllLink.href = "#"; // Prevenir el comportamiento por defecto
+  showAllLink.textContent = "Todos";
+
+  // Agregar evento para mostrar todos los productos
+  showAllLink.addEventListener("click", (e) => {
+    e.preventDefault(); // Prevenir el enlace por defecto
+    loadProductsByModel(""); // Cargar todos los productos
+  });
+
+  showAllItem.appendChild(showAllLink);
+  modelList.appendChild(showAllItem);
+
+  models.forEach((model) => {
+    const listItem = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = "#"; // Prevenir el comportamiento por defecto
+    link.textContent = model.name;
+
+    // Agregar evento para filtrar productos por modelo
+    link.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevenir el enlace por defecto
+      loadProductsByModel(model.id); // Cargar productos por el modelo seleccionado
+    });
+
+    listItem.appendChild(link);
+    modelList.appendChild(listItem);
+  });
+}
+
+function loadProductsByModel(modelId) {
+  const url = "/business-gestion/shop-products/catalog/";
+  currentPage = 1;
+  product__model = modelId;
+  loadProducts(currentPage);
+  // updatePagination();
+}
+function loadProductsByModel(modelId) {
+  currentPage = 1;
+  product__model = modelId;
+  loadProducts(currentPage);
+}
+function searchProducts() {
+  currentPage = 1;
+  searchValue = document.getElementById("searchInput").value;
+  loadProducts(currentPage);
+}
+
+function loadBrands() {
+  axios
+    .get("/business-gestion/brands/catalog/")
+    .then((res) => {
+      const brands = res.data.results;
+      populateBrandsSelect(brands);
+    })
+    .catch((error) => {
+      console.error("Error al cargar las marcas: ", error.message);
+    });
+}
+
+function populateBrandsSelect(brands) {
+  console.log("✌️brands --->", brands);
+  const brandsSelect = document.getElementById("brandsSelect");
+  brandsSelect.innerHTML = '<option value="">Seleccione una marca</option>'; // Limpiar opciones anteriores
+
+  brands.forEach((brand) => {
+    const option = document.createElement("option");
+    option.value = brand.id; // Asignar el ID de la marca como valor
+    option.textContent = brand.name; // Asignar el nombre de la marca como texto
+    brandsSelect.appendChild(option);
+  });
+
+  // Agregar la clase nice-select al select
+  brandsSelect.classList.add("nice-select");
+
+  // Agregar evento para cargar modelos al seleccionar una marca
+  brandsSelect.addEventListener("change", () => {
+    const selectedId = brandsSelect.value; // Obtener el ID seleccionado
+    loadModels(selectedId); // Pasar el ID a la función loadModels
+  });
+
+  console.log("✌️brandsSelect --->", brandsSelect.value);
+}
+
+function populateShopsList() {
+  axios
+    .get("/business-gestion/shops/catalog/")
+    .then((response) => {
+      const shops = response.data.results; // Obtener los datos de la respuesta
+      console.log("Respuesta de shops:", shops); // Verificar la respuesta
+
+      // Asegurarte de que shops sea un array
+      if (Array.isArray(shops)) {
+        const shopsList = document.getElementById("shopsList");
+        shopsList.innerHTML = ""; // Limpiar la lista anterior
+
+        shops.forEach((shop) => {
+          const listItem = document.createElement("li");
+          listItem.innerHTML = `
+                        <input type="checkbox" name="product-category" id="shop-${shop.id}" class="shop-checkbox">
+                        <label for="shop-${shop.id}">${shop.name}</label>
+                    `;
+
+          // Agregar evento para manejar la selección de la tienda
+          listItem
+            .querySelector("input")
+            .addEventListener("change", function () {
+              handleShopSelection(this); // Llamar a la función con el checkbox actual
+            });
+
+          shopsList.appendChild(listItem); // Agregar el elemento a la lista
+        });
+      } else {
+        console.error("Se esperaba un array, pero se recibió:", shops);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching shops:", error);
+    });
+}
+
+// Función para manejar la selección de tiendas
+function handleShopSelection(selectedCheckbox) {
+  const checkboxes = document.querySelectorAll(".shop-checkbox");
+
+  checkboxes.forEach((checkbox) => {
+    if (checkbox !== selectedCheckbox) {
+      checkbox.checked = false; // Desmarcar otros checkboxes
+    }
+  });
+
+  // Lógica para manejar la tienda seleccionada
+  if (selectedCheckbox.checked) {
+    selectShop(selectedCheckbox.id.split("-")[1]); // Llamar al método selectShop con el ID de la tienda
+  } else {
+    selectShop(null); // Si se deselecciona, pasar null
+  }
+}
+
+// Método selectShop para manejar la tienda seleccionada
+function selectShop(shopId) {
+  shopValue = shopId;
+  currentPage = 1;
+  loadProducts(currentPage);
+}
+
+// Función para capturar el valor seleccionado
+function captureOrderingValue() {
+  // Obtener el elemento select
+  const selectElement = document.getElementById("selectOrdering");
+  orderingValue = selectElement.value;
+  currentPage = 1;
+  loadProducts(currentPage);
+}
+// Función para mostrar los detalles del producto
+async function showProductDetails(productId) {
+  try {
+    // Realizar la petición al endpoint
+    const response = await axios.get(
+      `/business-gestion/shop-products/${productId}/catalog-shop-product-detail/`
+    );
+    const product = response.data;
+
+    // Actualizar los elementos de la modal con los datos del producto
+    document.getElementById("modalProductImage").src = product.product.image;
+    document.getElementById("modalProductName").textContent =
+      product.product_name;
+    document.getElementById("modalBrandName").textContent =
+      product.product.model.brand.name;
+    document.getElementById("modalModelName").textContent =
+      product.product.model.__str__;
+    document.getElementById(
+      "modalPrice"
+    ).textContent = `$${product.sell_price}`;
+    document.getElementById("modalShopName").textContent = product.shop_name;
+    document.getElementById("modalDescription").textContent =
+      product.product.description || "Sin descripción";
+
+    // Mostrar la modal
+    const productModal = new bootstrap.Modal(
+      document.getElementById("productDetailModal")
+    );
+    productModal.show();
+  } catch (error) {
+    console.error("Error al cargar los detalles del producto:", error);
+    // Aquí puedes agregar algún manejo de error, como mostrar una alerta
+    alert("Error al cargar los detalles del producto");
+  }
 }

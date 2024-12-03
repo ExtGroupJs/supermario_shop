@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.product import (
+    CatalogProductSerializer,
     ProductSerializer,
     ReadProductSerializer,
 )
@@ -10,12 +11,10 @@ from apps.users_app.models.groups import Groups
 
 
 class ShopProductsSerializer(serializers.ModelSerializer):
-
     updated_timestamp = serializers.SerializerMethodField()
 
     shop_name = serializers.CharField(read_only=True)
     product_name = serializers.CharField(read_only=True)
-
 
     class Meta:
         model = ShopProducts
@@ -33,13 +32,15 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "updated_timestamp",
             "__repr__",
         )
+
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y")
         # return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p") # con hora
 
 
 class ReadShopProductsSerializer(ShopProductsSerializer):
-    product = ProductSerializer(read_only = True)
+    product = ReadProductSerializer(read_only=True)
+
     class Meta(ShopProductsSerializer.Meta):
         model = ShopProducts
         fields = ShopProductsSerializer.Meta.fields
@@ -55,3 +56,16 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
         ):
             response.pop("cost_price")
         return response
+
+
+class CatalogShopProductSerializer(ReadShopProductsSerializer):
+    product = CatalogProductSerializer(read_only=True)
+
+    class Meta(ReadShopProductsSerializer.Meta):
+        fields = (
+            "id",
+            "sell_price",
+            "product",
+            "shop_name",
+            "__repr__",
+        )

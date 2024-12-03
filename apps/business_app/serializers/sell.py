@@ -1,4 +1,5 @@
 from email.policy import default
+from math import e
 from rest_framework import serializers
 
 from apps.business_app.models.sell import Sell
@@ -26,9 +27,11 @@ class SellSerializer(serializers.ModelSerializer):
             "created_timestamp",
             "profits",
             "product_name",
+            "sell_group",
         )
         read_only_fields = (
             "id",
+            "sell_group",
             "__str__",
         )
 
