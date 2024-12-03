@@ -15,6 +15,7 @@ from apps.common.mixins.serializer_map import SerializerMapMixin
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.permissions import ShopProductsViewSetPermission
 from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action

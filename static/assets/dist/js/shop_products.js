@@ -11,6 +11,7 @@ const url = "/business-gestion/shop-products/";
 $(function () {
   // bsCustomFileInput.init();
   $("#filter-form")[0].reset();
+  poblarListas();
 });
 
 // Inicializar DataTable
@@ -203,35 +204,38 @@ $("#modal-crear-shop-products").on("hide.bs.modal", (event) => {
   const elements = [...form.elements];
   elements.forEach((elem) => elem.classList.remove("is-invalid"));
 });
+
 let form = document.getElementById("form-create-shop-products");
 let edit_shopProducts = false;
 $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
-  poblarListas();
+
   var button = $(event.relatedTarget); // Button that triggered the modal
 
   var modal = $(this);
   if (button.data("type") == "edit") {
     var dataName = button.data("name"); // Extract info from data-* attributes
     selected_id = button.data("id"); // Extract info from data-* attributes
-console.log('✌️selected_id --->', selected_id);
+
     edit_shopProducts = true;
 
-    modal.find(".modal-title").text("Editar Entrada de Producto ");
+    
     load.hidden = false;
     // Realizar la petición con Axios
-    console.log('✌️selected_id --->', selected_id);
+    
     axios
       .get(`${url}` + selected_id + "/")
       .then(function (response) {
         // Recibir la respuesta
         const shopProduct = response.data;
+console.log('✌️shopProduct --->', shopProduct);
+        modal.find(".modal-title").text("Editar "+ shopProduct.product_name );
         form.elements.quantity.value = shopProduct.quantity;
         form.elements.cost_price.value = shopProduct.cost_price;
         form.elements.sell_price.value = shopProduct.sell_price;
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
-        form.elements.product.value = shopProduct.product.id;
-        $("#product").val(shopProduct.product.id).trigger("change");
+         form.elements.product.value = shopProduct.product.id;
+        $("#product").val(shopProduct.product.id).trigger("change.select2");
         load.hidden = true;
       })
       .catch(function (error) {});

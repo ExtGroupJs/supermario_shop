@@ -22,6 +22,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ReadProductSerializer(ProductSerializer):
     model = ReadModelSerializer()
+    model = ReadModelSerializer()
     model_name = serializers.CharField(read_only=True)
 
     class Meta(ProductSerializer.Meta):
