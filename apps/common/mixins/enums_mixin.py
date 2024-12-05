@@ -12,15 +12,10 @@ class EnumsMixin(mixins.ListModelMixin, ViewSet):
 
     @method_decorator(cache_page(60 * 60))
     def list(self, request, *args, **kwargs):
-        results = dict(
-            (
-                (
-                    key,
-                    [{"value": value, "label": label} for value, label in enum.choices],
-                )
+        results = {
+            key: [{"value": value, "label": label} for value, label in enum.choices]
                 for key, enum in self.items
-            )
-        )
+        }
         return Response(results)
 
 
