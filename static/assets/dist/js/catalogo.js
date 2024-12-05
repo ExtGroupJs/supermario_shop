@@ -7,6 +7,7 @@ let product__model = "";
 let searchValue = "";
 let shopValue = "";
 let orderingValue = "";
+let product__model__brand= "";
 
 // Función para cargar productos
 function loadProducts(page) {
@@ -18,6 +19,7 @@ function loadProducts(page) {
     search: searchValue, // Aquí puedes agregar la lógica para manejar la búsqueda si es necesario
     ordering: orderingValue, // Aquí puedes agregar la lógica para manejar el ordenamiento si es necesario
     product__model: product__model,
+    product__model__brand:product__model__brand,
     shop: shopValue,
   };
 
@@ -47,7 +49,6 @@ function loadProducts(page) {
     });
 }
 
-// Función para renderizar productos en la interfaz
 function renderProducts(products) {
   const productArea = document.querySelector(".shop-products-wrapper .row");
   productArea.innerHTML = ""; // Limpiar productos existentes
@@ -57,8 +58,8 @@ function renderProducts(products) {
             <div class="col-lg-4 col-md-4 col-sm-6 mt-40">
                 <div class="single-product-wrap">
                     <div class="product-image">
-                        <a href="#">
-                            <img src="${product.product.image}" alt="${product.product.name}">
+                        <a>
+                            <img src="${product.product.image || '/static_output/assets/dist/img/producto-sin-imagen.jpg'}" alt="${product.product.name}">
                         </a>
                         <span class="sticker">New</span>
                     </div>
@@ -66,7 +67,7 @@ function renderProducts(products) {
                         <div class="product_desc_info">
                             <div class="product-review">
                                 <h5 class="manufacturer">
-                                    <a href="#">${product.product.model.brand.name} ${product.product.model.name}</a>
+                                    <a>${product.product.model.brand.name} ${product.product.model.name}</a>
                                 </h5>
                                 <div class="rating-box">
                                     <ul class="rating">
@@ -94,6 +95,7 @@ function renderProducts(products) {
     productArea.insertAdjacentHTML("beforeend", productHTML);
   });
 }
+
 
 // Función para actualizar la paginación
 function updatePagination() {
@@ -258,10 +260,19 @@ function populateBrandsSelect(brands) {
   brandsSelect.addEventListener("change", () => {
     const selectedId = brandsSelect.value; // Obtener el ID seleccionado
     loadModels(selectedId); // Pasar el ID a la función loadModels
+    selectBrandInit(selectedId);
   });
 
-  console.log("✌️brandsSelect --->", brandsSelect.value);
+
 }
+
+function selectBrandInit(brandId) {
+  product__model__brand = brandId;
+  product__model='';
+  currentPage = 1;
+  loadProducts(currentPage);
+}
+
 
 function populateShopsList() {
   axios
