@@ -4,6 +4,7 @@ from rest_framework.generics import GenericAPIView
 
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.shop_products import (
+    CatalogShopProductSerializer,
     ReadShopProductsSerializer,
     ShopProductsSerializer,
 )
@@ -13,6 +14,8 @@ from apps.common.mixins.serializer_map import SerializerMapMixin
 
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.permissions import ShopProductsViewSetPermission
+from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
@@ -29,6 +32,17 @@ class ShopProductsViewSet(
     viewsets.ModelViewSet,
     GenericAPIView,
 ):
+    serializer_class = ShopProductsSerializer
+    list_serializer_class = ReadShopProductsSerializer
+    retrieve_serializer_class = ReadShopProductsSerializer
+    pagination_class = AllResultsSetPagination
+    permission_classes = [ShopProductsViewSetPermission]
+
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        CommonOrderingFilter,
+    ]
     queryset = (
         ShopProducts.objects.all()
         .annotate(shop_name=F("shop__name"))
@@ -43,20 +57,11 @@ class ShopProductsViewSet(
             )
         )
     )
-    serializer_class = ShopProductsSerializer
-    list_serializer_class = ReadShopProductsSerializer
-    retrieve_serializer_class = ReadShopProductsSerializer
-    pagination_class = AllResultsSetPagination
-    permission_classes = [ShopProductsViewSetPermission]
-
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        CommonOrderingFilter,
-    ]
     filterset_fields = {
         "shop": ["exact"],
         "product": ["exact"],
+        "product__model": ["exact"],
+        "product__model__brand": ["exact"],
         "quantity": ["gte", "lte", "exact"],
         "cost_price": ["gte", "lte", "exact"],
         "sell_price": ["gte", "lte", "exact"],
@@ -93,34 +98,40 @@ class ShopProductsViewSet(
                 )
             ).exists()
         ):
-            if self.action == "list_for_sale":
+            if self.action in ("list_for_sale",):
                 queryset = queryset.filter(quantity__gt=0)
             return queryset
-        system_user = SystemUser.objects.get(id=self.request.user.id)
-        return queryset.filter(quantity__gt=0, shop=system_user.shop)
-
-    @method_decorator(cache_page(60 * 5))
-    @method_decorator(vary_on_headers("Authorization"))
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(
-                page, many=True, context={"request": request}
-            )
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(
-            queryset, many=True, context={"request": request}
-        )
-        return Response(serializer.data)
+        if self.request.user.pk:
+            system_user = SystemUser.objects.get(id=self.request.user.pk)
+            queryset = queryset.filter(shop=system_user.shop)
+        return queryset.filter(quantity__gt=0)
 
     @action(
         detail=False,
         methods=["GET"],
         url_name="list-for-sale",
         url_path="list-for-sale",
+        serializer_class=ReadShopProductsSerializer,
     )
     def list_for_sale(self, request):
         return self.list(request)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[AllowAny],
+        serializer_class=CatalogShopProductSerializer,
+    )
+    def catalog(self, request):
+        return self.list(request)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        permission_classes=[AllowAny],
+        serializer_class=CatalogShopProductSerializer,
+        url_name="catalog-shop-product-detail",
+        url_path="catalog-shop-product-detail",
+    )
+    def catalog_shop_product_detail(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)

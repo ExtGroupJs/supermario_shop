@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.product import (
+    CatalogProductSerializer,
     ProductSerializer,
     ReadProductSerializer,
 )
@@ -56,3 +57,16 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
         ):
             response.pop("cost_price")
         return response
+
+
+class CatalogShopProductSerializer(ReadShopProductsSerializer):
+    product = CatalogProductSerializer(read_only=True)
+
+    class Meta(ReadShopProductsSerializer.Meta):
+        fields = (
+            "id",
+            "sell_price",
+            "product",
+            "shop_name",
+            "__repr__",
+        )

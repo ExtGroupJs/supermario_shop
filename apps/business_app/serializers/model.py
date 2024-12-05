@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.business_app.models.model import Model
-from apps.business_app.serializers.brand import BrandSerializer
+from apps.business_app.serializers.brand import BrandSerializer, CatalogBrandSerializer
 from apps.business_app.views import brand
 
 
@@ -25,3 +25,15 @@ class ReadModelSerializer(ModelSerializer):
 
     class Meta(ModelSerializer.Meta):
         model = Model
+
+
+class CatalogModelSerializer(ModelSerializer):
+    brand = CatalogBrandSerializer()
+
+    class Meta(ModelSerializer.Meta):
+        fields = (
+            "name",
+            "brand",
+            "brand_name",
+            "__str__",
+        )

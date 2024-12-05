@@ -1,185 +1,605 @@
-{% extends "index.html" %}
-{% load static %}
-{% load i18n %}
+{% load static %} {% load i18n %} {% block head-extra %}
 
-{% block head-extra %}
-<link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}">
-<link rel="stylesheet" href="{% static 'assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
-<link rel="stylesheet" href="{% static 'assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
-<link rel="stylesheet" href="{% static 'assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
-<link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
-<link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+<meta charset="utf-8" />
+<meta http-equiv="x-ua-compatible" content="ie=edge" />
+<title>
+  Shop List Left Sidebar || limupa - Digital Products Store eCommerce Bootstrap
+  4 Template
+</title>
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Favicon -->
+<link
+  rel="shortcut icon"
+  type="image/x-icon"
+  href="{% static 'assets/dist/img/AdminLTELogo.png' %}"
+/>
+<!-- Material Design Iconic Font-V2.2.0 -->
+<link
+  rel="stylesheet"
+  href="{% static 'assets/catalogo/css/material-design-iconic-font.min.css'%}"
+/>
+<!-- Font Awesome -->
+<link
+  rel="stylesheet"
+  href="{% static 'assets/catalogo/css/font-awesome.min.css'%}"
+/>
+<!-- Font Awesome Stars-->
+<link
+  rel="stylesheet"
+  href="{% static 'assets/catalogo/css/fontawesome-stars.css'%}"
+/>
+<!-- Meanmenu CSS -->
+<link rel="stylesheet" href="{% static 'assets/catalogo/css/meanmenu.css'%}" />
+<!-- owl carousel CSS -->
+<link
+  rel="stylesheet"
+  href="{% static 'assets/catalogo/css/owl.carousel.min.css'%}"
+/>
+<!-- Slick Carousel CSS -->
+<link rel="stylesheet" href="{% static 'assets/catalogo/css/slick.css'%}" />
+<!-- Animate CSS -->
+<link rel="stylesheet" href="{% static 'assets/catalogo/css/animate.css'%}" />
+<!-- Jquery-ui CSS -->
+<link
+  rel="stylesheet"
+  href="{% static 'assets/catalogo/css/jquery-ui.min.css'%}"
+/>
+<!-- Venobox CSS -->
+<link rel="stylesheet" href="{% static 'assets/catalogo/css/venobox.css'%}" />
+<!-- Nice Select CSS -->
+<link
+  rel="stylesheet"
+  href="{% static 'assets/catalogo/css/nice-select.css'%}"
+/>
+<!-- Magnific Popup CSS -->
+<link
+  rel="stylesheet"
+  href="{% static 'assets/catalogo/css/magnific-popup.css'%}"
+/>
+<!-- Bootstrap V4.1.3 Fremwork CSS -->
+<link
+  rel="stylesheet"
+  href="{% static 'assets/catalogo/css/bootstrap.min.css'%}"
+/>
+<!-- Helper CSS -->
+<link rel="stylesheet" href="{% static 'assets/catalogo/css/helper.css'%}" />
+<!-- Main Style CSS -->
+<link rel="stylesheet" href="{% static 'assets/catalogo/css/style.css'%}" />
+<!-- Responsive CSS -->
+<link
+  rel="stylesheet"
+  href="{% static 'assets/catalogo/css/responsive.css'%}"
+/>
+<!-- Modernizr js -->
+<script src="{% static 'assets/catalogo/js/vendor/modernizr-2.8.3.min.js'%}"></script>
+
 {% endblock %}
 
-{% block content %}
-
-<!-- Content Wrapper. Contains page content -->
-<div class="content-wrapper">
-  <!-- Content Header (Page header) -->
-  <section class="content-header">
-    <div class="container-fluid">
-      <div class="row mb-2">
-        <div class="col-sm-6">
-          <h1>Producto</h1>
-        </div>
-        <div class="col-sm-6">
-          <ol class="breadcrumb float-sm-right">
-            <li class="breadcrumb-item"><a href="#">Inicio</a></li>
-            <li class="breadcrumb-item active">Productos</li>
-          </ol>
+<body>
+  <!--[if lt IE 8]>
+    <p class="browserupgrade">
+      You are using an <strong>outdated</strong> browser. Please
+      <a href="http://browsehappy.com/">upgrade your browser</a> to improve your
+      experience.
+    </p>
+  <![endif]-->
+  <!-- Begin Body Wrapper -->
+  <div class="body-wrapper">
+    <!-- Begin Header Area -->
+    <header>
+      <!-- Begin Header Top Area -->
+      <div class="header-top">
+        <div class="container">
+          <div class="row">
+            <!-- Begin Header Top Left Area -->
+            <div class="col-lg-6 col-md-4">
+              <div class="header-top-left">
+                <ul class="phone-wrap">
+                  <li>
+                    <span>Telefonos:</span
+                    ><a href="#">
+                      +1 (305) 877-0178 : Miami, +53 5104-6908 : Cuba</a
+                    >
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!-- Header Top Left Area End Here -->
+          </div>
         </div>
       </div>
-    </div><!-- /.container-fluid -->
-  </section>
-
-  <!-- Main content -->
-  <section class="content">
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-12">
-
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Gestionar Producto</h3>
-              <button class="btn btn-secondary float-right" id="toggle-filters"><i class="nav-icon fas fa-filter"></i>
-                Filtros</button>
-                <button id="btn-generar-catalogo" class="btn btn-primary" onclick="generarCatalogo()">Generar Catálogo</button>
+      <!-- Header Top Area End Here -->
+      <!-- Begin Header Middle Area -->
+      <div class="header-middle pl-sm-0 pr-sm-0 pl-xs-0 pr-xs-0">
+        <div class="container">
+          <div class="row">
+            <!-- Begin Header Logo Area -->
+            <div class="col-lg-3">
+              <div class="logo pb-sm-30 pb-xs-30">
+                <a href="index.html">
+                  <img
+                    src="{% static 'assets/dist/img/AdminLTELogo.png' %}"
+                    style="width: 36%"
+                    alt=""
+                  />
+                </a>
+              </div>
             </div>
-<!-- /.card-header -->
-            <!-- Filtros -->
-            <div class="card-body" id="filter-section" style="display: none;">
-              <form id="filter-form" class="mb-2">
-                <div class="row">
-                  <div class="form-group col-md-6">
-                    <label for="filter-model">Modelo</label>
-                    <select class="form-control select2" id="filter-model" name="model"></select>
-                  </div>
-                  <div class="form-group col-md-12">
-                    <button type="submit" class="btn btn-primary"><i class="nav-icon fas fa-check"></i> Aplicar</button>
-                    <button type="button" id="reset-filters" class="btn btn-secondary"><i
-                        class="nav-icon fas fa-redo"></i> Restablecer</button>
+            <!-- Header Logo Area End Here -->
+            <!-- Begin Header Middle Right Area -->
+            <div class="col-lg-9 pl-0 ml-sm-15 ml-xs-15">
+              <!-- Begin Header Middle Searchbox Area -->
+              <form action="#" class="hm-searchbox">
+                <select class="select-search-category" id="brandsSelect">
+                  <option value="">Seleccione una marca</option>
+                  <!-- Opción por defecto -->
+                </select>
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Enter your search key ..."
+                />
+                <button
+                  class="li-btn"
+                  id="searchButton"
+                  onclick="searchProducts()"
+                >
+                  <i class="fa fa-search"></i>
+                </button>
+              </form>
+              <!-- Header Middle Searchbox Area End Here -->
+              <!-- Begin Header Middle Right Area -->
+              <div class="header-middle-right">
+                <ul class="hm-menu">
+                  <!-- Begin Header Middle Wishlist Area -->
+
+                  <!-- Header Middle Wishlist Area End Here -->
+                </ul>
+              </div>
+              <!-- Header Middle Right Area End Here -->
+            </div>
+            <!-- Header Middle Right Area End Here -->
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- Header Area End Here -->
+    <!-- Begin Li's Breadcrumb Area -->
+    <div class="breadcrumb-area header-bottom">
+      <div class="container">
+        <div class="breadcrumb-content">
+          <ul>
+            <li><h2 style="color: #1b4b5e">Catálogo de productos</h2></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!-- Li's Breadcrumb Area End Here -->
+    <!-- Begin Li's Content Wraper Area -->
+    <div class="content-wraper pt-5 pb-60 pt-sm-30">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-9 order-1 order-lg-2">
+            <!-- Begin Li's Banner Area -->
+
+            <!-- Li's Banner Area End Here -->
+            <!-- shop-top-bar start -->
+            <div class="shop-top-bar mt-30">
+              <div class="shop-bar-inner">
+                <div class="product-view-mode">
+                  <!-- shop-item-filter-list start -->
+                  <ul class="nav shop-item-filter-list" role="tablist">
+                    <li class="active" role="presentation">
+                      <a
+                        data-toggle="tab"
+                        aria-selected="true"
+                        class="active show"
+                        role="tab"
+                        aria-controls="grid-view"
+                        href="#grid-view"
+                        ><i class="fa fa-th"></i
+                      ></a>
+                    </li>
+                    {% comment %}
+                    <li role="presentation">
+                      <a
+                        data-toggle="tab"
+                        role="tab"
+                        aria-controls="list-view"
+                        href="#list-view"
+                        ><i class="fa fa-th-list"></i
+                      ></a>
+                    </li>
+                    {% endcomment %}
+                  </ul>
+                  <!-- shop-item-filter-list end -->
+                </div>
+                <div class="product-select-box">
+                  <div class="product-short">
+                    <p>Mostrar:</p>
+                    <select
+                      id="products-per-page"
+                      class="show-to"
+                      onchange="updateProductsPerPage()"
+                    >
+                      <option value="6">6</option>
+                      <option value="12" selected>12</option>
+                      <option value="24">24</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                      <option value="all">Todos</option>
+                    </select>
+                    <p>productos</p>
                   </div>
                 </div>
-              </form>
-              <hr>
+              </div>
+              <!-- product-select-box start -->
+              <div class="product-select-box">
+                <div class="product-short">
+                                   <p>Ordenar por:</p>
+                  <select class="nice-select" id="selectOrdering" onchange="captureOrderingValue()">
+                    <option value="product_name">Nombre (A - Z)</option>
+                    <option value="-product_name">Nombre (Z - A)</option>
+                    <option value="sell_price">Precio (Menor > Mayor)</option>
+                    <option value="updated_timestamp">Fecha</option>
+                    </select>
+                </div>
+              </div>
+              <!-- product-select-box end -->
             </div>
+            <!-- shop-top-bar end -->
+            <!-- shop-products-wrapper start -->
+            <div class="shop-products-wrapper">
+              <div class="tab-content">
+                <div
+                  id="grid-view"
+                  class="tab-pane fade active show"
+                  role="tabpanel"
+                >
+                  <div class="product-area shop-product-area">
+                    <div class="row"></div>
+                  </div>
+                </div>
 
-            <!-- /.card-header -->
-            <div class="modal-body">
+                <div class="paginatoin-area">
+                  <div class="row">
+                    <div class="col-lg-6 col-md-6">
+                      <p id="product-count"></p>
+                    </div>
 
-              <table id="tabla-de-Datos" class="table table-bordered table-striped" style="width: 100%;">
-              </table>
-            </div>
-            <!-- /.card-body -->
-          </div>
-          <!-- /.card -->
-        </div>
-        <!-- /.col -->
-      </div>
-      <!-- /.row -->
-    </div>
-    <!-- /.container-fluid -->
-  </section>
-  <!-- /.content -->
-</div>
-<!-- /.content-wrapper -->
-
-<!-- modal para crear producto -->
-<div class="modal fade" id="modal-crear-products" data-backdrop="static" tabindex="-1" role="dialog"
-  aria-labelledby="staticBackdropLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Adicionar Producto</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-
-      <form id="form-create-products">
-        <div class="card-body">
-
-          <div class="form-group">
-            <label for="name">Nombre</label>
-            <input type="text" class="form-control" id="name" name="name" placeholder="Entre el nombre" required>
-          </div>
-          <div class="row">
-            <div class="form-group col-sm-6">
-              <label for="exampleInputFile">Imagen</label>
-              <div class="input-group">
-                <div class="custom-file">
-                  <input type="file" class="custom-file-input" id="image" name="image"
-                    accept="image/jpeg, image/png, image/gif">
-                  <label class=" custom-file-label" for="image"></label>
+                    <div class="col-lg-6 col-md-6">
+                      <ul class="pagination-box"></ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+            <!-- shop-products-wrapper end -->
+          </div>
+          <div class="col-lg-3 order-2 order-lg-1">
+            <!--sidebar-categores-box start  -->
+            <div
+              class="sidebar-categores-box mt-sm-30 mt-xs-30"
+              id="models-container"
+            >
+              <div class="sidebar-title">
+                <h2>Modelos</h2>
+              </div>
+              <div class="category-tags">
+                <ul id="model-list">
+                  <!-- Los modelos se llenarán aquí dinámicamente -->
+                </ul>
+              </div>
+            </div>
+            <!--sidebar-categores-box end  -->
+            <!--sidebar-categores-box start  -->
+            <div class="sidebar-categores-box">
+              <div class="sidebar-title">
+                <h2>Tienda</h2>
+              </div>
+             
+              <!-- filter-sub-area start -->
+              <div class="filter-sub-area">
+                <div class="categori-checkbox">
+                  <form action="#">
+                    <ul id="shopsList">
+                      <!-- La lista de tiendas se llenará dinámicamente aquí -->
+                    </ul>
+                  </form>
+                </div>
 
-
-            <div class="form-group col-sm-6">
-              <label for="model">Modelo</label>
-              <select class="form-control select2 selectModel" id="model" name="model" tabindex="-1"></select>
+                <!-- filter-sub-area end -->
+              </div>
+              <!--sidebar-categores-box end  -->
             </div>
           </div>
-
-          <div class="form-group">
-            <label for="description">Descripción</label>
-            <textarea class="form-control" rows="3" id="description" name="description"
-              placeholder="Ingrese la descripción" required></textarea>
+        </div>
+      </div>
+      <!-- Content Wraper Area End Here -->
+      <!-- Begin Footer Area -->
+      <div class="footer">
+        <!-- Begin Footer Static Top Area -->
+        <div class="footer-static-top">
+          <div class="container">
+            <!-- Begin Footer Shipping Area -->
+            <div class="footer-shipping pt-60 pb-55 pb-xs-25">
+              <div class="row">
+                <!-- Begin Li's Shipping Inner Box Area -->
+                <div class="col-lg-3 col-md-6 col-sm-6 pb-sm-55 pb-xs-55">
+                  <div class="li-shipping-inner-box">
+                    <div class="shipping-icon">
+                      <img
+                        src="{% static 'assets/catalogo/images/shipping-icon/1.png' %}"
+                        alt="Shipping Icon"
+                      />
+                    </div>
+                    <div class="shipping-text">
+                      <h2>Envios</h2>
+                      <p>Realizamos envíos a toda Cuba.</p>
+                    </div>
+                  </div>
+                </div>
+                <!-- Li's Shipping Inner Box Area End Here -->
+                <!-- Begin Li's Shipping Inner Box Area -->
+                <div class="col-lg-3 col-md-6 col-sm-6 pb-sm-55 pb-xs-55">
+                  <div class="li-shipping-inner-box">
+                    <div class="shipping-icon">
+                      <img
+                        src="{% static 'assets/catalogo/images/shipping-icon/2.png' %}"
+                        alt="Shipping Icon"
+                      />
+                    </div>
+                    <div class="shipping-text">
+                      <h2>Pago seguro</h2>
+                      <p>Pague con el método de pago más popular y seguro.</p>
+                    </div>
+                  </div>
+                </div>
+                <!-- Li's Shipping Inner Box Area End Here -->
+                <!-- Begin Li's Shipping Inner Box Area -->
+                <div class="col-lg-3 col-md-6 col-sm-6 pb-xs-30">
+                  <div class="li-shipping-inner-box">
+                    <div class="shipping-icon">
+                      <img
+                        src="{% static 'assets/catalogo/images/shipping-icon/3.png' %}"
+                        alt="Shipping Icon"
+                      />
+                    </div>
+                    <div class="shipping-text">
+                      <h2>Compra con confianza</h2>
+                      <p>
+                        Nuestra protección al comprador cubre tu compra desde el
+                        clic hasta la entrega.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <!-- Li's Shipping Inner Box Area End Here -->
+                <!-- Begin Li's Shipping Inner Box Area -->
+                <div class="col-lg-3 col-md-6 col-sm-6 pb-xs-30">
+                  <div class="li-shipping-inner-box">
+                    <div class="shipping-icon">
+                      <img
+                        src="{% static 'assets/catalogo/images/shipping-icon/4.png' %}"
+                        alt="Shipping Icon"
+                      />
+                    </div>
+                    <div class="shipping-text">
+                      <h2>Centro de Ayuda 24/7</h2>
+                      <p>
+                        ¿Tienes una pregunta? Llama a un especialista o chatea
+                        en línea.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <!-- Li's Shipping Inner Box Area End Here -->
+              </div>
+            </div>
+            <!-- Footer Shipping Area End Here -->
           </div>
-
-
-
         </div>
-
-        <!-- /.card-body -->
-        <div class="modal-footer justify-content-between">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-          <button type="submit" class="btn btn-primary">Enviar</button>
+        <!-- Footer Static Top Area End Here -->
+        <!-- Begin Footer Static Middle Area -->
+        <div class="footer-static-middle">
+          <div class="container">
+            <div class="footer-logo-wrap pt-50 pb-35">
+              <div class="row">
+                <!-- Begin Footer Logo Area -->
+                <div class="col-lg-4 col-md-6">
+                  <div class="footer-logo" style="text-align: center">
+                    <img
+                      style="width: 80%"
+                      src="{% static 'assets/dist/img/AdminLTELogo.png' %}"
+                      alt="Footer Logo"
+                    />
+                  </div>
+                </div>
+                <!-- Footer Logo Area End Here -->
+                <!-- Begin Footer Block Area -->
+                <div class="col-lg-4 col-md-3 col-sm-6">
+                  <div class="footer-block">
+                    <h3 class="footer-block-title">Contáctenos</h3>
+                    <ul class="des">
+                      <li>
+                        <span>Dirección Miami: </span>
+                        5704 West Flagler ST Miami FL 33144
+                      </li>
+                      <li>
+                        <span>Dirección Cuba: </span>
+                        Calle H. Castillo #111/ Máximo Gómez & Serafín Sánchez
+                        Ciego de Ávila, CUBA
+                      </li>
+                      <li>
+                        <span>Telefono: </span>
+                        <a href="#">+1 (305) 877-0178 : Miami</a>
+                        <a href="#">+53 5104-6908 : Cuba</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <!-- Footer Block Area End Here -->
+                <!-- Begin Footer Block Area -->
+                <div class="col-lg-4">
+                  <div class="footer-block">
+                    <h3 class="footer-block-title">Síguenos</h3>
+                    <ul class="social-link">
+                      <li class="facebook">
+                        <a
+                          href="https://www.facebook.com/"
+                          data-toggle="tooltip"
+                          target="_blank"
+                          title="Facebook"
+                        >
+                          <i class="fa fa-facebook"></i>
+                        </a>
+                      </li>
+                      <li class="instagram">
+                        <a
+                          href="https://www.instagram.com/"
+                          data-toggle="tooltip"
+                          target="_blank"
+                          title="Instagram"
+                        >
+                          <i class="fa fa-instagram"></i>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                  <!-- Begin Footer Newsletter Area -->
+                </div>
+                <!-- Footer Block Area End Here -->
+              </div>
+            </div>
+          </div>
         </div>
-
-      </form>
-
+        <!-- Footer Static Middle Area End Here -->
+        <!-- Begin Footer Static Bottom Area -->
+        <div class="footer-static-bottom pt-55 pb-55">
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="copyright text-center pt-25">
+                  <span
+                    ><strong>
+                      Designed by <a href="">Extinction Group</a></strong
+                    ></span
+                  >
+                </div>
+                <!-- Copyright Area End Here -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Footer Static Bottom Area End Here -->
+      </div>
+      <!-- Footer Area End Here -->
+      <!-- Begin Quick View | Modal Area -->
+   <!-- Agregar esto donde corresponda en tu HTML -->
+<div class="modal fade" id="productDetailModal" tabindex="-1" aria-labelledby="productDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+    
+      <div class="modal-header">
+              <h4 class="modal-title">Detalles del Producto</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <img id="modalProductImage" src="" alt="Producto" class="img-fluid">
+          </div>
+          <div class="col-md-6">
+            <div class="product-details">
+              <h3 id="modalProductName"></h3>
+              <p class="brand">
+                <strong>Marca:</strong> <span id="modalBrandName"></span>
+              </p>
+              <p class="model">
+                <strong>Modelo:</strong> <span id="modalModelName"></span>
+              </p>
+              <p class="price">
+                <strong>Precio:</strong> <span id="modalPrice"></span>
+              </p>
+              <p class="shop">
+                <strong>Tienda:</strong> <span id="modalShopName"></span>
+              </p>
+              <p class="description">
+                <strong>Descripción:</strong> <span id="modalDescription"></span>
+              </p>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
     </div>
   </div>
-
 </div>
-<!-- /.modal-content -->
-</div>
-<!-- /.modal-dialog -->
-</div>
-<!-- /.modal -->
 
-{% endblock %}
-{% block script %} <!-- DataTables & Plugins -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="{% static 'assets/plugins/datatables/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
-<script src="{% static 'assets/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
-<script src="{% static 'assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
-<script src="{% static 'assets/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
-<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
-<script src="{% static 'assets/plugins/jszip/jszip.min.js' %}"></script>
-<script src="{% static 'assets/plugins/pdfmake/pdfmake.min.js' %}"></script>
-<script src="{% static 'assets/plugins/pdfmake/vfs_fonts.js' %}"></script>
-<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
-<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
-<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
-<script src="{% static 'assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js' %}"></script>
-<script src="{% static 'assets/plugins/jquery-validation/jquery.validate.min.js' %}"></script>
-<script src="{% static 'assets/plugins/jquery-validation/additional-methods.min.js' %}"></script>
-<script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
-<script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
-<script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
+    {% block script %}
+    <!-- DataTables & Plugins -->
 
-<script src="{% static 'assets/dist/js/catalogo.js' %}"></script>
-<script>
-  $('.select2').select2({ dropdownParent: $('#filter-form'), theme: 'bootstrap4' })
-  $('.selectModel').select2({ dropdownParent: $('#modal-crear-products'), theme: 'bootstrap4' })
-{% comment %} para el catalogo {% endcomment %}
+    <!-- jQuery-V1.12.4 -->
+    <script src="{% static 'assets/catalogo/js/vendor/jquery-1.12.4.min.js' %}"></script>
+    <!-- Popper js -->
+    <script src="{% static 'assets/catalogo/js/vendor/popper.min.js' %}"></script>
+    <!-- Bootstrap V4.1.3 Fremwork js -->
+    <script src="{% static 'assets/catalogo/js/bootstrap.min.js' %}"></script>
+    <!-- Ajax Mail js -->
+    <script src="{% static 'assets/catalogo/js/ajax-mail.js' %}"></script>
+    <!-- Meanmenu js -->
+    <script src="{% static 'assets/catalogo/js/jquery.meanmenu.min.js' %}"></script>
+    <!-- Wow.min js -->
+    <script src="{% static 'assets/catalogo/js/wow.min.js' %}"></script>
+    <!-- Slick Carousel js -->
+    <script src="{% static 'assets/catalogo/js/slick.min.js' %}"></script>
+    <!-- Owl Carousel-2 js -->
+    <script src="{% static 'assets/catalogo/js/owl.carousel.min.js' %}"></script>
+    <!-- Magnific popup js -->
+    <script src="{% static 'assets/catalogo/js/jquery.magnific-popup.min.js' %}"></script>
+    <!-- Isotope js -->
+    <script src="{% static 'assets/catalogo/js/isotope.pkgd.min.js' %}"></script>
+    <!-- Imagesloaded js -->
+    <script src="{% static 'assets/catalogo/js/imagesloaded.pkgd.min.js' %}"></script>
+    <!-- Mixitup js -->
+    <script src="{% static 'assets/catalogo/js/jquery.mixitup.min.js' %}"></script>
+    <!-- Countdown -->
+    <script src="{% static 'assets/catalogo/js/jquery.countdown.min.js' %}"></script>
+    <!-- Counterup -->
+    <script src="{% static 'assets/catalogo/js/jquery.counterup.min.js' %}"></script>
+    <!-- Waypoints -->
+    <script src="{% static 'assets/catalogo/js/waypoints.min.js' %}"></script>
+    <!-- Barrating -->
+    <script src="{% static 'assets/catalogo/js/jquery.barrating.min.js' %}"></script>
+    <!-- Jquery-ui -->
+    <script src="{% static 'assets/catalogo/js/jquery-ui.min.js' %}"></script>
+    <!-- Venobox -->
+    <script src="{% static 'assets/catalogo/js/venobox.min.js' %}"></script>
+    <!-- Nice Select js -->
+    <script src="{% static 'assets/catalogo/js/jquery.nice-select.min.js' %}"></script>
+    <!-- ScrollUp js -->
+    <script src="{% static 'assets/catalogo/js/scrollUp.min.js' %}"></script>
+    <!-- Main/Activator js -->
+    <script src="{% static 'assets/catalogo/js/main.js' %}"></script>
+    <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+    <script src="{% static 'assets/dist/js/catalogo.js' %}"></script>
 
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        loadProducts(1); // Cargar productos inicialmente
+      });
+    </script>
 
+    <script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
 
-
-</script>
-{% endblock %}
+    {% comment %}
+    <script src="{% static 'assets/dist/js/catalogo.js' %}"></script>
+    {% endcomment %} {% endblock %}
+  </div>
+</body>

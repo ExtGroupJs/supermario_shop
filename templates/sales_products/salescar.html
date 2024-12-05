@@ -87,6 +87,7 @@
           <div class="col-md-9">
             <h2>Productos a Vender</h2>
           </div>
+         
           <div class="col-md-3">
                <h5 id="impTotal" class="direct-chat-text right">Importe total : 0$</h5>
            </div>
@@ -191,8 +192,16 @@
 
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
 <script src="{% static 'assets/dist/js/salescar.js' %}"></script>
+<script src="{% static 'assets/plugins/bootstrap-switch/js/bootstrap-switch.min.js' %}"></script>
+
 <script>
   $('.select2').select2({ dropdownParent: $('#ventaForm'), theme: 'bootstrap4' })
-  
+  $("input[data-bootstrap-switch]").each(function(){
+    $(this).bootstrapSwitch({
+        state: $(this).prop('checked'),
+        onText: 'MLC',  // Cambia 'Activado' por el texto que desees
+        offText: 'Zelle' // Cambia 'Desactivado' por el texto que desees
+    });
+});
 </script>
 {% endblock %}
