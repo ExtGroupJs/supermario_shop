@@ -14,7 +14,7 @@ class EnumsMixin(mixins.ListModelMixin, ViewSet):
     def list(self, request, *args, **kwargs):
         results = {
             key: [{"value": value, "label": label} for value, label in enum.choices]
-                for key, enum in self.items
+            for key, enum in self.items
         }
         return Response(results)
 
