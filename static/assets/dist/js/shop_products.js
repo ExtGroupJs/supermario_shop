@@ -537,6 +537,7 @@ function verLogs(shopProductId, name) {
     ajax: {
       url: "/common/logs/",
       data: {
+        ordering:"-created_timestamp",
         object_id: shopProductId,
         performed_action: "U", // Filtrar solo por performed_action "U"
       },
@@ -548,7 +549,7 @@ function verLogs(shopProductId, name) {
         data: "created_timestamp",
         title: "Fecha",
         render: function (data) {
-          return formatDate(data); // Formatear la fecha
+          return data; // Formatear la fecha
         },
       },
       {
