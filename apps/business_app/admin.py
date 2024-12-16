@@ -60,7 +60,6 @@ class ShopAdmin(admin.ModelAdmin):
         "name",
         "logo",
         "extra_info",
-        "updated_timestamp",
     ]
     fields = [
         "name",
