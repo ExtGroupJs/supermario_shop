@@ -36,4 +36,4 @@ class SellSerializer(serializers.ModelSerializer):
         )
 
     def get_created_timestamp(self, object):
-        return object.created_timestamp.strftime("%d-%h-%Y a las  %I:%M %p")
+        return object.created_timestamp.strftime("%d-%h-%Y a las %I:%M %p")

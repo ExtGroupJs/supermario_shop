@@ -4,7 +4,8 @@ from apps.common.models.generic_log import GenericLog
 
 
 class GenericLogSerializer(serializers.ModelSerializer):
-    model_class = serializers.SerializerMethodField(read_only=True)
+    model_class = serializers.SerializerMethodField()
+    created_timestamp = serializers.SerializerMethodField()
 
     class Meta:
         model = GenericLog
@@ -22,3 +23,6 @@ class GenericLogSerializer(serializers.ModelSerializer):
 
     def get_model_class(self, object):
         return object.content_type.name
+    
+    def get_created_timestamp(self, object):
+        return object.created_timestamp.strftime("%d-%h-%Y a las %I:%M %p")
