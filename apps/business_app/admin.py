@@ -60,6 +60,7 @@ class ShopAdmin(admin.ModelAdmin):
         "name",
         "logo",
         "extra_info",
+        "updated_timestamp",
     ]
     fields = [
         "name",
@@ -100,6 +101,8 @@ class SellAdmin(admin.ModelAdmin):
         "seller",
         "extra_info",
         "quantity",
+         "updated_timestamp",
+
     ]
     fields = [
         "shop_product",
