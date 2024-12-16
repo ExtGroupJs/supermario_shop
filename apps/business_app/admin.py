@@ -100,6 +100,8 @@ class SellAdmin(admin.ModelAdmin):
         "seller",
         "extra_info",
         "quantity",
+         "updated_timestamp",
+
     ]
     fields = [
         "shop_product",

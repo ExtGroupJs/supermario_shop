@@ -5,7 +5,7 @@ const csrfToken = document.cookie
   ?.split("=")[1];
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 // url del endpoint principal
-const url = "/business-gestion/sell-products/";
+const urlSell = "/business-gestion/sell-products/";
 $(function () {
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
@@ -66,7 +66,7 @@ $(document).ready(function () {
       params.search = data.search.value;
 
       axios
-        .get(`${url}`, { params })
+        .get(`${urlSell}`, { params })
         .then((res) => {
           callback({
             recordsTotal: res.data.count,
@@ -135,7 +135,7 @@ function function_delete(id, name, quantity, date, seller) {
     if (result.isConfirmed) {
       axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
       axios
-        .delete(`${url}${id}/`)
+        .delete(`${urlSell}${id}/`)
         .then((response) => {
           if (response.status === 204) {
             table.row(`#${id}`).remove().draw();
