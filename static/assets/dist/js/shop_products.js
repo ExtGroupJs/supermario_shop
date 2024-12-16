@@ -537,7 +537,7 @@ function verLogs(shopProductId, name) {
     ajax: {
       url: "/common/logs/",
       data: {
-        ordering:"-created_timestamp",
+        //ordering:"-created_timestamp",
         object_id: shopProductId,
         performed_action: "U", // Filtrar solo por performed_action "U"
       },
@@ -608,6 +608,8 @@ function verLogs(shopProductId, name) {
     ],
     columnDefs: [{ className: "primera_col", targets: 0 }],
     destroy: true, // Permite reinicializar el DataTable
+    ordering: false // Esto deshabilitará completamente el ordenamiento
+
   });
   $("#modal-logs-label").text("Logs del Producto " + name);
   // Mostrar el modal
