@@ -17,92 +17,96 @@ $(function () {
 });
 
 $(document).ready(function () {
-  const table = $("#tabla-de-Datos").DataTable({
+const table = $("#tabla-de-Datos").DataTable({
     responsive: true,
     lengthMenu: [
-      [10, 25, 50, 100, -1], // Valores
-      [10, 25, 50, 100, "Todos"], // Etiquetas
+        [10, 25, 50, 100, -1],
+        [10, 25, 50, 100, "Todos"],
     ],
     dom: '<"top"l>Bfrtip',
     buttons: [
-      {
-        extend: "excel",
-        text: "Excel",
-      },
-      {
-        extend: "pdf",
-        text: "PDF",
-      },
-      {
-        extend: "print",
-        text: "Print",
-      },
+        {
+            extend: "excel",
+            text: "Excel",
+        },
+        {
+            extend: "pdf",
+            text: "PDF",
+        },
+        {
+            extend: "print",
+            text: "Print",
+        },
     ],
-    //Adding server-side processing
     serverSide: true,
     search: {
-      return: true,
+        return: true,
     },
     processing: true,
     ajax: function (data, callback, settings) {
-      const filters = $("#filter-form").serializeArray();
-
-      if (filters[1].value != "") {
-        filters[1].value += ":23:59";
-      }
-      const params = {};
-      filters.forEach((filter) => {
-        if (filter.value) {
-          params[filter.name] = filter.value;
+        const filters = $("#filter-form").serializeArray();
+        if (filters[1].value != "") {
+            filters[1].value += ":23:59";
         }
-      });
-      dir = "";
-      if (data.order[0].dir == "desc") {
-        dir = "-";
-      }
-      params.page_size = data.length;
-      params.page = data.start / data.length + 1;
-      params.ordering = dir + data.columns[data.order[0].column].data;
-      params.search = data.search.value;
-
-      axios
-        .get(`${urlSell}`, { params })
-        .then((res) => {
-          callback({
-            recordsTotal: res.data.count,
-            recordsFiltered: res.data.count,
-            data: res.data.results,
-          });
-        })
-        .catch((error) => {
-          alert(error);
+        const params = {};
+        filters.forEach((filter) => {
+            if (filter.value) {
+                params[filter.name] = filter.value;
+            }
         });
+        dir = "";
+        if (data.order[0].dir == "desc") {
+            dir = "-";
+        }
+        params.page_size = data.length;
+        params.page = data.start / data.length + 1;
+        params.ordering = dir + data.columns[data.order[0].column].data;
+        params.search = data.search.value;
+        axios
+            .get(`${urlSell}`, { params })
+            .then((res) => {
+                callback({
+                    recordsTotal: res.data.count,
+                    recordsFiltered: res.data.count,
+                    data: res.data.results,
+                });
+            })
+            .catch((error) => {
+                alert(error);
+            });
     },
-
     columns: [
-      { data: "product_name", title: "Producto" },
-      { data: "quantity", title: "Cantidad" },
-      { data: "sell_price", title: "Precio unitario" },
-      { data: "total_priced", title: "Monto total" },
-      { data: "profits", title: "Ganancia" },
-      { data: "seller__first_name", title: "Vendedor" },
-      { data: "created_timestamp", title: "Fecha" },
-
-      {
-        data: "id",
-        title: "Acciones",
-        render: (data, type, row) => {
-          return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product__product__name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
-                          <i class="fas fa-trash"></i>
-                        </button>                                          
-                      </div>`;
+        { 
+            data: "sell_group", 
+            title: "Grupo de Venta",
+            visible: false  // La columna estará oculta ya que se usa solo para agrupar
         },
-      },
+        { data: "product_name", title: "Producto" },
+        { data: "quantity", title: "Cantidad" },
+        { data: "sell_price", title: "Precio unitario" },
+        { data: "total_priced", title: "Monto total" },
+        { data: "profits", title: "Ganancia" },
+        { data: "seller__first_name", title: "Vendedor" },
+        { data: "created_timestamp", title: "Fecha" },
+        {
+            data: "id",
+            title: "Acciones",
+            render: (data, type, row) => {
+                return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product__product__name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
+                    <i class="fas fa-trash"></i>
+                    </button>`;
+            },
+        },
     ],
-    order: [[6, "desc"]],
-    //  esto es para truncar el texto de las celdas
-    columnDefs: [],
-  });
+    order: [[0, 'asc'], [7, "desc"]], // Primero ordena por grupo, luego por fecha
+    rowGroup: {
+        dataSrc: 'sell_group',
+        startRender: function(rows, group) {
+            return 'Grupo de Venta: ' + group;
+        }
+    },
+    columnDefs: []
+});
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();
