@@ -553,7 +553,7 @@ function verLogs(shopProductId, name) {
       },
       {
         data: "details",
-        title: "Existencia",
+        title: "Valor Inicial",
         render: function (data) {
           try {
             const formattedData = data.replace(/'/g, '"');
@@ -567,7 +567,7 @@ function verLogs(shopProductId, name) {
       },
       {
         data: "details",
-        title: "Entrada",
+        title: "Valor Final",
         render: function (data) {
           try {
             const formattedData = data.replace(/'/g, '"');
