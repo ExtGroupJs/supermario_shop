@@ -109,6 +109,11 @@ class SellAdmin(admin.ModelAdmin):
         "extra_info",
         "quantity",
     ]
+    search_fields=[
+        "shop_product__product__name",
+        "shop_product__product__model__name",
+        "shop_product__product__model__brand__name",
+    ]
 
 
 # @admin.register(AllowedExtensions)
