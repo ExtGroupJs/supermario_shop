@@ -102,6 +102,7 @@ class SellAdmin(admin.ModelAdmin):
         "seller",
         "extra_info",
         "quantity",
+        "updated_timestamp",
     ]
     fields = [
         "shop_product",
@@ -109,6 +110,11 @@ class SellAdmin(admin.ModelAdmin):
         "extra_info",
         "sell_group",
         "quantity",
+    ]
+    search_fields = [
+        "shop_product__product__name",
+        "shop_product__product__model__name",
+        "shop_product__product__model__brand__name",
     ]
 
 

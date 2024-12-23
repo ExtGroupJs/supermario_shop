@@ -537,6 +537,7 @@ function verLogs(shopProductId, name) {
     ajax: {
       url: "/common/logs/",
       data: {
+        //ordering:"-created_timestamp",
         object_id: shopProductId,
         performed_action: "U", // Filtrar solo por performed_action "U"
       },
@@ -548,12 +549,12 @@ function verLogs(shopProductId, name) {
         data: "created_timestamp",
         title: "Fecha",
         render: function (data) {
-          return formatDate(data); // Formatear la fecha
+          return data; // Formatear la fecha
         },
       },
       {
         data: "details",
-        title: "Existencia",
+        title: "Valor Inicial",
         render: function (data) {
           try {
             const formattedData = data.replace(/'/g, '"');
@@ -567,7 +568,7 @@ function verLogs(shopProductId, name) {
       },
       {
         data: "details",
-        title: "Entrada",
+        title: "Valor Final",
         render: function (data) {
           try {
             const formattedData = data.replace(/'/g, '"');
@@ -607,6 +608,8 @@ function verLogs(shopProductId, name) {
     ],
     columnDefs: [{ className: "primera_col", targets: 0 }],
     destroy: true, // Permite reinicializar el DataTable
+    ordering: false // Esto deshabilitará completamente el ordenamiento
+
   });
   $("#modal-logs-label").text("Logs del Producto " + name);
   // Mostrar el modal
