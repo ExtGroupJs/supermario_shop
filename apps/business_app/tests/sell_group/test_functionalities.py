@@ -55,7 +55,9 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.user.groups.add(Groups.SHOP_SELLER)
         random_qty = baker.random_gen.gen_integer(min_int=1, max_int=5)
         random_shop_product_qty = baker.random_gen.gen_integer(min_int=2, max_int=5)
-        random_shop_product_selled_qty = baker.random_gen.gen_integer(min_int=1, max_int=random_shop_product_qty)
+        random_shop_product_selled_qty = baker.random_gen.gen_integer(
+            min_int=1, max_int=random_shop_product_qty
+        )
         sells = [
             {
                 "shop_product": baker.make(
@@ -69,7 +71,12 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             }
             for _ in range(random_qty)
         ]
-        self.assertEqual(ShopProducts.objects.count(), GenericLog.objects.filter(performed_action=GenericLog.ACTION.CREATED).count())
+        self.assertEqual(
+            ShopProducts.objects.count(),
+            GenericLog.objects.filter(
+                performed_action=GenericLog.ACTION.CREATED
+            ).count(),
+        )
 
         payload = {
             "discount": 0,
@@ -94,7 +101,16 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             ).count(),
             random_qty,
         )
-        self.assertEqual(ShopProducts.objects.filter(quantity=random_shop_product_qty-random_shop_product_selled_qty).count(), random_qty)
+        self.assertEqual(
+            ShopProducts.objects.filter(
+                quantity=random_shop_product_qty - random_shop_product_selled_qty
+            ).count(),
+            random_qty,
+        )
 
-        self.assertEqual(ShopProducts.objects.count(), GenericLog.objects.filter(performed_action=GenericLog.ACTION.UPDATED).count())
-
+        self.assertEqual(
+            ShopProducts.objects.count(),
+            GenericLog.objects.filter(
+                performed_action=GenericLog.ACTION.UPDATED
+            ).count(),
+        )

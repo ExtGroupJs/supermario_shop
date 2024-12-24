@@ -23,6 +23,6 @@ class GenericLogSerializer(serializers.ModelSerializer):
 
     def get_model_class(self, object):
         return object.content_type.name
-    
+
     def get_created_timestamp(self, object):
         return object.created_timestamp.strftime("%d-%h-%Y a las %I:%M %p")
