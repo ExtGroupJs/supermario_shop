@@ -8,6 +8,9 @@ from rest_framework.test import APIClient
 from django.core.management import call_command
 from faker import Faker
 from rest_framework import status
+from apps.business_app.models.sell import Sell
+from apps.business_app.models.shop_products import ShopProducts
+from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
 
 
@@ -47,7 +50,10 @@ class BaseTestClass(TestCase):
         #     expires=timezone.now() + timezone.timedelta(days=1),
         #     scope="read,write",
         # )
-
+    def tearDown(self):
+        GenericLog.objects.all().delete()
+        super().tearDown()
+        
     def _test_permissions(
         self,
         url,
@@ -98,3 +104,4 @@ class BaseTestClass(TestCase):
 
     def _get_not_allowed_groups(self, allowed_groups):
         return [group for group in Groups if group not in allowed_groups]
+    
