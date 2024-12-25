@@ -46,7 +46,6 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.created_instance.delete()
         log_entry = GenericLog.objects.filter(object_id=self.created_instance.pk).last()
         self.assertEqual(log_entry.performed_action, GenericLog.ACTION.DELETED)
-        print(log_entry.details)
         self.assertEqual(
             log_entry.content_type, ContentType.objects.get_for_model(ShopProducts)
         )
