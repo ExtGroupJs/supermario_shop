@@ -1,12 +1,9 @@
 import pytest
 from model_bakery import baker
 from django.contrib.contenttypes.models import ContentType
-from apps.business_app.models.sell import Sell
 from apps.business_app.models.shop_products import ShopProducts
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.common.models.generic_log import GenericLog
-from apps.common.mixins.generic_log import GenericLogMixin
-from django.db import models
 
 
 @pytest.mark.django_db
