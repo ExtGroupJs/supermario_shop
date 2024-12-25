@@ -50,10 +50,11 @@ class BaseTestClass(TestCase):
         #     expires=timezone.now() + timezone.timedelta(days=1),
         #     scope="read,write",
         # )
+
     def tearDown(self):
         GenericLog.objects.all().delete()
         super().tearDown()
-        
+
     def _test_permissions(
         self,
         url,
@@ -104,4 +105,3 @@ class BaseTestClass(TestCase):
 
     def _get_not_allowed_groups(self, allowed_groups):
         return [group for group in Groups if group not in allowed_groups]
-    

@@ -8,23 +8,25 @@ from apps.common.models.generic_log import GenericLog
 from apps.common.mixins.generic_log import GenericLogMixin
 from django.db import models
 
+
 @pytest.mark.django_db
 class TestSellGroupsViewSetFunctionalities(BaseTestClass):
-    
     def setUp(self):
         super().setUp()
-        self.created_instance = baker.make(ShopProducts, cost_price = 1, sell_price = 2)
-    
+        self.created_instance = baker.make(ShopProducts, cost_price=1, sell_price=2)
+
     def test_create_log_entry_on_save(self):
         log_entry = GenericLog.objects.get(object_id=self.created_instance.pk)
-        self.assertEqual(log_entry.performed_action, GenericLog.ACTION.CREATED) 
-        self.assertEqual(log_entry.content_type, ContentType.objects.get_for_model(ShopProducts))
+        self.assertEqual(log_entry.performed_action, GenericLog.ACTION.CREATED)
+        self.assertEqual(
+            log_entry.content_type, ContentType.objects.get_for_model(ShopProducts)
+        )
         expected_details = {
-                'shop': f'{self.created_instance.shop}',
-                'product': f'{self.created_instance.product}',
-                'cost_price': f'{self.created_instance.cost_price}',
-                'sell_price': f'{self.created_instance.sell_price}'
-            }
+            "shop": f"{self.created_instance.shop}",
+            "product": f"{self.created_instance.product}",
+            "cost_price": f"{self.created_instance.cost_price}",
+            "sell_price": f"{self.created_instance.sell_price}",
+        }
         self.assertEqual(eval(log_entry.details), expected_details)
 
     def test_update_log_entry_on_save(self):
@@ -32,21 +34,27 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.created_instance.save()
         log_entry = GenericLog.objects.filter(object_id=self.created_instance.pk).last()
         self.assertEqual(log_entry.performed_action, GenericLog.ACTION.UPDATED)
-        self.assertEqual(log_entry.content_type,ContentType.objects.get_for_model(ShopProducts))
+        self.assertEqual(
+            log_entry.content_type, ContentType.objects.get_for_model(ShopProducts)
+        )
         self.assertTrue("sell_price" in log_entry.details)
         details = eval(log_entry.details)
-        self.assertEqual(details["sell_price"]["old_value"],'2.00')
-        self.assertEqual(details["sell_price"]["new_value"],'3')
+        self.assertEqual(details["sell_price"]["old_value"], "2.00")
+        self.assertEqual(details["sell_price"]["new_value"], "3")
 
     def test_delete_log_entry(self):
         self.created_instance.delete()
         log_entry = GenericLog.objects.filter(object_id=self.created_instance.pk).last()
-        self.assertEqual(log_entry.performed_action,GenericLog.ACTION.DELETED)
+        self.assertEqual(log_entry.performed_action, GenericLog.ACTION.DELETED)
         print(log_entry.details)
-        self.assertEqual(log_entry.content_type,ContentType.objects.get_for_model(ShopProducts))
+        self.assertEqual(
+            log_entry.content_type, ContentType.objects.get_for_model(ShopProducts)
+        )
 
     @pytest.mark.django_db
     def test_no_log_entry_on_no_change(self):
         self.created_instance.save()
         log_entries = GenericLog.objects.filter(object_id=self.created_instance.pk)
-        self.assertEqual(log_entries.count(),1)  # Only the creation log entry should exist
+        self.assertEqual(
+            log_entries.count(), 1
+        )  # Only the creation log entry should exist
