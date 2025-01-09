@@ -184,8 +184,15 @@ $(document).ready(function () {
   // Restablecer filtros
   $("#reset-filters").on("click", function () {
     $("#filter-form")[0].reset();
+     myDateStart = null;
+ myDateEnd = null;
+    
+console.log('✌️$("#filter-form")[0] --->', $("#filter-form")[0]);
     table.ajax.reload();
   });
+
+
+
 
   // Mostrar/Ocultar filtros
   $("#toggle-filters").on("click", function () {
@@ -559,6 +566,10 @@ function verLogs(shopProductId, name) {
           try {
             const formattedData = data.replace(/'/g, '"');
             const details = JSON.parse(formattedData);
+            if (!details.quantity) {
+                           
+              return null; // No mostrar la fila si quantity no existe
+            }
             return details.quantity.old_value; // Mostrar old_value
           } catch (e) {
             console.error("Error al parsear details:", e);
@@ -573,6 +584,9 @@ function verLogs(shopProductId, name) {
           try {
             const formattedData = data.replace(/'/g, '"');
             const details = JSON.parse(formattedData);
+            if (!details.quantity) {
+              return null; // No mostrar la fila si quantity no existe
+            }
             return details.quantity.new_value; // Mostrar new_value
           } catch (e) {
             console.error("Error al parsear details:", e);
@@ -587,10 +601,14 @@ function verLogs(shopProductId, name) {
           try {
             const formattedData = data.replace(/'/g, '"');
             const details = JSON.parse(formattedData);
+             if (!details.quantity) {
+                           return null; // No mostrar la fila si quantity no existe
+            }
             const existencia = parseInt(details.quantity.old_value, 10);
             const entrada = parseInt(details.quantity.new_value, 10);
             let action = "";
             let difference = 0;
+           
             if (entrada > existencia) {
               action = "Entrada";
               difference = entrada - existencia;
