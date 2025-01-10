@@ -31,11 +31,11 @@ class GenericLogViewSet(viewsets.ReadOnlyModelViewSet, GenericAPIView):
     search_fields = [
         "name",
         "description",
-    ]    
+    ]
     ordering = [
-        "-created_timestamp",   
-            ]
- 
+        "-created_timestamp",
+    ]
+
     ordering_fields = [
         "created_timestamp",
         "performed_action",
