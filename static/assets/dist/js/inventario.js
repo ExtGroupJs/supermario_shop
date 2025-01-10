@@ -174,9 +174,7 @@ function verLogs(shopProductId, name) {
         title: "Valor Inicial",
         render: function (data) {
           try {
-            const formattedData = data.replace(/'/g, '"');
-            const details = JSON.parse(formattedData);
-            return details.quantity.old_value; // Mostrar old_value
+            return data.quantity.old_value; // Mostrar old_value
           } catch (e) {
             console.error("Error al parsear details:", e);
             return "Error"; // Manejo de error
@@ -188,9 +186,7 @@ function verLogs(shopProductId, name) {
         title: "Valor final",
         render: function (data) {
           try {
-            const formattedData = data.replace(/'/g, '"');
-            const details = JSON.parse(formattedData);
-            return details.quantity.new_value; // Mostrar new_value
+            return data.quantity.new_value; // Mostrar new_value
           } catch (e) {
             console.error("Error al parsear details:", e);
             return "Error"; // Manejo de error
@@ -202,10 +198,8 @@ function verLogs(shopProductId, name) {
         title: "Acción",
         render: function (data) {
           try {
-            const formattedData = data.replace(/'/g, '"');
-            const details = JSON.parse(formattedData);
-            const existencia = parseInt(details.quantity.old_value, 10);
-            const entrada = parseInt(details.quantity.new_value, 10);
+            const existencia = parseInt(data.quantity.old_value, 10);
+            const entrada = parseInt(data.quantity.new_value, 10);
             let action = "";
             let difference = 0;
             if (entrada > existencia) {
@@ -226,8 +220,7 @@ function verLogs(shopProductId, name) {
     // order: [[0, "desc"]],
     columnDefs: [{ className: "primera_col", targets: 0 }],
     destroy: true, // Permite reinicializar el DataTable
-    ordering: false // Esto deshabilitará completamente el ordenamiento
-
+    ordering: false, // Esto deshabilitará completamente el ordenamiento
   });
   $("#modal-logs-label").text("Logs del Producto " + name);
   // Mostrar el modal
