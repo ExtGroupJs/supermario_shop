@@ -1,23 +1,28 @@
-from threading import current_thread
-
+import threading
 from django.utils.deprecation import MiddlewareMixin
 
-_requests = {}
-
-
-def current_request():
-    return _requests.get(current_thread().ident, None)
-
+# Almacenamos el request por hilo
+_requests = threading.local()
 
 class GetRequestUserMiddleware(MiddlewareMixin):
+
     def process_request(self, request):
-        _requests[current_thread().ident] = request
+        # Almacena el request en el hilo actual
+        _requests.request = request
 
     def process_response(self, request, response):
-        # when response is ready, request should be flushed
-        _requests.pop(current_thread().ident, None)
+        # Limpia el request cuando la respuesta está lista
+        if hasattr(_requests, 'request'):
+            del _requests.request
         return response
 
     def process_exception(self, request, exception):
-        # if an exception has happened, request should be flushed too
-        _requests.pop(current_thread().ident, None)
+        # Limpia el request si ocurre una excepción
+        if hasattr(_requests, 'request'):
+            del _requests.request
+
+def get_current_user():
+    """With this method the current user can be obtained globally in the app"""
+    if hasattr(_requests, 'request'):
+        return _requests.request.user
+    return None

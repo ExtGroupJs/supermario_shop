@@ -209,6 +209,18 @@ function verLogs(shopProductId, name) {
           }
         },
       },
+      {
+        data: "created_by",
+        title: "Por",
+        render: function (data) {
+          try {
+            return data; // Mostrar acción y diferencia
+          } catch (e) {
+            console.error("Error al parsear details:", e);
+            return "Error"; // Manejo de error
+          }
+        },
+      },
     ],
     // order: [[0, "desc"]],
     columnDefs: [{ className: "primera_col", targets: 0 }],
