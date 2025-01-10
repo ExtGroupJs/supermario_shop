@@ -21,8 +21,9 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
         old_value = int(obj.details.get("quantity").get("old_value"))
         new_value = int(obj.details.get("quantity").get("new_value"))
 
-        action = "Entrados" if new_value > old_value else "Vendidos"
-        return f"{action}: {abs(new_value - old_value)}"
+        action = "entrado" if new_value > old_value else "vendido"
+        abs_value = abs(new_value - old_value)
+        return f"{abs_value} {action}{'s' if abs_value>1 else ''}"
 
     def get_init_value(self, obj):
         return obj.details.get("quantity").get("old_value")

@@ -173,48 +173,28 @@ function verLogs(shopProductId, name) {
         data: "init_value",
         title: "Valor Inicial",
         render: function (data) {
-          try {
-            return data; // Mostrar old_value
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data;
         },
       },
       {
         data: "new_value",
         title: "Valor final",
         render: function (data) {
-          try {
-            return data; // Mostrar new_value
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data;
         },
       },
       {
         data: "info",
         title: "Acción",
         render: function (data) {
-          try {
-            return data; // Mostrar acción y diferencia
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data; // Mostrar acción y diferencia
         },
       },
       {
         data: "created_by",
         title: "Por",
         render: function (data) {
-          try {
-            return data; // Mostrar acción y diferencia
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data;
         },
       },
     ],
@@ -223,7 +203,7 @@ function verLogs(shopProductId, name) {
     destroy: true, // Permite reinicializar el DataTable
     ordering: false, // Esto deshabilitará completamente el ordenamiento
   });
-  $("#modal-logs-label").text("Logs del Producto " + name);
+  $("#modal-logs-label").text("Logs del Producto: " + name);
   // Mostrar el modal
   $("#modal-logs").modal("show");
 }

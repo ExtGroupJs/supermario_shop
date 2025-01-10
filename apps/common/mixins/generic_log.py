@@ -4,8 +4,6 @@ from apps.common.middlewares import get_current_user
 from apps.common.models.generic_log import GenericLog
 
 
-
-
 class GenericLogMixin:
     """
     This class allows to store every change on any field of on any desired model as an instance of GenericLog model.
