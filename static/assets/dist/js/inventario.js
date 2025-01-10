@@ -174,10 +174,6 @@ function verLogs(shopProductId, name) {
         title: "Valor Inicial",
         render: function (data) {
           try {
-            console.log(
-              "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            );
-            console.log(data);
             return data; // Mostrar old_value
           } catch (e) {
             console.error("Error al parsear details:", e);
