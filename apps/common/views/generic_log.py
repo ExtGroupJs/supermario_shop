@@ -23,11 +23,11 @@ class GenericLogViewSet(viewsets.ReadOnlyModelViewSet, GenericAPIView):
         CommonOrderingFilter,
     ]
     pagination_class = AllResultsSetPagination
-    filterset_fields = [
-        "content_type",
-        "object_id",
-        "performed_action",
-    ]
+    filterset_fields = {
+        "content_type": ["exact"],
+        "object_id": ["exact"],
+        "performed_action": ["exact"],
+    }
     search_fields = [
         "name",
         "description",

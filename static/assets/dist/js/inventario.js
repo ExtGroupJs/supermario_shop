@@ -152,7 +152,7 @@ function verLogs(shopProductId, name) {
   const logsTable = $("#tabla-de-logs").DataTable({
     responsive: true,
     ajax: {
-      url: "/common/logs/",
+      url: "/business-gestion/shop-products-logs/",
       data: {
         object_id: shopProductId,
         performed_action: "U", // Filtrar solo por performed_action "U"
@@ -170,11 +170,15 @@ function verLogs(shopProductId, name) {
         // },
       },
       {
-        data: "details",
+        data: "init_value",
         title: "Valor Inicial",
         render: function (data) {
           try {
-            return data.quantity.old_value; // Mostrar old_value
+            console.log(
+              "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+            );
+            console.log(data);
+            return data; // Mostrar old_value
           } catch (e) {
             console.error("Error al parsear details:", e);
             return "Error"; // Manejo de error
@@ -182,11 +186,11 @@ function verLogs(shopProductId, name) {
         },
       },
       {
-        data: "details",
+        data: "new_value",
         title: "Valor final",
         render: function (data) {
           try {
-            return data.quantity.new_value; // Mostrar new_value
+            return data; // Mostrar new_value
           } catch (e) {
             console.error("Error al parsear details:", e);
             return "Error"; // Manejo de error
@@ -194,22 +198,11 @@ function verLogs(shopProductId, name) {
         },
       },
       {
-        data: "details",
+        data: "info",
         title: "Acción",
         render: function (data) {
           try {
-            const existencia = parseInt(data.quantity.old_value, 10);
-            const entrada = parseInt(data.quantity.new_value, 10);
-            let action = "";
-            let difference = 0;
-            if (entrada > existencia) {
-              action = "Entrada";
-              difference = entrada - existencia;
-            } else {
-              action = "Vendido";
-              difference = existencia - entrada;
-            }
-            return `${action} ${difference}`; // Mostrar acción y diferencia
+            return data; // Mostrar acción y diferencia
           } catch (e) {
             console.error("Error al parsear details:", e);
             return "Error"; // Manejo de error
