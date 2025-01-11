@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.business_app.models.shop_products import ShopProducts
 from apps.common.serializers.generic_log import GenericLogSerializer
 
 
@@ -7,11 +8,14 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
     info = serializers.SerializerMethodField()
     init_value = serializers.SerializerMethodField()
     new_value = serializers.SerializerMethodField()
+    shop_product_name = serializers.SerializerMethodField()
 
     class Meta(GenericLogSerializer.Meta):
         fields = fields = [
             "created_timestamp",
             "info",
+            "object_id",
+            "shop_product_name",
             "init_value",
             "new_value",
             "created_by",
@@ -30,3 +34,7 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
 
     def get_new_value(self, obj):
         return obj.details.get("quantity").get("new_value")
+
+    def get_shop_product_name(self, obj):
+        shop_product = ShopProducts.objects.get(id=obj.object_id)
+        return shop_product.__str__()
