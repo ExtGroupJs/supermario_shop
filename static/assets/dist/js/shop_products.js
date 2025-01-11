@@ -539,14 +539,105 @@ function verLogs(shopProductId, name) {
   }
 
   // Configurar el DataTable para los logs
+  // const logsTable = $("#tabla-de-logs").DataTable({
+  //   responsive: true,
+  //   ajax: {
+  //     url: "/common/logs/",
+  //     data: {
+  //       //ordering:"-created_timestamp",
+  //       object_id: shopProductId,
+  //       performed_action: "U", // Filtrar solo por performed_action "U"
+  //     },
+  //     dataSrc: "results",
+  //   },
+
+  //   columns: [
+  //     {
+  //       data: "created_timestamp",
+  //       title: "Fecha",
+  //       render: function (data) {
+  //         return data; // Formatear la fecha
+  //       },
+  //     },
+  //     {
+  //       data: "details",
+  //       title: "Valor Inicial",
+  //       render: function (data) {
+  //         try {
+  //           const formattedData = data.replace(/'/g, '"');
+  //           const details = JSON.parse(formattedData);
+  //           if (!details.quantity) {
+                           
+  //             return null; // No mostrar la fila si quantity no existe
+  //           }
+  //           return details.quantity.old_value; // Mostrar old_value
+  //         } catch (e) {
+  //           console.error("Error al parsear details:", e);
+  //           return "Error"; // Manejo de error
+  //         }
+  //       },
+  //     },
+  //     {
+  //       data: "details",
+  //       title: "Valor Final",
+  //       render: function (data) {
+  //         try {
+  //           const formattedData = data.replace(/'/g, '"');
+  //           const details = JSON.parse(formattedData);
+  //           if (!details.quantity) {
+  //             return null; // No mostrar la fila si quantity no existe
+  //           }
+  //           return details.quantity.new_value; // Mostrar new_value
+  //         } catch (e) {
+  //           console.error("Error al parsear details:", e);
+  //           return "Error"; // Manejo de error
+  //         }
+  //       },
+  //     },
+  //     {
+  //       data: "details",
+  //       title: "Acción",
+  //       render: function (data) {
+  //         try {
+  //           const formattedData = data.replace(/'/g, '"');
+  //           const details = JSON.parse(formattedData);
+  //            if (!details.quantity) {
+  //                          return null; // No mostrar la fila si quantity no existe
+  //           }
+  //           const existencia = parseInt(details.quantity.old_value, 10);
+  //           const entrada = parseInt(details.quantity.new_value, 10);
+  //           let action = "";
+  //           let difference = 0;
+           
+  //           if (entrada > existencia) {
+  //             action = "Entrada";
+  //             difference = entrada - existencia;
+  //           } else {
+  //             action = "Venta";
+  //             difference = existencia - entrada;
+  //           }
+  //           return `${action} ${difference}`; // Mostrar acción y diferencia
+  //         } catch (e) {
+  //           console.error("Error al parsear details:", e);
+  //           return "Error"; // Manejo de error
+  //         }
+  //       },
+  //     },
+  //   ],
+  //   columnDefs: [{ className: "primera_col", targets: 0 }],
+  //   destroy: true, // Permite reinicializar el DataTable
+  //   ordering: false // Esto deshabilitará completamente el ordenamiento
+
+  // });
+
   const logsTable = $("#tabla-de-logs").DataTable({
     responsive: true,
     ajax: {
-      url: "/common/logs/",
+      url: "/business-gestion/shop-products-logs/",
       data: {
-        //ordering:"-created_timestamp",
         object_id: shopProductId,
         performed_action: "U", // Filtrar solo por performed_action "U"
+        //ordering:"-created_timestamp"
       },
       dataSrc: "results",
     },
@@ -555,79 +646,50 @@ function verLogs(shopProductId, name) {
       {
         data: "created_timestamp",
         title: "Fecha",
-        render: function (data) {
-          return data; // Formatear la fecha
-        },
+        // render: function (data) {
+        //   return data; // Formatear la fecha
+        // },
       },
       {
-        data: "details",
+        data: "init_value",
         title: "Valor Inicial",
         render: function (data) {
-          try {
-            const formattedData = data.replace(/'/g, '"');
-            const details = JSON.parse(formattedData);
-            if (!details.quantity) {
-                           
-              return null; // No mostrar la fila si quantity no existe
-            }
-            return details.quantity.old_value; // Mostrar old_value
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data;
         },
       },
       {
-        data: "details",
-        title: "Valor Final",
+        data: "new_value",
+        title: "Valor final",
         render: function (data) {
-          try {
-            const formattedData = data.replace(/'/g, '"');
-            const details = JSON.parse(formattedData);
-            if (!details.quantity) {
-              return null; // No mostrar la fila si quantity no existe
-            }
-            return details.quantity.new_value; // Mostrar new_value
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data;
         },
       },
       {
-        data: "details",
+        data: "info",
         title: "Acción",
         render: function (data) {
-          try {
-            const formattedData = data.replace(/'/g, '"');
-            const details = JSON.parse(formattedData);
-             if (!details.quantity) {
-                           return null; // No mostrar la fila si quantity no existe
-            }
-            const existencia = parseInt(details.quantity.old_value, 10);
-            const entrada = parseInt(details.quantity.new_value, 10);
-            let action = "";
-            let difference = 0;
-           
-            if (entrada > existencia) {
-              action = "Entrada";
-              difference = entrada - existencia;
-            } else {
-              action = "Venta";
-              difference = existencia - entrada;
-            }
-            return `${action} ${difference}`; // Mostrar acción y diferencia
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data; // Mostrar acción y diferencia
+        },
+      },
+      {
+        data: "created_by",
+        title: "Por",
+        render: function (data) {
+          return data;
         },
       },
     ],
+    createdRow: function (row, data, dataIndex) {
+      if (data.info.includes("entrado")) {
+        $(row).addClass("table-danger"); // Rojo
+      } else if (data.quantity === 1) {
+       // $(row).addClass("table-warning"); // Amarillo
+      }
+    },
+    // order: [[0, "desc"]],
     columnDefs: [{ className: "primera_col", targets: 0 }],
     destroy: true, // Permite reinicializar el DataTable
-    ordering: false // Esto deshabilitará completamente el ordenamiento
-
+    ordering: false, // Esto deshabilitará completamente el ordenamiento
   });
   $("#modal-logs-label").text("Logs del Producto " + name);
   // Mostrar el modal
