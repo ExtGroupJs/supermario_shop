@@ -198,6 +198,13 @@ function verLogs(shopProductId, name) {
         },
       },
     ],
+    createdRow: function (row, data, dataIndex) {
+      if (data.info.includes("entrado")) {
+        $(row).addClass("table-success"); // Rojo
+      } else if (data.quantity === 1) {
+       // $(row).addClass("table-warning"); // Amarillo
+      }
+    },
     // order: [[0, "desc"]],
     columnDefs: [{ className: "primera_col", targets: 0 }],
     destroy: true, // Permite reinicializar el DataTable

@@ -87,6 +87,10 @@ def create_shop_products(request):
 def inventario(request):
     return render(request, "inventario/inventario.html")
 
+@cache_page(settings.CACHE_DEFAULT_TIMEOUT)
+def inventario_entrada_log(request):
+    return render(request, "inventario/inventario_entrada_log.html")
+
 
 @cache_page(settings.CACHE_DEFAULT_TIMEOUT)
 def sales_products(request):
