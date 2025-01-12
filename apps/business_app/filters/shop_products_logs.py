@@ -1,5 +1,5 @@
 import django_filters
-from django.db.models import F, Q, IntegerField
+from django.db.models import F, Q
 from django.db.models.functions import Cast
 from apps.common.filters.generic_log import GenericLogFilter
 from apps.common.models.generic_log import GenericLog
@@ -17,7 +17,6 @@ class ShopProductsLogsFilter(GenericLogFilter):
             "performed_action": ["exact"],
             "created_by": ["exact"],
             "created_timestamp": ["date__gte", "date__lte"],
-            # "entries": ["exact"]
         }
 
     def filter_entries(self, queryset, name, value):
@@ -28,7 +27,7 @@ class ShopProductsLogsFilter(GenericLogFilter):
 
         else:
             filter_content = Q(
-                details__quantity__new_value__lte=F("details__quantity__old_value")
+                details__quantity__new_value__lt=F("details__quantity__old_value")
             )
         return_queryset = queryset.filter(
             Q(performed_action=GenericLog.ACTION.UPDATED) & filter_content
