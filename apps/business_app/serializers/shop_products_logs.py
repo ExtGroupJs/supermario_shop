@@ -7,7 +7,6 @@ from project_site import settings
 
 
 class ShopProductsLogsSerializer(GenericLogSerializer):
-    info = serializers.SerializerMethodField()
     init_value = serializers.SerializerMethodField()
     new_value = serializers.SerializerMethodField()
     shop_product_name = serializers.CharField(read_only=True)
@@ -23,7 +22,6 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             "init_value",
             "new_value",
             "created_by",
-            "info",
         ]
 
     def get_info(self, obj):
@@ -31,7 +29,7 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        old_value = int(response.get("old_value", 0))
+        old_value = int(response.get("init_value", 0))
         new_value = int(response.get("new_value"))
         action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
@@ -56,4 +54,4 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             return (
                 f"{settings.MEDIA_URL}{obj.product_image}"  # Devuelve la URL completa
             )
-        return None  # O devuelve una URL por defecto o None
+        return None
