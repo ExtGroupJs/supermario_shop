@@ -18,12 +18,13 @@ $(function () {
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
     autoWidth: true,
+    responsive: true,
     lengthMenu: [
       [10, 25, 50, 100, -1], // Valores
       [10, 25, 50, 100, "Todos"], // Etiquetas
     ],
 
-    responsive: true,
+   
     dom: '<"top"l>Bfrtip',
     buttons: [
       {
@@ -51,12 +52,10 @@ $(document).ready(function () {
     ajax: function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
       dir = "";
-
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
-      const params = {};
-
+      const params = {};''
       filters.forEach((filter) => {
         if (filter.value) {
           params[filter.name] = filter.value;
@@ -67,11 +66,7 @@ $(document).ready(function () {
         params["updated_timestamp__gte"] = myDateStart;
         params["updated_timestamp__lte"] = myDateEnd;
       }
-      dir = "";
-
-      if (data.order[0].dir == "desc") {
-        dir = "-";
-      }
+      
       // Añadir parámetros de paginación
       params.page_size = data.length;
       params.page = data.start / data.length + 1;
@@ -186,8 +181,6 @@ $(document).ready(function () {
     $("#filter-form")[0].reset();
      myDateStart = null;
  myDateEnd = null;
-    
-console.log('✌️$("#filter-form")[0] --->', $("#filter-form")[0]);
     table.ajax.reload();
   });
 

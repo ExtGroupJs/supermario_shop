@@ -5,17 +5,19 @@ const csrfToken = document.cookie
   ?.split("=")[1];
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 // url del endpoint principal
-const urlSell = "/business-gestion/sell-products/";
+const urlSell = "/business-gestion/shop-products-logs/";
+
 $(function () {
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
-  $("#reservationdatetime").datetimepicker({ icons: { time: "far fa-clock" } });
+ // $("#reservationdatetime").datetimepicker({ icons: { time: "far fa-clock" } });
 });
 
 $(function () {
   bsCustomFileInput.init();
 });
 
+// Inicializar DataTable
 $(document).ready(function () {
 const table = $("#tabla-de-Datos").DataTable({
     responsive: true,
@@ -39,29 +41,34 @@ const table = $("#tabla-de-Datos").DataTable({
         },
     ],
     serverSide: true,
-    search: {
-        return: true,
-    },
+    // search: {
+    //     return: true,
+    // },
     processing: true,
     ajax: function (data, callback, settings) {
         const filters = $("#filter-form").serializeArray();
-        if (filters[1].value != "") {
-            filters[1].value += ":23:59";
-        }
-        const params = {};
-        filters.forEach((filter) => {
-            if (filter.value) {
-                params[filter.name] = filter.value;
-            }
-        });
         dir = "";
         if (data.order[0].dir == "desc") {
             dir = "-";
         }
+         const params = {};
+         filters.forEach((filter) => {
+            if (filter.value) {
+                 params[filter.name] = filter.value;
+            }
+        });
+
+        if (myDateStart !== null && myDateStart !== null) {
+          params["created_timestamp__gte"] = myDateStart;
+          params["created_timestamp__lte"] = myDateEnd;
+        }
+       
         params.page_size = data.length;
         params.page = data.start / data.length + 1;
         params.ordering = dir + data.columns[data.order[0].column].data;
         params.search = data.search.value;
+        params.entries=true;
+
         axios
             .get(`${urlSell}`, { params })
             .then((res) => {
@@ -76,35 +83,26 @@ const table = $("#tabla-de-Datos").DataTable({
             });
     },
     columns: [
-        { 
-            data: "sell_group", 
-            title: "Grupo de Venta",
-            visible: false  // La columna estará oculta ya que se usa solo para agrupar
+      {
+        data: "object_id",
+        title: "Foto",
+        render: (data, type, row) => {
+          if (data) {
+            return `<div style="text-align: center;"><img src="${row.product_image}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${row.product_image}"></div>`;
+          } else {
+            return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+          }
         },
-        { data: "product_name", title: "Producto" },
-        { data: "quantity", title: "Cantidad" },
-        { data: "sell_price", title: "Precio unitario" },
-        { data: "total_priced", title: "Monto total" },
-        { data: "profits", title: "Ganancia" },
-        { data: "seller__first_name", title: "Vendedor" },
+      },   
+        { data: "shop_product_name", title: "Producto" },     
         { data: "created_timestamp", title: "Fecha" },
-        {
-            data: "id",
-            title: "Acciones",
-            render: (data, type, row) => {
-                return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.shop_product__product__name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
-                    <i class="fas fa-trash"></i>
-                    </button>`;
-            },
-        },
-    ],
-    order: [[0, 'asc'], [7, "desc"]], // Primero ordena por grupo, luego por fecha
-    rowGroup: {
-        dataSrc: 'sell_group',
-        startRender: function(rows, group) {
-            return 'Grupo de Venta: ' + group;
-        }
-    },
+        { data: "init_value", title: "Existencia" },
+        { data: "info", title: "Cantidad" },
+        { data: "created_by", title: "Responsable" },
+         ],
+    order: [[2, 'desc'],[1, 'desc']], // Primero ordena por grupo, luego por fecha
+   
+   
     columnDefs: []
 });
   // Manejo del formulario de filtros
@@ -116,6 +114,8 @@ const table = $("#tabla-de-Datos").DataTable({
   // Restablecer filtros
   $("#reset-filters").on("click", function () {
     $("#filter-form")[0].reset();
+     myDateStart = null;
+ myDateEnd = null;
     table.ajax.reload();
   });
 
@@ -125,42 +125,49 @@ const table = $("#tabla-de-Datos").DataTable({
   });
 });
 
-function function_delete(id, name, quantity, date, seller) {
-  const table = $("#tabla-de-Datos").DataTable();
+
+$(document).on("click", ".thumbnail", function () {
+  const fullsizeImage = $(this).data("fullsize");
+
   Swal.fire({
-    title: "Confirmación requerida",
-    text: `¿Está seguro que desea eliminar la venta de ${quantity} ${name} hecha por ${seller} el día ${date}?`,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Si, Eliminar",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-      axios
-        .delete(`${urlSell}${id}/`)
-        .then((response) => {
-          if (response.status === 204) {
-            table.row(`#${id}`).remove().draw();
-            Swal.fire({
-              icon: "success",
-              title: "Eliminar Elemento",
-              text: "Elemento eliminado satisfactoriamente ",
-              showConfirmButton: false,
-              timer: 1500,
-            });
-          }
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: "error",
-            title: "Error eliminando elemento",
-            text: error.response.data.detail,
-            showConfirmButton: false,
-            timer: 3000,
-          });
-        });
-    }
+    imageUrl: fullsizeImage,
+    imageWidth: 400, // Ajusta el ancho según sea necesario
+    imageHeight: 300, // Ajusta la altura según sea necesario
+    imageAlt: "Image",
+    showCloseButton: false,
+    showConfirmButton: true,
   });
-}
+
+});
+
+let myDateStart = null;
+let myDateEnd = null;
+$(function () {
+  //Date range as a button
+  $("#daterange-btn").daterangepicker(
+    {
+      ranges: {
+        Todos: [moment("2000-01-01"), moment()],
+        Hoy: [moment(), moment()],
+        Ayer: [moment().subtract(1, "days"), moment().subtract(1, "days")],
+        "Últimos 7 Días": [moment().subtract(6, "days"), moment()],
+        "Últimos 30 Días": [moment().subtract(29, "days"), moment()],
+        "Este Mes": [moment().startOf("month"), moment().endOf("month")],
+        "El Mes Pasado": [
+          moment().subtract(1, "month").startOf("month"),
+          moment().subtract(1, "month").endOf("month"),
+        ],
+      },
+      startDate: moment().subtract(29, "days"),
+      endDate: moment(),
+    },
+    function (start, end) {
+      $("#reportrange span").html(
+        start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY")
+      );
+      myDateStart = start.format("YYYY-MM-DD HH:mm:ss");
+      myDateEnd = end.format("YYYY-MM-DD HH:mm:ss");
+      //  daterangeSellProfits(selectedStartDate,selectedEndDate);
+    }
+  );
+});

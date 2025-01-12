@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="{% static 'assets/plugins/datatables-rowgroup/css/rowGroup.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
 <link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/daterangepicker/daterangepicker.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -21,12 +23,12 @@
     <div class="container-fluid">
       <div class="row mb-2">
         <div class="col-sm-6">
-          <h1>Inventario log</h1>
+          <h1>Gestion de entradas</h1>
         </div>
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="#">Inicio</a></li>
-            <li class="breadcrumb-item active">Ventas</li>
+            <li class="breadcrumb-item active">Gestion de entradas</li>
           </ol>
         </div>
       </div>
@@ -42,7 +44,7 @@
           <div class="card">
             <div class="card-header">
 
-              <h3 class="card-title">Gestionar Ventas</h3>
+              <h3 class="card-title">Entradas</h3>
                <button class="btn btn-secondary float-right" id="toggle-filters"><i class="nav-icon fas fa-filter"></i>
                 Filtros</button>
             </div>
@@ -50,17 +52,12 @@
               <div class="card-body" id="filter-section" style="display: none;">
               <form id="filter-form" class="mb-2">
                 <div class="row"> 
-                <div class="form-group col-md-6">
-                    <label for="created_timestamp__gte">Ventas Desde </label>
-                    <input type="date" class="form-control" id="created_timestamp__gte"
-                      name="created_timestamp__gte">
-                  </div>
-                  <div class="form-group col-md-6">
-                    <label for="created_timestamp__lte">Ventas Hasta</label>
-                    <input type="date" class="form-control" id="created_timestamp__lte"
-                      name="created_timestamp__lte">
-                                    
-                   </div>
+                <div class="form-group col-md-6 input-group">
+                      <button type="button" class="btn btn-default float-right" id="daterange-btn">
+                       Filtro por Fecha <i class="far fa-calendar-alt"></i>
+                        <i class="fas fa-caret-down"></i>
+                      </button>
+                    </div> 
                 </div>
                
               
@@ -118,13 +115,13 @@
 <script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
 
-<script src="{% static 'assets/dist/js/sales.js' %}"></script>
+<script src="{% static 'assets/dist/js/inventario_entrada_log.js' %}"></script>
 <script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
 <script src="{% static 'assets/plugins/moment/moment.min.js' %}"></script>
 <script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
-<!-- DataTables RowGroup JS -->
-{% comment %} <script type="text/javascript" src="https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js"></script> {% endcomment %}
-<!-- Page specific script -->
+<script src="{% static 'assets/plugins/inputmask/jquery.inputmask.min.js' %}"></script>
+<script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
+
 
 
 {% endblock %}
