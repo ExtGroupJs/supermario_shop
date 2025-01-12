@@ -18,12 +18,13 @@ $(function () {
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
     autoWidth: true,
+    responsive: true,
     lengthMenu: [
       [10, 25, 50, 100, -1], // Valores
       [10, 25, 50, 100, "Todos"], // Etiquetas
     ],
 
-    responsive: true,
+   
     dom: '<"top"l>Bfrtip',
     buttons: [
       {
@@ -51,12 +52,10 @@ $(document).ready(function () {
     ajax: function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
       dir = "";
-
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
-      const params = {};
-
+      const params = {};''
       filters.forEach((filter) => {
         if (filter.value) {
           params[filter.name] = filter.value;
@@ -67,11 +66,7 @@ $(document).ready(function () {
         params["updated_timestamp__gte"] = myDateStart;
         params["updated_timestamp__lte"] = myDateEnd;
       }
-      dir = "";
-
-      if (data.order[0].dir == "desc") {
-        dir = "-";
-      }
+      
       // Añadir parámetros de paginación
       params.page_size = data.length;
       params.page = data.start / data.length + 1;
@@ -186,8 +181,6 @@ $(document).ready(function () {
     $("#filter-form")[0].reset();
      myDateStart = null;
  myDateEnd = null;
-    
-console.log('✌️$("#filter-form")[0] --->', $("#filter-form")[0]);
     table.ajax.reload();
   });
 
@@ -538,15 +531,15 @@ function verLogs(shopProductId, name) {
     return date.toLocaleString("es-ES", options).replace(",", " -");
   }
 
-  // Configurar el DataTable para los logs
+
   const logsTable = $("#tabla-de-logs").DataTable({
     responsive: true,
     ajax: {
-      url: "/common/logs/",
+      url: "/business-gestion/shop-products-logs/",
       data: {
-        //ordering:"-created_timestamp",
         object_id: shopProductId,
         performed_action: "U", // Filtrar solo por performed_action "U"
+        //ordering:"-created_timestamp"
       },
       dataSrc: "results",
     },
@@ -555,79 +548,50 @@ function verLogs(shopProductId, name) {
       {
         data: "created_timestamp",
         title: "Fecha",
-        render: function (data) {
-          return data; // Formatear la fecha
-        },
+        // render: function (data) {
+        //   return data; // Formatear la fecha
+        // },
       },
       {
-        data: "details",
+        data: "init_value",
         title: "Valor Inicial",
         render: function (data) {
-          try {
-            const formattedData = data.replace(/'/g, '"');
-            const details = JSON.parse(formattedData);
-            if (!details.quantity) {
-                           
-              return null; // No mostrar la fila si quantity no existe
-            }
-            return details.quantity.old_value; // Mostrar old_value
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data;
         },
       },
       {
-        data: "details",
-        title: "Valor Final",
+        data: "new_value",
+        title: "Valor final",
         render: function (data) {
-          try {
-            const formattedData = data.replace(/'/g, '"');
-            const details = JSON.parse(formattedData);
-            if (!details.quantity) {
-              return null; // No mostrar la fila si quantity no existe
-            }
-            return details.quantity.new_value; // Mostrar new_value
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data;
         },
       },
       {
-        data: "details",
+        data: "info",
         title: "Acción",
         render: function (data) {
-          try {
-            const formattedData = data.replace(/'/g, '"');
-            const details = JSON.parse(formattedData);
-             if (!details.quantity) {
-                           return null; // No mostrar la fila si quantity no existe
-            }
-            const existencia = parseInt(details.quantity.old_value, 10);
-            const entrada = parseInt(details.quantity.new_value, 10);
-            let action = "";
-            let difference = 0;
-           
-            if (entrada > existencia) {
-              action = "Entrada";
-              difference = entrada - existencia;
-            } else {
-              action = "Venta";
-              difference = existencia - entrada;
-            }
-            return `${action} ${difference}`; // Mostrar acción y diferencia
-          } catch (e) {
-            console.error("Error al parsear details:", e);
-            return "Error"; // Manejo de error
-          }
+          return data; // Mostrar acción y diferencia
+        },
+      },
+      {
+        data: "created_by",
+        title: "Por",
+        render: function (data) {
+          return data;
         },
       },
     ],
+    createdRow: function (row, data, dataIndex) {
+      if (data.info.includes("entrado")) {
+        $(row).addClass("table-success"); // Rojo
+      } else if (data.quantity === 1) {
+       // $(row).addClass("table-warning"); // Amarillo
+      }
+    },
+    // order: [[0, "desc"]],
     columnDefs: [{ className: "primera_col", targets: 0 }],
     destroy: true, // Permite reinicializar el DataTable
-    ordering: false // Esto deshabilitará completamente el ordenamiento
-
+    ordering: false, // Esto deshabilitará completamente el ordenamiento
   });
   $("#modal-logs-label").text("Logs del Producto " + name);
   // Mostrar el modal

@@ -89,6 +89,11 @@ def inventario(request):
 
 
 @cache_page(settings.CACHE_DEFAULT_TIMEOUT)
+def inventario_entrada_log(request):
+    return render(request, "inventario/inventario_entrada_log.html")
+
+
+@cache_page(settings.CACHE_DEFAULT_TIMEOUT)
 def sales_products(request):
     return render(request, "sales_products/sales_products.html")
 

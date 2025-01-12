@@ -9,6 +9,7 @@ from apps.business_app.views.sell_group import PaymentMethodsViewSet, SellGroupV
 from apps.business_app.views.shop import ShopViewSet
 from apps.business_app.views.shop_products import ShopProductsViewSet
 from apps.business_app.views.sell import SellViewSet
+from apps.business_app.views.shop_products_logs import ShopProductsLogsViewSet
 
 
 # from django.urls import path
@@ -72,6 +73,11 @@ router.register(
     "shop-products",
     ShopProductsViewSet,
     basename="shop-products",
+)
+router.register(
+    "shop-products-logs",
+    ShopProductsLogsViewSet,
+    basename="shop-products-logs",
 )
 router.register(
     "sell-products",
