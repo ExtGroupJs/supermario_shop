@@ -20,21 +20,19 @@ class ShopProductsLogsFilter(GenericLogFilter):
         }
 
     def filter_entries(self, queryset, name, value):
+        extra_condition = Q()
         if value:
             filter_content = Q(
                 details__quantity__new_value__gt=F("details__quantity__old_value")
             )
-
+            extra_condition = Q(performed_action=GenericLog.ACTION.CREATED)
         else:
             filter_content = Q(
                 details__quantity__new_value__lt=F("details__quantity__old_value")
             )
         return_queryset = queryset.filter(
-            Q(performed_action=GenericLog.ACTION.UPDATED) & filter_content
+            Q(Q(performed_action=GenericLog.ACTION.UPDATED) & filter_content)
+            | extra_condition
         )
-        if value:
-            return_queryset = return_queryset.union(
-                queryset.filter(performed_action=GenericLog.ACTION.CREATED)
-            )
 
         return return_queryset
