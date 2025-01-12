@@ -1,3 +1,4 @@
+from apps.business_app.filters.shop_products_logs import ShopProductsLogsFilter
 from apps.business_app.models.shop_products import ShopProducts
 
 from apps.business_app.serializers.shop_products_logs import ShopProductsLogsSerializer
@@ -26,3 +27,14 @@ class ShopProductsLogsViewSet(GenericLogViewSet):
         product_image=Subquery(shop_products.values("product__image")[:1]),
     )
     serializer_class = ShopProductsLogsSerializer
+    search_fields = [
+        "shop_product_name",
+    ]
+    ordering_fields = [
+        "shop_product_name",
+        "created_timestamp",
+    ]
+    ordering = [
+        "shop_product_name",
+    ]
+    filterset_class = ShopProductsLogsFilter

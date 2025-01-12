@@ -1,9 +1,11 @@
+from typing import Generic
 from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
+from apps.common.filters.generic_log import GenericLogFilter
 from apps.common.models.generic_log import GenericLog
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.permissions import IsAuthenticatedAndReadOnly
@@ -23,11 +25,7 @@ class GenericLogViewSet(viewsets.ReadOnlyModelViewSet, GenericAPIView):
         CommonOrderingFilter,
     ]
     pagination_class = AllResultsSetPagination
-    filterset_fields = {
-        "content_type": ["exact"],
-        "object_id": ["exact"],
-        "performed_action": ["exact"],
-    }
+    filterset_class = GenericLogFilter
     search_fields = [
         "name",
         "description",
