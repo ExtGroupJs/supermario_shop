@@ -1,14 +1,17 @@
+from os import read
 from rest_framework import serializers
 
 from apps.business_app.models.shop_products import ShopProducts
 from apps.common.serializers.generic_log import GenericLogSerializer
+from project_site import settings
 
 
 class ShopProductsLogsSerializer(GenericLogSerializer):
     info = serializers.SerializerMethodField()
     init_value = serializers.SerializerMethodField()
     new_value = serializers.SerializerMethodField()
-    shop_product_name = serializers.SerializerMethodField()
+    shop_product_name = serializers.CharField(read_only=True)
+    product_image = serializers.SerializerMethodField()
 
     class Meta(GenericLogSerializer.Meta):
         fields = fields = [
@@ -17,6 +20,7 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             "object_id",
             "performed_action",
             "shop_product_name",
+            "product_image",
             "init_value",
             "new_value",
             "created_by",
@@ -47,6 +51,10 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             return quantity.get("new_value")
         return quantity
 
-    def get_shop_product_name(self, obj):
-        shop_product = ShopProducts.all_objects.get(id=obj.object_id)
-        return shop_product.__str__()
+    def get_product_image(self, obj):
+        # Verifica que el campo de imagen no esté vacío
+        if obj.product_image:
+            return (
+                f"{settings.MEDIA_URL}{obj.product_image}"  # Devuelve la URL completa
+            )
+        return None  # O devuelve una URL por defecto o None
