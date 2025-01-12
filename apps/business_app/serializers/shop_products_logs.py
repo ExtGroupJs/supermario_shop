@@ -24,12 +24,9 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             "created_by",
         ]
 
-    def get_info(self, obj):
-        pass
-
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        old_value = int(response.get("init_value", 0))
+        old_value = int(response.get("init_value"))
         new_value = int(response.get("new_value"))
         action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
