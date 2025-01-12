@@ -16,7 +16,7 @@ class ShopProductsLogsFilter(GenericLogFilter):
             "object_id": ["exact"],
             "performed_action": ["exact"],
             "created_by": ["exact"],
-            "created_timestamp": ["date__gte", "date__lte"],
+            "created_timestamp": ["gte", "lte"],
         }
 
     def filter_entries(self, queryset, name, value):
