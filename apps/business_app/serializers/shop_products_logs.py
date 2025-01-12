@@ -14,9 +14,8 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
     product_image = serializers.SerializerMethodField()
 
     class Meta(GenericLogSerializer.Meta):
-        fields = fields = [
+        fields = [
             "created_timestamp",
-            "info",
             "object_id",
             "performed_action",
             "shop_product_name",
@@ -24,20 +23,20 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             "init_value",
             "new_value",
             "created_by",
+            "info",
         ]
 
     def get_info(self, obj):
-        quantity = obj.details.get("quantity")
-        if isinstance(quantity, dict):
-            old_value = int(quantity.get("old_value"))
-            new_value = int(quantity.get("new_value"))
-        else:
-            old_value = 0
-            new_value = int(quantity)
+        pass
 
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        old_value = int(response.get("old_value", 0))
+        new_value = int(response.get("new_value"))
         action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
-        return f"{abs_value} {action}{'s' if abs_value>1 else ''}"
+        response["info"] = f"{abs_value} {action}{'s' if abs_value>1 else ''}"
+        return response
 
     def get_init_value(self, obj):
         quantity = obj.details.get("quantity")
