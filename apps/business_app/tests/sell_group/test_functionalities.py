@@ -6,6 +6,7 @@ from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.tests import sells, shop_products
 from apps.common.baseclass_for_testing import BaseTestClass
+from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
 from model_bakery import baker
 
@@ -53,19 +54,29 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         url = reverse("sell-groups-list")
         self.user.groups.add(Groups.SHOP_SELLER)
         random_qty = baker.random_gen.gen_integer(min_int=1, max_int=5)
+        random_shop_product_qty = baker.random_gen.gen_integer(min_int=2, max_int=5)
+        random_shop_product_selled_qty = baker.random_gen.gen_integer(
+            min_int=1, max_int=random_shop_product_qty
+        )
         sells = [
             {
                 "shop_product": baker.make(
                     ShopProducts,
                     cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
                     sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
-                    quantity=baker.random_gen.gen_integer(min_int=3, max_int=5),
+                    quantity=random_shop_product_qty,
                 ).id,
                 "extra_info": "",
-                "quantity": 1,
+                "quantity": random_shop_product_selled_qty,
             }
             for _ in range(random_qty)
         ]
+        self.assertEqual(
+            ShopProducts.objects.count(),
+            GenericLog.objects.filter(
+                performed_action=GenericLog.ACTION.CREATED
+            ).count(),
+        )
 
         payload = {
             "discount": 0,
@@ -89,4 +100,17 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
                 sell_group=sell_group_query.first(), seller=self.user
             ).count(),
             random_qty,
+        )
+        self.assertEqual(
+            ShopProducts.objects.filter(
+                quantity=random_shop_product_qty - random_shop_product_selled_qty
+            ).count(),
+            random_qty,
+        )
+
+        self.assertEqual(
+            ShopProducts.objects.count(),
+            GenericLog.objects.filter(
+                performed_action=GenericLog.ACTION.UPDATED
+            ).count(),
         )

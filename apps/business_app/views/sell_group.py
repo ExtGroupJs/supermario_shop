@@ -65,7 +65,7 @@ class SellGroupViewSet(
     ordering_fields = SellGroupSerializer.Meta.fields
 
     def create(self, request, *args, **kwargs):
-        seller =SystemUser.objects.get(id=request.user.id)
+        seller = SystemUser.objects.get(id=request.user.id)
         request.data["seller"] = seller
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

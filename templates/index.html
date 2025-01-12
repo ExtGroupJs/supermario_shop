@@ -235,6 +235,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   </a>
                 </li>
                 <li class="nav-item">
+                  <a href="{% url 'inventario_entrada_log' %}" class="nav-link">
+                    <i class="far fa-circle text-warning nav-icon"></i>
+                    <p>{% blocktranslate %}Gestion de Entradas{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
                   <a href="{% url 'sales' %}" class="nav-link">
                     <i class="far fa-circle text-warning nav-icon"></i>
                     <p>{% blocktranslate %}Gestion de Ventas{% endblocktranslate %}</p>

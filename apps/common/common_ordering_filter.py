@@ -1,10 +1,5 @@
 from django.db.models import Case, F, Q, Value, When
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins
-from rest_framework.generics import GenericAPIView
-
-from apps.common.filters import CommonFilter
-from apps.common.pagination import AllResultsSetPagination
+from rest_framework import filters
 
 
 class CommonOrderingFilter(filters.OrderingFilter):
