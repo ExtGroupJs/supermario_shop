@@ -35,15 +35,11 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
 
     def get_init_value(self, obj):
         quantity = obj.details.get("quantity")
-        if isinstance(quantity, dict):
-            return quantity.get("old_value")
-        return "0"
+        return quantity.get("old_value") if isinstance(quantity, dict) else "0"
 
     def get_new_value(self, obj):
         quantity = obj.details.get("quantity")
-        if isinstance(quantity, dict):
-            return quantity.get("new_value")
-        return quantity
+        return quantity.get("new_value") if isinstance(quantity, dict) else quantity
 
     def get_product_image(self, obj):
         # Verifica que el campo de imagen no esté vacío
