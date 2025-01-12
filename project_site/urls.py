@@ -69,7 +69,11 @@ urlpatterns = [
     ),
     path("shop_products/", login_required(pages.shop_products), name="shop_products"),
     path("inventario/", login_required(pages.inventario), name="inventario"),
-    path("inventario_entrada_log/", login_required(pages.inventario_entrada_log), name="inventario_entrada_log"),
+    path(
+        "inventario_entrada_log/",
+        login_required(pages.inventario_entrada_log),
+        name="inventario_entrada_log",
+    ),
     path(
         "sales_products/", login_required(pages.sales_products), name="sales_products"
     ),
