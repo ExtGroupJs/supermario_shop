@@ -20,7 +20,15 @@ class ShopProductsLogsViewSet(GenericLogViewSet):
         shop_product_name=Subquery(
             shop_products.annotate(
                 full_name=Concat(
-                    F("product__name"), Value(" ("), F("shop__name"), Value(")")
+                    F("product__name"),
+                    Value(" ("),
+                    F("product__model__brand__name"),
+                    Value(" - "),
+                    F("product__model__name"),
+                    Value(")"),
+                    Value(" ("),
+                    F("shop__name"),
+                    Value(")"),
                 )
             ).values("full_name")[:1]
         ),
