@@ -81,7 +81,7 @@ $(document).ready(function () {
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
-
+      
       const params = {};
 
       filters.forEach((filter) => {
@@ -93,8 +93,9 @@ $(document).ready(function () {
       params.page_size = data.length;
       params.page = data.start / data.length + 1;
       params.ordering = dir + data.columns[data.order[0].column].data;
-      params.search = data.search.value;
 
+      params.search = data.search.value;
+     
       axios
         .get(`${url}`, { params })
         .then((res) => {
