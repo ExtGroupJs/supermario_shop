@@ -9,7 +9,7 @@ const urlSell = "/business-gestion/sell-products/";
 $(function () {
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
-  $("#reservationdatetime").datetimepicker({ icons: { time: "far fa-clock" } });
+ // $("#reservationdatetime").datetimepicker({ icons: { time: "far fa-clock" } });
 });
 
 $(function () {
@@ -98,7 +98,7 @@ const table = $("#tabla-de-Datos").DataTable({
             },
         },
     ],
-    order: [[0, 'asc'], [7, "desc"]], // Primero ordena por grupo, luego por fecha
+    order: [[7, "desc"]], // Primero ordena por grupo, luego por fecha
     rowGroup: {
         dataSrc: 'sell_group',
         startRender: function(rows, group) {
