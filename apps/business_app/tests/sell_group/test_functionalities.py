@@ -144,7 +144,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
                 performed_action=GenericLog.ACTION.CREATED
             ).count(),
         )
-        
+
         discount_random_value = baker.random_gen.gen_integer(min_int=1, max_int=10)
         payload = {
             "discount": discount_random_value,
