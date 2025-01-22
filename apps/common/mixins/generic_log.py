@@ -1,5 +1,6 @@
 from django.forms import model_to_dict
 from django.contrib.contenttypes.models import ContentType
+from apps.common.middlewares import get_current_user
 from apps.common.models.generic_log import GenericLog
 
 
@@ -37,11 +38,14 @@ class GenericLogMixin:
                     details[field] = str(getattr(self, field))
         super().save(*args, **kwargs)
         if details:
+            user = get_current_user()
+
             GenericLog.objects.create(
                 performed_action=action,
                 content_type=ContentType.objects.get_for_model(self.__class__),
                 object_id=self.pk,
-                details=str(details),
+                details=details,
+                created_by_id=user and user.id,
             )
 
     def delete(self, *args, **kwargs):

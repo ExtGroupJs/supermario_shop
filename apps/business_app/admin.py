@@ -9,6 +9,7 @@ from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
+from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
 
 @admin.register(Brand)
@@ -42,15 +43,26 @@ class ModelAdmin(admin.ModelAdmin):
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(SafeDeleteAdmin):
     empty_value_display = "-empty-"
-    list_display = ["id", "name", "model", "description", "image"]
+    list_display = (
+        highlight_deleted,
+        "id",
+        "name",
+        "model",
+        "description",
+        "image",
+    ) + SafeDeleteAdmin.list_display
     fields = [
         "name",
         "model",
         "description",
         "image",
     ]
+    field_to_highlight = "id"
+
+
+ProductAdmin.highlight_deleted_field.name = ProductAdmin.field_to_highlight
 
 
 @admin.register(Shop)
@@ -70,9 +82,10 @@ class ShopAdmin(admin.ModelAdmin):
 
 
 @admin.register(ShopProducts)
-class ShopProductsAdmin(admin.ModelAdmin):
+class ShopProductsAdmin(SafeDeleteAdmin):
     empty_value_display = "-empty-"
-    list_display = [
+    list_display = (
+        highlight_deleted,
         "id",
         "shop",
         "product",
@@ -81,7 +94,7 @@ class ShopProductsAdmin(admin.ModelAdmin):
         "cost_price",
         "sell_price",
         "updated_timestamp",
-    ]
+    ) + SafeDeleteAdmin.list_display
     fields = [
         "shop",
         "product",
@@ -90,6 +103,7 @@ class ShopProductsAdmin(admin.ModelAdmin):
         "cost_price",
         "sell_price",
     ]
+    field_to_highlight = "id"
 
 
 @admin.register(Sell)

@@ -113,17 +113,6 @@
                         placeholder="Precio de venta menor que" title="Precio de venta menor que">
                     </div>
                   </div>
-
-                  {% comment %} <div class="form-group col-md-6">
-                    <label for="created_timestamp__gte">Fecha de Creación (Desde)</label>
-                    <input type="datetime-local" class="form-control" id="created_timestamp__gte"
-                      name="created_timestamp__gte">
-                  </div>
-                  <div class="form-group col-md-6">
-                    <label for="created_timestamp__lte">Fecha de Creación (Hasta)</label>
-                    <input type="datetime-local" class="form-control" id="created_timestamp__lte"
-                      name="created_timestamp__lte">
-                  </div> {% endcomment %}
                     <div class="form-group col-md-6 input-group">
                       <button type="button" class="btn btn-default float-right" id="daterange-btn">
                        Filtro por Fecha <i class="far fa-calendar-alt"></i>
@@ -231,7 +220,6 @@
 <!-- /.modal-dialog -->
 </div>
 <!-- /.modal -->
-
 <div class="modal fade" id="modal-logs" tabindex="-1" role="dialog" aria-labelledby="modal-logs-label" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -246,9 +234,10 @@
           <thead>
             <tr>
               <th>Fecha</th>              
-              <th>Valor Inicial</th>
-              <th>Valor Final</th>
+              <th>Existencia</th>
+              <th>Entrada</th>
               <th>Acción</th>
+              <th>Por</th>
              
             </tr>
           </thead>

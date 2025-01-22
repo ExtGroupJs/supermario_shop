@@ -1,5 +1,6 @@
 from django.db import models
 from django.core import validators
+from safedelete import SOFT_DELETE
 
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.product import Product
@@ -10,6 +11,7 @@ from safedelete.models import SafeDeleteModel
 
 
 class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
+    _safedelete_policy = SOFT_DELETE
     shop = models.ForeignKey(
         to=Shop, on_delete=models.DO_NOTHING, verbose_name="Tienda"
     )
