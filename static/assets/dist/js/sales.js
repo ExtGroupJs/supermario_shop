@@ -17,7 +17,8 @@ $(function () {
 });
 
 $(document).ready(function () {
-const table = $("#tabla-de-Datos").DataTable({
+  
+  const table = $("#tabla-de-Datos").DataTable({
     responsive: true,
     lengthMenu: [
         [10, 25, 50, 100, -1],
@@ -43,6 +44,7 @@ const table = $("#tabla-de-Datos").DataTable({
         return: true,
     },
     processing: true,
+    
     ajax: function (data, callback, settings) {
         const filters = $("#filter-form").serializeArray();
         if (filters[1].value != "") {
@@ -65,6 +67,7 @@ const table = $("#tabla-de-Datos").DataTable({
         axios
             .get(`${urlSell}`, { params })
             .then((res) => {
+                console.log('✌️res --->', res);
                 callback({
                     recordsTotal: res.data.count,
                     recordsFiltered: res.data.count,
@@ -74,6 +77,7 @@ const table = $("#tabla-de-Datos").DataTable({
             .catch((error) => {
                 alert(error);
             });
+          
     },
     columns: [
         { 
@@ -92,7 +96,6 @@ const table = $("#tabla-de-Datos").DataTable({
             data: "id",
             title: "Acciones",
             render: (data, type, row) => {
-console.log('✌️row --->', row);
                 return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
                     <i class="fas fa-trash"></i>
                     </button>`;
@@ -103,11 +106,14 @@ console.log('✌️row --->', row);
     rowGroup: {
         dataSrc: 'sell_group',
         startRender: function(rows, group) {
-            return 'Grupo de Venta: ' + group;
+            // Obtener el descuento de la primera fila del grupo
+            const discount = rows.data()[0].discounts; // Asegúrate de que "discounts" esté en tus datos
+            return 'Grupo de Venta: ' + group + ' | Descuento: ' +' $'+discount ;
         }
     },
     columnDefs: []
 });
+
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();

@@ -43,3 +43,7 @@ class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     ]
     ordering = ["name"]
     ordering_fields = ["name", "model_name", "description"]
+
+    @method_decorator(cache_page(60 * 60 * 2))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)

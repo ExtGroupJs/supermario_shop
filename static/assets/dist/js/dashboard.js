@@ -207,7 +207,7 @@ function smallboxdataSellProfits() {
     axios.post('/business-gestion/dashboard/sell-profits/')
         .then(response => {
             // Obtener el valor de inversiones de la respuesta
-            const sellProfitsValue = response.data.result.total;
+            const sellProfitsValue = response.data.result.total-response.data.discounts;
 
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('sell-profits-total');
@@ -248,7 +248,7 @@ function smallboxdataSellProfitsLastMonth() {
     axios.post('/business-gestion/dashboard/sell-profits/', params)
         .then(response => {
             // Obtener el valor de inversiones de la respuesta
-            const investmentValue = response.data.result.total;
+            const investmentValue = response.data.result.total-response.data.discounts;
 
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciaslastmes');
@@ -285,10 +285,9 @@ function smallboxdataSellProfitsCurrentMonth() {
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
         .then(response => {
-            // Obtener el valor de inversiones de la respuesta
-            const SellProfitsValue = response.data.result.total;
-console.log('✌️SellProfitsValue --->', SellProfitsValue);
-
+        
+  // Obtener el valor de ventas de la respuesta
+  const SellProfitsValue =  response.data.result[0]-response.data.discounts ? response.data.result[0].total : 0;
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciascurrentmes');
             if (smallBox) {
@@ -329,7 +328,8 @@ function smallboxdataSellProfitsCurrentWeek() {
     axios.post('/business-gestion/dashboard/sell-profits/', params)
         .then(response => {
             // Obtener el valor de ventas de la respuesta
-            const sellCount =  response.data.result[0] ? response.data.result[0].total : 0;
+            const sellCount =  response.data.result[0]-response.data.discounts ? response.data.result[0].total : 0;
+console.log('✌️response.data --->', response.data);
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('SellProfitscurrentweek');
             if (smallBox) {
@@ -376,9 +376,13 @@ function daterangeSellProfits(startDate, endDate) {
             // Modificar el contenido del small-box con el valor de las ventas
              const dateRangeProfits = document.getElementById('dateRangeProfits');
              const dateRangeSales = document.getElementById('dateRangeSales');
-             if (dateRangeProfits && dateRangeSales) {
-                dateRangeProfits.textContent = sellCount + " $";
+             const dateRangeDiscounts = document.getElementById('dateRangeDiscounts');
+             if (dateRangeProfits && dateRangeSales && dateRangeDiscounts) {
+                dateRangeProfits.textContent = sellCount-response.data.discounts + " $";
                 dateRangeSales.textContent =itemCount;
+                dateRangeDiscounts.textContent =response.data.discounts + " $";
+console.log('✌️response.data.discounts --->', response.data.discounts);
+
              }
         })
         .catch(error => {

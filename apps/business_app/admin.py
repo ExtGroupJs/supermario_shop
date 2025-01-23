@@ -6,6 +6,7 @@ from apps.business_app.models.brand import Brand
 from apps.business_app.models.model import Model
 from apps.business_app.models.product import Product
 from apps.business_app.models.sell import Sell
+from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
 from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
@@ -111,6 +112,7 @@ class SellAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "shop_product",
+        "sell_group",
         "seller",
         "extra_info",
         "quantity",
@@ -120,12 +122,31 @@ class SellAdmin(admin.ModelAdmin):
         "shop_product",
         "seller",
         "extra_info",
+        "sell_group",
         "quantity",
     ]
     search_fields = [
         "shop_product__product__name",
         "shop_product__product__model__name",
         "shop_product__product__model__brand__name",
+    ]
+
+
+@admin.register(SellGroup)
+class SellGroupAdmin(admin.ModelAdmin):
+    empty_value_display = "-empty-"
+    list_display = [
+        "id",
+        "discount",
+        "seller",
+        "extra_info",
+        "payment_method",
+    ]
+    fields = [
+        "discount",
+        "seller",
+        "extra_info",
+        "payment_method",
     ]
 
 

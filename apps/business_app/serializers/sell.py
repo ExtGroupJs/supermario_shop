@@ -13,6 +13,7 @@ class SellSerializer(serializers.ModelSerializer):
     total_priced = serializers.FloatField(read_only=True)
     created_timestamp = serializers.SerializerMethodField()
     profits = serializers.FloatField(read_only=True)
+    discounts = serializers.FloatField(read_only=True, source="sell_group.discount", default=0)
 
     class Meta:
         model = Sell
@@ -28,6 +29,7 @@ class SellSerializer(serializers.ModelSerializer):
             "profits",
             "product_name",
             "sell_group",
+            "discounts",
         )
         read_only_fields = (
             "id",

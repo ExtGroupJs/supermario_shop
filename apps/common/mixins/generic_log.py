@@ -45,7 +45,7 @@ class GenericLogMixin:
                 content_type=ContentType.objects.get_for_model(self.__class__),
                 object_id=self.pk,
                 details=details,
-                created_by_id=user.id,
+                created_by_id=user and user.id,
             )
 
     def delete(self, *args, **kwargs):

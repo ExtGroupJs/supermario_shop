@@ -6,7 +6,7 @@ from apps.users_app.models.groups import Groups
 
 
 @pytest.mark.django_db
-class TestDashboardViewSet(BaseTestClass):
+class TestDashboardViewSetPermisions(BaseTestClass):
     fixtures = ["auth.group.json"]
 
     def setUp(self):
@@ -39,7 +39,7 @@ class TestDashboardViewSet(BaseTestClass):
         """
         Este test comprueba que solo un superadmin o un SHOP_OWNER pueden acceder a la funcionalidad
         """
-        url = reverse("dashboard-shop-product-sell-count")
+        url = reverse("dashboard-shop-product-sells-count")
         self._test_permissions(
             url,
             allowed_roles=self.allowed_groups,
