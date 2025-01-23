@@ -108,7 +108,7 @@ $(document).ready(function () {
         startRender: function(rows, group) {
             // Obtener el descuento de la primera fila del grupo
             const discount = rows.data()[0].discounts; // Asegúrate de que "discounts" esté en tus datos
-            return 'Grupo de Venta: ' + group + ' | Descuento: ' + discount + ' $';
+            return 'Grupo de Venta: ' + group + ' | Descuento: ' +' $'+discount ;
         }
     },
     columnDefs: []
