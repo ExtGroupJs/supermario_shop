@@ -32,7 +32,7 @@ class SellViewSet(
 ):
     queryset = (
         Sell.objects.all()
-        .select_related("shop_product", "seller")
+        .select_related("shop_product", "seller", "sell_group")
         .annotate(total_priced=F("quantity") * F("shop_product__sell_price"))
         .annotate(sell_price=F("shop_product__sell_price"))
     )
