@@ -24,7 +24,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             "cost_price": f"{self.created_instance.cost_price}",
             "sell_price": f"{self.created_instance.sell_price}",
         }
-        self.assertEqual(eval(log_entry.details), expected_details)
+        self.assertEqual(log_entry.details, expected_details)
 
     def test_update_log_entry_on_save(self):
         self.created_instance.sell_price = 3
@@ -35,7 +35,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             log_entry.content_type, ContentType.objects.get_for_model(ShopProducts)
         )
         self.assertTrue("sell_price" in log_entry.details)
-        details = eval(log_entry.details)
+        details = log_entry.details
         self.assertEqual(details["sell_price"]["old_value"], "2.00")
         self.assertEqual(details["sell_price"]["new_value"], "3")
 
