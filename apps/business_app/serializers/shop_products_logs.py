@@ -19,27 +19,19 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             "performed_action",
             "shop_product_name",
             "product_image",
-            "init_value",
-            "new_value",
             "created_by",
         ]
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        old_value = int(response.get("init_value"))
-        new_value = int(response.get("new_value"))
+        old_value = int(instance.details.get("quantity").get("old_value", 0))
+        new_value = int(instance.details.get("quantity").get("new_value"))
+        response["init_value"] = old_value
+        response["new_value"] = new_value
         action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
         response["info"] = f"{abs_value} {action}{'s' if abs_value>1 else ''}"
         return response
-
-    def get_init_value(self, obj):
-        quantity = obj.details.get("quantity")
-        return quantity.get("old_value") if isinstance(quantity, dict) else "0"
-
-    def get_new_value(self, obj):
-        quantity = obj.details.get("quantity")
-        return quantity.get("new_value") if isinstance(quantity, dict) else quantity
 
     def get_product_image(self, obj):
         # Verifica que el campo de imagen no esté vacío
