@@ -248,7 +248,7 @@ function smallboxdataSellProfitsLastMonth() {
     axios.post('/business-gestion/dashboard/sell-profits/', params)
         .then(response => {
             // Obtener el valor de inversiones de la respuesta
-            const investmentValue = response.data.result.total-response.data.discounts;
+            const investmentValue = response.data.result.total ? response.data.result.total-response.data.discounts : 0;
 
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciaslastmes');
@@ -287,7 +287,7 @@ function smallboxdataSellProfitsCurrentMonth() {
         .then(response => {
         
   // Obtener el valor de ventas de la respuesta
-  const SellProfitsValue =  response.data.result[0]-response.data.discounts ? response.data.result[0].total : 0;
+  const SellProfitsValue = response.data.result.total ? response.data.result.total-response.data.discounts : 0;
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciascurrentmes');
             if (smallBox) {
@@ -321,15 +321,14 @@ function smallboxdataSellProfitsCurrentWeek() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        "frequency": "week"
+        // "frequency": "week"
         
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
         .then(response => {
             // Obtener el valor de ventas de la respuesta
-            const sellCount =  response.data.result[0]-response.data.discounts ? response.data.result[0].total : 0;
-console.log('✌️response.data --->', response.data);
+            const sellCount =  response.data.result.total ? response.data.result.total-response.data.discounts : 0;
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('SellProfitscurrentweek');
             if (smallBox) {
@@ -381,7 +380,7 @@ function daterangeSellProfits(startDate, endDate) {
                 dateRangeProfits.textContent = sellCount-response.data.discounts + " $";
                 dateRangeSales.textContent =itemCount;
                 dateRangeDiscounts.textContent =response.data.discounts + " $";
-console.log('✌️response.data.discounts --->', response.data.discounts);
+
 
              }
         })
@@ -417,6 +416,7 @@ function chartSellProfitsLastWeek() {
         .then(response => {
             // Procesar las ganancias por día
             const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
+
            
             // Limpiar datos anteriores
             profitsChart.data.labels = [];
@@ -436,23 +436,22 @@ function chartSellProfitsLastWeek() {
         });
 }
 function chartSellProfitsThisWeek() {
-    // Obtener la fecha actual
-    const today = new Date();  
-    // Calcular el primer día de la semana  (domingo)
-    const firstDayOfThisWeek = new Date(today);
-    firstDayOfThisWeek.setDate(today.getDate() - today.getDay());
-    // Calcular el último día de la semana anterior (sábado)
-    const lastDayOfThisWeek = new Date(today);
-    lastDayOfThisWeek.setDate(today.getDate() - today.getDay() + 1);
-
-    // Establecer la hora a medianoche en la zona horaria local
-    firstDayOfThisWeek.setHours(0, 0, 0, 0);
-
-    // Convertir a formato YYYY-MM-DD
-    const startDate = firstDayOfThisWeek.toISOString().split('T')[0];
-
-    lastDayOfThisWeek.setHours(23, 59, 0, 0);
-    const endDate = lastDayOfThisWeek.toISOString().split('T')[0];
+     // Obtener la fecha actual
+     const today = new Date();
+    
+     // Calcular el primer día de la semana actual (domingo)
+     const firstDayOfCurrentWeek = new Date(today);
+     firstDayOfCurrentWeek.setDate(today.getDate() - today.getDay());
+ 
+     // Calcular el último día de la semana actual (sábado)
+     const lastDayOfCurrentWeek = new Date(today);
+     lastDayOfCurrentWeek.setDate(today.getDate() + (6 - today.getDay()));
+     
+     // Formatear las fechas a YYYY-MM-DD
+     firstDayOfCurrentWeek.setHours(0, 0, 0, 0);
+     lastDayOfCurrentWeek.setHours(0, 0, 0, 0);
+     const startDate = firstDayOfCurrentWeek.toISOString().split('T')[0];
+     const endDate = lastDayOfCurrentWeek.toISOString().split('T')[0];
 
     // Parámetros para la solicitud
     const params = {
@@ -465,6 +464,7 @@ function chartSellProfitsThisWeek() {
         .then(response => {
             // Procesar las ganancias por día
             const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
+console.log('✌️dailyProfits --->', dailyProfits);
             // Limpiar datos anteriores
             profitsChartThisWeek.data.labels = [];
             profitsChartThisWeek.data.datasets[0].data = [];
@@ -525,9 +525,6 @@ $(function () {
       $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
       selectedStartDate = start;
       selectedEndDate = end;
-
-      console.log('Fecha de inicio:', selectedStartDate.format('YYYY-MM-DD'));
-      console.log('Fecha de fin:', selectedEndDate.format('YYYY-MM-DD'));
       daterangeSellProfits(selectedStartDate, selectedEndDate);
     }
 );
