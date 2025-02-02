@@ -7,8 +7,6 @@ from project_site import settings
 
 
 class ShopProductsLogsSerializer(GenericLogSerializer):
-    init_value = serializers.SerializerMethodField()
-    new_value = serializers.SerializerMethodField()
     shop_product_name = serializers.CharField(read_only=True)
     product_image = serializers.SerializerMethodField()
 
