@@ -22,7 +22,8 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        old_value = int(instance.details.get("quantity").get("old_value", 0))
+        raw_old_value = instance.details.get("quantity").get("old_value")
+        old_value = 0 if not raw_old_value else int(raw_old_value)
         new_value = int(instance.details.get("quantity").get("new_value"))
         response["init_value"] = old_value
         response["new_value"] = new_value
