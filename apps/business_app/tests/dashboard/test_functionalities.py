@@ -60,7 +60,7 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
 
         shop_products_sold_qty = baker.random_gen.gen_integer(min_int=1, max_int=10)
         random_equal_cost_price = baker.random_gen.gen_integer(min_int=1, max_int=10)
-        random_equal_sell_price = baker.random_gen.gen_integer(min_int=10, max_int=20)
+        random_equal_sell_price = baker.random_gen.gen_integer(min_int=11, max_int=20)
 
         for _ in range(shop_products_sold_qty):
             baker.make(

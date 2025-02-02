@@ -2,7 +2,6 @@ from django.db import models
 from safedelete import SOFT_DELETE_CASCADE
 
 from apps.business_app.models.model import Model
-from apps.common.mixins.generic_log import GenericLogMixin
 from apps.common.models import BaseModel
 from safedelete.models import SafeDeleteModel
 

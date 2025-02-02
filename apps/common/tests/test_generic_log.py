@@ -19,10 +19,19 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             log_entry.content_type, ContentType.objects.get_for_model(ShopProducts)
         )
         expected_details = {
-            "shop": f"{self.created_instance.shop}",
-            "product": f"{self.created_instance.product}",
-            "cost_price": f"{self.created_instance.cost_price}",
-            "sell_price": f"{self.created_instance.sell_price}",
+            "shop": {"old_value": None, "new_value": f"{self.created_instance.shop}"},
+            "product": {
+                "old_value": None,
+                "new_value": f"{self.created_instance.product}",
+            },
+            "cost_price": {
+                "old_value": None,
+                "new_value": f"{self.created_instance.cost_price}",
+            },
+            "sell_price": {
+                "old_value": None,
+                "new_value": f"{self.created_instance.sell_price}",
+            },
         }
         self.assertEqual(log_entry.details, expected_details)
 

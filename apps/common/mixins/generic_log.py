@@ -35,7 +35,10 @@ class GenericLogMixin:
             action = GenericLog.ACTION.CREATED
             for field, new_value in updated_object_dict.items():
                 if new_value:
-                    details[field] = str(getattr(self, field))
+                    details[field] = {
+                        "old_value": None,
+                        "new_value": str(getattr(self, field)),
+                    }
         super().save(*args, **kwargs)
         if details:
             user = get_current_user()
