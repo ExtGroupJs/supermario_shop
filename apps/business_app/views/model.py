@@ -10,9 +10,6 @@ from apps.common.mixins.serializer_map import SerializerMapMixin
 
 from apps.common.permissions import CommonRolePermission
 from django.db.models import F
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 
