@@ -1,5 +1,3 @@
-from datetime import timedelta
-from django.db.models.functions import Now
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
@@ -42,7 +40,6 @@ class ShopProductsViewSet(
         filters.SearchFilter,
         CommonOrderingFilter,
     ]
-    one_month_ago = Now() - timedelta(days=30)
 
     queryset = (
         ShopProducts.objects.all()
@@ -55,13 +52,6 @@ class ShopProductsViewSet(
                 Value(" - "),
                 F("product__model__name"),
                 Value(") "),
-            )
-        )
-        .annotate(
-            is_new=Case(
-                When(updated_timestamp__gte=one_month_ago, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField(),
             )
         )
     )

@@ -1,3 +1,5 @@
+from datetime import timedelta
+import datetime
 from rest_framework import serializers
 
 from apps.business_app.models.shop_products import ShopProducts
@@ -59,9 +61,9 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
 
 
 class CatalogShopProductSerializer(ReadShopProductsSerializer):
-    product = CatalogProductSerializer(read_only=True)
-    is_new = serializers.BooleanField(read_only=True)
+    one_month_ago = datetime.datetime.now() - timedelta(days=30)
 
+    product = CatalogProductSerializer(read_only=True)
 
     class Meta(ReadShopProductsSerializer.Meta):
         fields = (
@@ -69,6 +71,10 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
             "sell_price",
             "product",
             "shop_name",
-            "is_new",
             "__repr__",
         )
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response["is_new"] = instance.updated_timestamp >= self.one_month_ago
+        return response
