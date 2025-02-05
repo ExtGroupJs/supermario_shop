@@ -1,3 +1,6 @@
+from datetime import timedelta
+from django.db.models.functions import Now
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
@@ -18,7 +21,7 @@ from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
-from django.db.models import F, Value
+from django.db.models import Case, When, Value, BooleanField, F
 from rest_framework.response import Response
 from django.db.models.functions import Concat
 
@@ -39,6 +42,8 @@ class ShopProductsViewSet(
         filters.SearchFilter,
         CommonOrderingFilter,
     ]
+    one_month_ago = Now() - timedelta(days=30)
+
     queryset = (
         ShopProducts.objects.all()
         .annotate(shop_name=F("shop__name"))
@@ -51,7 +56,13 @@ class ShopProductsViewSet(
                 F("product__model__name"),
                 Value(") "),
             )
-        )
+        ).annotate(
+            is_new=Case(
+                When(updated_timestamp__gte=one_month_ago, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            )
+    )
     )
     filterset_fields = {
         "shop": ["exact"],

@@ -3,7 +3,6 @@ from rest_framework import serializers
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.product import (
     CatalogProductSerializer,
-    ProductSerializer,
     ReadProductSerializer,
 )
 from apps.business_app.serializers.shop import ShopSerializer
@@ -41,10 +40,11 @@ class ShopProductsSerializer(serializers.ModelSerializer):
 class ReadShopProductsSerializer(ShopProductsSerializer):
     product = ReadProductSerializer(read_only=True)
     product_name = serializers.CharField(read_only=True)
+    is_new = serializers.BooleanField(read_only=True)
 
     class Meta(ShopProductsSerializer.Meta):
         model = ShopProducts
-        fields = ShopProductsSerializer.Meta.fields
+        fields = ShopProductsSerializer.Meta.fields + ("is_new",)
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
