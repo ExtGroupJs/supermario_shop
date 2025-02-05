@@ -15,16 +15,12 @@ from apps.common.mixins.serializer_map import SerializerMapMixin
 from apps.common.pagination import AllResultsSetPagination
 from apps.common.permissions import ShopProductsViewSetPermission
 from rest_framework.permissions import AllowAny
-from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
-from django.db.models import Count, Sum, F, Value
+from django.db.models import F, Value
 from rest_framework.response import Response
 from django.db.models.functions import Concat
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
 
 class ShopProductsViewSet(

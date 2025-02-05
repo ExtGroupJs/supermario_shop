@@ -10,10 +10,6 @@ from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.permissions import CommonRolePermission
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_cookie, vary_on_headers
-
 
 class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     queryset = Shop.objects.all()
