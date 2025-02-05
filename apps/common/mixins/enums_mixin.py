@@ -10,7 +10,7 @@ class EnumsMixin(mixins.ListModelMixin, ViewSet):
     search_fields = None
     items = NotImplemented
 
-    @method_decorator(cache_page(60 * 60))
+    @method_decorator(cache_page(60))
     def list(self, request, *args, **kwargs):
         results = {
             key: [{"value": value, "label": label} for value, label in enum.choices]
