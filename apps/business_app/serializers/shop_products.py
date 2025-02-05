@@ -55,7 +55,7 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
             )
             .exists()
         ):
-            response.pop("cost_price")
+            response.pop("cost_price", None)
         return response
 
 
