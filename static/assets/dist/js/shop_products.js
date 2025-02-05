@@ -118,6 +118,9 @@ $(document).ready(function () {
            <button type="button" title="Agregar Cantidad" class="btn bg-olive" onclick="agregarCantidad('${row.id}','${row.quantity}')">
                 <i class="fas fa-plus"></i>
               </button>
+           <button type="button" title="Marcar como New" class="btn bg-olive" onclick="marcarComoNew('${row.id}')">
+               <i class="nav-icon fas fa-clipboard-check"></i>
+              </button>
                     <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
                       <i class="fas fa-edit"></i>
                     </button>
@@ -509,6 +512,34 @@ function agregarCantidad(shopProductId, cantidad_actual) {
         });
     }
   });
+}
+function marcarComoNew(shopProductId) {
+ 
+      const table = $("#tabla-de-Datos").DataTable();
+      // Realizar la petición para actualizar la cantidad
+      axios
+        .patch(`${url}${shopProductId}/`, { })
+        .then((response) => {
+          if (response.status === 200) {
+            Swal.fire({
+              icon: "success",
+              title: "¡Éxito!",
+              text: `Se han marcado como nuevo el producto seleccionado.`,
+              showConfirmButton: false,
+              timer: 2000, // Mensaje de éxito por 2 segundos
+            });
+            // Recargar la tabla para reflejar los cambios
+            table.ajax.reload();
+          }
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "No se pudo marcar como nuevo.",
+            showConfirmButton: true,
+          });
+        });    
 }
 
 function esNegativo(num) {
