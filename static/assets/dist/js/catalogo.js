@@ -55,43 +55,43 @@ function renderProducts(products) {
 
   products.forEach((product) => {
     const productHTML = `
-            <div class="col-lg-4 col-md-4 col-sm-6 mt-40">
-                <div class="single-product-wrap">
-                    <div class="product-image">
-                        <a>
-                            <img src="${product.product.image || '/static_output/assets/dist/img/producto-sin-imagen.jpg'}" alt="${product.product.name}">
-                        </a>
-                        <span class="sticker">New</span>
-                    </div>
-                    <div class="product_desc">
-                        <div class="product_desc_info">
-                            <div class="product-review">
-                                <h5 class="manufacturer">
-                                    <a>${product.product.model.brand.name} ${product.product.model.name}</a>
-                                </h5>
-                                <div class="rating-box">
-                                    <ul class="rating">
-                                        <li><i class="fa fa-star-o"></i></li>
-                                        <li><i class="fa fa-star-o"></i></li>
-                                        <li><i class="fa fa-star-o"></i></li>
-                                        <li class="no-star"><i class="fa fa-star-o"></i></li>
-                                        <li class="no-star"><i class="fa fa-star-o"></i></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <h4><a class="product_name" href="#">${product.product.name}</a></h4>
-                            <div class="price-box">
-                                <span class="new-price">$${product.sell_price}</span>
-                            </div>
-                        </div>
-                        <div class="add-actions">
-                            <ul class="add-actions-link">
-                                <li><a href="#" title="quick view" class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter" onclick="viewProductDetails(${product.id})"><i class="fa fa-eye"></i></a></li>
-                            </ul>
-                        </div>
-                    </div>
+        <div class="col-lg-4 col-md-4 col-sm-6 mt-40">
+          <div class="single-product-wrap">
+            <div class="product-image">
+              <a>
+                <img src="${product.product.image || '/static_output/assets/dist/img/producto-sin-imagen.jpg'}" alt="${product.product.name}">
+              </a>
+              ${product.is_new ? '<span class="sticker">New</span>' : ''}
+            </div>
+            <div class="product_desc">
+              <div class="product_desc_info">
+                <div class="product-review">
+                  <h5 class="manufacturer">
+                    <a>${product.product.model.brand.name} ${product.product.model.name}</a>
+                  </h5>
+                  <div class="rating-box">
+                    <ul class="rating">
+                      <li><i class="fa fa-star-o"></i></li>
+                      <li><i class="fa fa-star-o"></i></li>
+                      <li><i class="fa fa-star-o"></i></li>
+                      <li><i class="fa fa-star-o"></i></li>
+                      <li><i class="fa fa-star-o"></i></li>
+                    </ul>
+                  </div>
                 </div>
-            </div>`;
+                <h4><a class="product_name" href="#">${product.product.name}</a></h4>
+                <div class="price-box">
+                  <span class="new-price">$${product.sell_price}</span>
+                </div>
+              </div>
+              <div class="add-actions">
+                <ul class="add-actions-link">
+                  <li><a href="#" title="quick view" class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter" onclick="viewProductDetails(${product.id})"><i class="fa fa-eye"></i></a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>`;
     productArea.insertAdjacentHTML("beforeend", productHTML);
   });
 }
