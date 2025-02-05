@@ -40,11 +40,10 @@ class ShopProductsSerializer(serializers.ModelSerializer):
 class ReadShopProductsSerializer(ShopProductsSerializer):
     product = ReadProductSerializer(read_only=True)
     product_name = serializers.CharField(read_only=True)
-    is_new = serializers.BooleanField(read_only=True)
 
     class Meta(ShopProductsSerializer.Meta):
         model = ShopProducts
-        fields = ShopProductsSerializer.Meta.fields + ("is_new",)
+        fields = ShopProductsSerializer.Meta.fields
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
@@ -61,6 +60,8 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
 
 class CatalogShopProductSerializer(ReadShopProductsSerializer):
     product = CatalogProductSerializer(read_only=True)
+    is_new = serializers.BooleanField(read_only=True)
+
 
     class Meta(ReadShopProductsSerializer.Meta):
         fields = (
@@ -68,5 +69,6 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
             "sell_price",
             "product",
             "shop_name",
+            "is_new",
             "__repr__",
         )
