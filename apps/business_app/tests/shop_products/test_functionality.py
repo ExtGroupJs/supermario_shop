@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta
 import datetime
 import pytest
@@ -10,7 +9,6 @@ from model_bakery import baker
 from rest_framework import status
 
 from freezegun import freeze_time
-
 
 
 @pytest.mark.django_db
@@ -33,13 +31,12 @@ class TestShopProductsViewSet(BaseTestClass):
         url = reverse("shop-products-detail", kwargs={"pk": test_shop_product.id})
         self.client.force_authenticate(user=self.user)
         self.user.groups.add(Groups.SHOP_OWNER)
-        
+
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("is_new", response.data.keys())
         self.assertFalse(response.data.get("is_new"))
-
 
     @freeze_time(datetime.datetime.now() - timedelta(days=29))
     def test_is_new_is_in_response_and_is_true_since_has_less_than_one_month(self):
@@ -54,7 +51,7 @@ class TestShopProductsViewSet(BaseTestClass):
         url = reverse("shop-products-detail", kwargs={"pk": test_shop_product.id})
         self.client.force_authenticate(user=self.user)
         self.user.groups.add(Groups.SHOP_OWNER)
-        
+
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

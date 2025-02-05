@@ -56,13 +56,14 @@ class ShopProductsViewSet(
                 F("product__model__name"),
                 Value(") "),
             )
-        ).annotate(
+        )
+        .annotate(
             is_new=Case(
                 When(updated_timestamp__gte=one_month_ago, then=Value(True)),
                 default=Value(False),
                 output_field=BooleanField(),
             )
-    )
+        )
     )
     filterset_fields = {
         "shop": ["exact"],
