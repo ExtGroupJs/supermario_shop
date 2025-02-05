@@ -1,3 +1,4 @@
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
@@ -39,6 +40,7 @@ class ShopProductsViewSet(
         filters.SearchFilter,
         CommonOrderingFilter,
     ]
+
     queryset = (
         ShopProducts.objects.all()
         .annotate(shop_name=F("shop__name"))
