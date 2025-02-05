@@ -11,6 +11,7 @@ from apps.common.permissions import CommonRolePermission
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 
+
 class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     queryset = Shop.objects.all()
     serializer_class = ShopSerializer
