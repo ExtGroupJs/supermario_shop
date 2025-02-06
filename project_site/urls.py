@@ -44,6 +44,7 @@ urlpatterns = [
     path("common/", include("apps.common.urls")),
     path("user-gestion/", include("apps.users_app.urls")),
     path("business-gestion/", include("apps.business_app.urls")),
+    path("client-gestion/", include("apps.clients_app.urls")),
     path("admin/", admin.site.urls),
     path("api-auth/", include("rest_framework.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
