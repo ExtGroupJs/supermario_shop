@@ -23,6 +23,7 @@ class SellGroupSerializer(serializers.ModelSerializer):
             "seller",
             "updated_timestamp",
             "sells",
+            "client",
         )
         read_only_fields = ("id",)
 
