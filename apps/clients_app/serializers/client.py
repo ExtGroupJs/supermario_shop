@@ -14,4 +14,4 @@ class ClientReadSerializer(ClientSerializer):
     models = ModelSerializer(many=True)
 
     class Meta(ClientSerializer.Meta):
-        fields = ["id", "name", "phone", "shop", "models"]
+        fields = ["id", "name", "phone", "shop", "models", "sells"]
