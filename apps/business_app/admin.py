@@ -1,4 +1,3 @@
-import logging
 
 from django.contrib import admin
 
@@ -9,7 +8,7 @@ from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
-from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
+from safedelete.admin import SafeDeleteAdmin, highlight_deleted
 
 
 @admin.register(Brand)

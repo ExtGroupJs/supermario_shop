@@ -19,7 +19,6 @@ from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
 from django.db.models import F, Value
-from rest_framework.response import Response
 from django.db.models.functions import Concat
 
 

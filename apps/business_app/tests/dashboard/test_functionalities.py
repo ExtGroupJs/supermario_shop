@@ -5,8 +5,6 @@ from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
-from apps.business_app.tests import sells, shop_products
-from apps.business_app.views import shop
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.users_app.models.groups import Groups
 from model_bakery import baker

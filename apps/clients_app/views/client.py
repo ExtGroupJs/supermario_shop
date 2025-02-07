@@ -1,6 +1,5 @@
 import logging
 
-from django.contrib.auth.models import Group
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets
 from rest_framework.generics import GenericAPIView
@@ -9,7 +8,6 @@ from apps.clients_app.models.client import Client
 from apps.clients_app.serializers.client import ClientReadSerializer, ClientSerializer
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
-from apps.users_app.serializers.group import GroupSerializer
 
 logger = logging.getLogger(__name__)
 

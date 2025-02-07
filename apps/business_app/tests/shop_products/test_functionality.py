@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import datetime
 import pytest
 from django.urls import reverse
 from apps.business_app.models.shop_products import ShopProducts

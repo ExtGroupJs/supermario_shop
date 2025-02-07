@@ -8,4 +8,4 @@ class BusinessAppConfig(AppConfig):
     verbose_name = _("Business Specific Application")
 
     def ready(self):
-        import apps.business_app.signals  # Asegúrate de importar tu archivo de señales
+        pass  # Asegúrate de importar tu archivo de señales

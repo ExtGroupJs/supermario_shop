@@ -1,11 +1,8 @@
-from re import S
 from django.db import models
 
-from apps.business_app.models.shop_products import ShopProducts
 from apps.clients_app.models.client import Client
 from apps.common.models import BaseModel
 from apps.users_app.models.system_user import SystemUser
-from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 
 

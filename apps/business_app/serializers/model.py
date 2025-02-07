@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from apps.business_app.models.model import Model
 from apps.business_app.serializers.brand import BrandSerializer, CatalogBrandSerializer
-from apps.business_app.views import brand
 
 
 class ModelSerializer(serializers.ModelSerializer):

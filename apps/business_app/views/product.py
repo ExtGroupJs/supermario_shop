@@ -13,7 +13,7 @@ from apps.common.mixins.serializer_map import SerializerMapMixin
 from apps.common.pagination import AllResultsSetPagination
 
 from apps.common.permissions import CommonRolePermission
-from django.db.models import Q, QuerySet, Value, F
+from django.db.models import Value, F
 from django.db.models.functions import Concat
 
 

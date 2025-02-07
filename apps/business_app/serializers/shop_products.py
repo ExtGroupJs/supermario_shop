@@ -7,7 +7,6 @@ from apps.business_app.serializers.product import (
     CatalogProductSerializer,
     ReadProductSerializer,
 )
-from apps.business_app.serializers.shop import ShopSerializer
 from apps.users_app.models.groups import Groups
 
 
