@@ -8,7 +8,10 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = ["id", "name", "phone", "shop", "models"]
+
+
 class ClientReadSerializer(ClientSerializer):
-    models = ModelSerializer(many = True)
+    models = ModelSerializer(many=True)
+
     class Meta(ClientSerializer.Meta):
         fields = ["id", "name", "phone", "shop", "models"]

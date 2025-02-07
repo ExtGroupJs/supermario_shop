@@ -21,10 +21,9 @@ class ClientViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     API endpoint that allows clients to be viewed or edited.
     """
 
-    queryset = Client.objects.all()
+    queryset = Client.objects.all().prefetch_related("models")
     serializer_class = ClientSerializer
     list_serializer_class = ClientReadSerializer
-
 
     search_fields = [
         "name",

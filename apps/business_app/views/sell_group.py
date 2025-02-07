@@ -5,10 +5,7 @@ from rest_framework.generics import GenericAPIView
 from apps.business_app.models.product import Product
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
-from apps.business_app.serializers.product import (
-    ProductSerializer,
-    ReadProductSerializer,
-)
+
 from django.db.models import Count, Sum, F
 
 from apps.business_app.serializers.sell import SellSerializer
