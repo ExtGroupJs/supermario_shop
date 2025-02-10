@@ -9,4 +9,3 @@ class BusinessAppConfig(AppConfig):
 
     def ready(self):
         import apps.business_app.signals  # Asegúrate de importar tu archivo de señales
-

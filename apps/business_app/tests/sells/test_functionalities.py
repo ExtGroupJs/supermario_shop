@@ -56,18 +56,17 @@ class TestSellViewSetFunctionalities(BaseTestClass):
         # self.user.groups.add(Groups.SHOP_SELLER)
         initial_qty = baker.random_gen.gen_integer(min_int=10, max_int=20)
         shop_product = baker.make(
-                    ShopProducts,
-                    cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
-                    sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
-                    quantity=initial_qty,
-                )
+            ShopProducts,
+            cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
+            sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+            quantity=initial_qty,
+        )
         selled_qty = baker.random_gen.gen_integer(min_int=1, max_int=10)
 
-        sell = baker.make(Sell, shop_product=shop_product, quantity = selled_qty)
+        sell = baker.make(Sell, shop_product=shop_product, quantity=selled_qty)
         shop_product.refresh_from_db()
         self.assertEqual(initial_qty - selled_qty, shop_product.quantity)
-        
+
         sell.delete()
         shop_product.refresh_from_db()
         self.assertEqual(initial_qty, shop_product.quantity)
-

@@ -88,7 +88,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         sell_query = Sell.objects.all()
         self.assertEqual(sell_group_query.count(), 0)
         self.assertEqual(sell_query.count(), 0)
-        
+
         url = reverse("sell-groups-list")
 
         response = self.client.post(url, data=payload, format="json")

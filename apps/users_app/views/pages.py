@@ -34,7 +34,6 @@ def brands(request):
     return render(request, "brands/brands.html")
 
 
-
 def clients(request):
     return render(request, "clients/clients.html")
 
