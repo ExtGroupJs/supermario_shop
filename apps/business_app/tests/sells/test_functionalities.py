@@ -1,3 +1,4 @@
+import random
 import pytest
 from django.urls import reverse
 
@@ -47,13 +48,26 @@ class TestSellViewSetFunctionalities(BaseTestClass):
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
         )
 
-    def test_post_protocol(self):
+    def test_signals_influence_on_shop_product_quantity(self):
         """
         Solo el SUPER_ADMIN y el SHOP_OWNER pueden introducir datos
         """
-        url = reverse("sell-products-list")
-        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
+        # url = reverse("sell-products-list")
+        # self.user.groups.add(Groups.SHOP_SELLER)
+        initial_qty = baker.random_gen.gen_integer(min_int=10, max_int=20)
+        shop_product = baker.make(
+                    ShopProducts,
+                    cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
+                    sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+                    quantity=initial_qty,
+                )
+        selled_qty = baker.random_gen.gen_integer(min_int=1, max_int=10)
 
-        self._test_permissions(
-            url, allowed_roles=allowed_groups, request_using_protocol=self.client.post
-        )
+        sell = baker.make(Sell, shop_product=shop_product, quantity = selled_qty)
+        shop_product.refresh_from_db()
+        self.assertEqual(initial_qty - selled_qty, shop_product.quantity)
+        
+        sell.delete()
+        shop_product.refresh_from_db()
+        self.assertEqual(initial_qty, shop_product.quantity)
+

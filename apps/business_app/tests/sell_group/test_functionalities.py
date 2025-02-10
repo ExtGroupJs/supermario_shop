@@ -50,7 +50,6 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
     def test_sell_group_create_happy_path(self):
         """Prueba que en una venta con varios productos individuales se crea un solo
         grupo de ventas y varias ventas asociadas a él, todos con mismo vendedor."""
-        url = reverse("sell-groups-list")
         self.user.groups.add(Groups.SHOP_SELLER)
         random_qty = baker.random_gen.gen_integer(min_int=1, max_int=5)
         random_shop_product_qty = baker.random_gen.gen_integer(min_int=2, max_int=5)
@@ -89,11 +88,14 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         sell_query = Sell.objects.all()
         self.assertEqual(sell_group_query.count(), 0)
         self.assertEqual(sell_query.count(), 0)
+        
+        url = reverse("sell-groups-list")
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(sell_group_query.filter(seller=self.user).count(), 1)
+
         self.assertEqual(
             sell_query.filter(
                 sell_group=sell_group_query.first(), seller=self.user
