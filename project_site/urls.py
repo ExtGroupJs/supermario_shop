@@ -55,6 +55,7 @@ urlpatterns = [
     path("index/", login_required(pages.user_redirect), name="index"),
     path("", pages.catalog, name="catalog"),
     path("brands/", login_required(pages.brands), name="brands"),
+    path("clients/", login_required(pages.clients), name="clients"),
     path("models/", login_required(pages.models), name="models"),
     path("shops/", login_required(pages.shops), name="shops"),
     path("products/", login_required(pages.products), name="products"),
