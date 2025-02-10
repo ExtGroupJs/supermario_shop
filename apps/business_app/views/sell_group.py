@@ -5,7 +5,6 @@ from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 
 
-
 from apps.business_app.serializers.sell_group import SellGroupSerializer
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.enums_mixin import EnumsMixin

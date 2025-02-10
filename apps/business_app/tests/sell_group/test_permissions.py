@@ -5,7 +5,6 @@ from apps.common.baseclass_for_testing import BaseTestClass
 from apps.users_app.models.groups import Groups
 
 
-
 @pytest.mark.django_db
 class TestSellGroupsViewSetPermissions(BaseTestClass):
     fixtures = ["auth.group.json"]

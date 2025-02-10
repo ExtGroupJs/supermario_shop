@@ -27,7 +27,7 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
         response["new_value"] = new_value
         action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
-        response["info"] = f"{abs_value} {action}{'s' if abs_value>1 else ''}"
+        response["info"] = f"{abs_value} {action}{'s' if abs_value > 1 else ''}"
         return response
 
     def get_product_image(self, obj):
