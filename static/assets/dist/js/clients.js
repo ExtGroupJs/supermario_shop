@@ -75,7 +75,7 @@ $(document).ready(function () {
       columns: [
         { data: "name", title: "Nombre" },
         { data: "phone", title: "Teléfono" },
-        { data: "shop", title: "Tienda" },
+        { data: "shop_name", title: "Tienda" },
         {
           data: "models",
           title: "Modelos",
@@ -146,7 +146,8 @@ $("#modal-crear-clients").on("show.bs.modal", function (event) {
         form.elements.name.value = client.name;
         form.elements.phone.value = client.phone; // Asumiendo que tienes un campo para el teléfono
 
-        form.elements.shop.value = client.shop;
+        form.elements.shop.value = client.shop_id;
+
 
         // // Asignar los valores del multiselect para los modelos
         const modelSelect = form.elements.models;
@@ -165,7 +166,7 @@ $("#modal-crear-clients").on("show.bs.modal", function (event) {
       })
       .catch(function (error) {});
   } else {
-    modal.find(".modal-title").text("Crear Marca");
+    modal.find(".modal-title").text("Crear Cliente");
   }
 });
 
@@ -213,7 +214,7 @@ $(function () {
   });
 });
 
-// crear marca
+// crear Cliente
 
 let form = document.getElementById("form-create-clients");
 form.addEventListener("submit", function (event) {
@@ -252,7 +253,7 @@ form.addEventListener("submit", function (event) {
           $("#modal-crear-clients").modal("hide");
           Swal.fire({
             icon: "success",
-            title: "Marca actualizada con éxito  ",
+            title: "Cliente actualizado con éxito  ",
             showConfirmButton: false,
             timer: 1500,
           });
@@ -270,7 +271,7 @@ form.addEventListener("submit", function (event) {
 
         Swal.fire({
           icon: "error",
-          title: "Error al crear la Marca",
+          title: "Error al crear el Cliente",
           text: textError,
           showConfirmButton: false,
           timer: 1500,
@@ -283,7 +284,7 @@ form.addEventListener("submit", function (event) {
         if (response.status === 201) {
           Swal.fire({
             icon: "success",
-            title: "Marca creada con exito",
+            title: "Cliente creado con exito",
             showConfirmButton: false,
             timer: 1500,
           });
@@ -300,7 +301,7 @@ form.addEventListener("submit", function (event) {
 
         Swal.fire({
           icon: "error",
-          title: "Error al crear la marca",
+          title: "Error al crear el Cliente",
           text: textError,
           showConfirmButton: false,
           timer: 1500,

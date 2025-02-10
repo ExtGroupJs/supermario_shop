@@ -34,7 +34,7 @@ def brands(request):
     return render(request, "brands/brands.html")
 
 
-@user_passes_test(is_owner)
+
 def clients(request):
     return render(request, "clients/clients.html")
 
