@@ -13,7 +13,8 @@ class ClientSerializer(serializers.ModelSerializer):
 
 class ClientReadSerializer(ClientSerializer):
     models = ModelSerializer(many=True)
-    shop = ShopSerializer(read_only=True)
+    shop_id = serializers.IntegerField(source = "shop.id", read_only = True)
+    shop_name = serializers.IntegerField(source = "shop.name", read_only = True)
 
     class Meta(ClientSerializer.Meta):
-        fields = ["id", "name", "phone", "shop", "models", "sells"]
+        fields = ["id", "name", "phone", "shop_id", "shop_name", "models", "sells"]
