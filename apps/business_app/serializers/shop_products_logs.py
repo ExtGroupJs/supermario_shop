@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from apps.business_app.models.shop_products import ShopProducts
 from apps.common.serializers.generic_log import GenericLogSerializer
+from apps.users_app.models.system_user import SystemUser
 from project_site import settings
 
 
@@ -27,9 +28,20 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
         new_value = int(instance.details.get("quantity").get("new_value"))
         response["init_value"] = old_value
         response["new_value"] = new_value
-        action = "entrado" if new_value > old_value else "vendido"
+
+        created_by_dev_user = (
+            instance.created_by_id == SystemUser.objects.get(username="dev").id
+        )
+        operation = ""
+        if created_by_dev_user:
+            operation = "+" if new_value > old_value else "-"
+            action = "corregido"
+        else:
+            action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
-        response["info"] = f"{abs_value} {action}{'s' if abs_value>1 else ''}"
+        response["info"] = (
+            f"{operation}{abs_value} {action}{'s' if abs_value>1 else ''}"
+        )
         return response
 
     def get_product_image(self, obj):
