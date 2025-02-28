@@ -29,7 +29,9 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
         response["init_value"] = old_value
         response["new_value"] = new_value
 
-        created_by_dev_user = instance.created_by_id == SystemUser.objects.get(username="dev").id
+        created_by_dev_user = (
+            instance.created_by_id == SystemUser.objects.get(username="dev").id
+        )
         operation = ""
         if created_by_dev_user:
             operation = "+" if new_value > old_value else "-"
@@ -37,7 +39,9 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
         else:
             action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
-        response["info"] = f"{operation}{abs_value} {action}{'s' if abs_value>1 else ''}"
+        response["info"] = (
+            f"{operation}{abs_value} {action}{'s' if abs_value>1 else ''}"
+        )
         return response
 
     def get_product_image(self, obj):
