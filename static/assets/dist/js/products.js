@@ -15,11 +15,10 @@ $(function () {
 
 $(document).ready(function () {
   const table = $("#tabla-de-Datos").DataTable({
-    
     lengthMenu: [
       [10, 25, 50, 100, -1], // Valores
-      [10, 25, 50, 100, 'Todos'] // Etiquetas
-  ],
+      [10, 25, 50, 100, "Todos"], // Etiquetas
+    ],
     responsive: true,
     dom: '<"top"l>Bfrtip',
     buttons: [
@@ -81,7 +80,7 @@ $(document).ready(function () {
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
-      
+
       const params = {};
 
       filters.forEach((filter) => {
@@ -95,7 +94,7 @@ $(document).ready(function () {
       params.ordering = dir + data.columns[data.order[0].column].data;
 
       params.search = data.search.value;
-     
+
       axios
         .get(`${url}`, { params })
         .then((res) => {
@@ -238,7 +237,6 @@ $(function () {
       },
     },
     submitHandler: function (form) {
-
       event.preventDefault();
       var table = $("#tabla-de-Datos").DataTable();
       const csrfToken = document.cookie
@@ -253,7 +251,7 @@ $(function () {
       if (document.getElementById("image").files[0] != null) {
         data.append("image", document.getElementById("image").files[0]);
       }
-    
+
       if (edit_products) {
         axios
           .patch(`${url}` + selected_id + "/", data)
@@ -267,7 +265,7 @@ $(function () {
                 timer: 1500,
               });
               table.ajax.reload();
-    
+
               edit_products = false;
             }
           })
@@ -277,7 +275,7 @@ $(function () {
             for (const key in dict) {
               textError = textError + ", " + key;
             }
-    
+
             Swal.fire({
               icon: "error",
               title: "Error al crear el Producto",
@@ -307,7 +305,7 @@ $(function () {
             for (const key in dict) {
               textError = textError + ", " + key;
             }
-    
+
             Swal.fire({
               icon: "error",
               title: "Error al crear el Producto",
@@ -317,8 +315,6 @@ $(function () {
             });
           });
       }
-
-
     },
 
     messages: {},
@@ -346,9 +342,9 @@ function poblarListas() {
   $filterModel.add(new Option("ninguno", ""));
   axios.get("/business-gestion/models/").then(function (response) {
     response.data.results.forEach(function (element) {
-      var option = new Option(element.name, element.id);
+      var option = new Option(element.__str__, element.id);
       $model.add(option);
-      var option = new Option(element.name, element.id);
+      var option = new Option(element.__str__, element.id);
       $filterModel.add(option);
     });
   });

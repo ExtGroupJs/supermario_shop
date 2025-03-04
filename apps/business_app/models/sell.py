@@ -1,12 +1,9 @@
-from re import S
-from unittest import mock
 from django.db import models
 
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop_products import ShopProducts
 from apps.common.models import BaseModel
 from apps.users_app.models.system_user import SystemUser
-from django.db.models import F
 
 
 class Sell(BaseModel):

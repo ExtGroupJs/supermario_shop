@@ -1,9 +1,6 @@
-from email.policy import default
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from apps.business_app.models.sell import Sell
-from datetime import datetime
 
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.serializers.sell import SellSerializer

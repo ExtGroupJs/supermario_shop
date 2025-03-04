@@ -5,8 +5,6 @@ from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
-from apps.business_app.tests import sells, shop_products
-from apps.business_app.views import shop
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.users_app.models.groups import Groups
 from model_bakery import baker
@@ -54,6 +52,40 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
                 response.data.get("investments"),
                 shop_products_per_shop * random_equal_cost,
             )
+
+    def test_shop_product_investment_with_previous_sells(self):
+        shop = baker.make(Shop)
+
+        random_equal_cost = baker.random_gen.gen_integer(min_int=10, max_int=20)
+        random_qty = baker.random_gen.gen_integer(min_int=10, max_int=20)
+        shop_product = baker.make(
+            ShopProducts,
+            shop=shop,
+            cost_price=random_equal_cost,
+            quantity=random_qty,
+        )
+        first_sell_qty = random_qty - int(random_qty / 2)
+        baker.make(Sell, shop_product=shop_product, quantity=first_sell_qty)
+
+        url = reverse("dashboard-shop-product-investment")
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("investments"),
+            random_equal_cost
+            * random_qty,  # despite a part is sold the investment remains
+        )
+        baker.make(
+            Sell, shop_product=shop_product, quantity=random_qty - first_sell_qty
+        )
+        url = reverse("dashboard-shop-product-investment")
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("investments"),
+            random_equal_cost
+            * random_qty,  # all products sold, the investment is the same
+        )
 
     def test_sell_profits(self):
         sell_group = baker.make(SellGroup)  # Initialy without any discount

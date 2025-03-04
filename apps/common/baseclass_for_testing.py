@@ -1,6 +1,5 @@
 from unittest import TestCase
 
-from django.utils import timezone
 from model_bakery import baker
 
 # from oauth2_provider.models import AccessToken, Application
@@ -8,13 +7,10 @@ from rest_framework.test import APIClient
 from django.core.management import call_command
 from faker import Faker
 from rest_framework import status
-from apps.business_app.models.sell import Sell
-from apps.business_app.models.shop_products import ShopProducts
 from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
 
 
-from django.contrib.auth.models import User
 
 from apps.users_app.models.system_user import SystemUser
 

@@ -1,6 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 
 from apps.common.common_ordering_filter import CommonOrderingFilter

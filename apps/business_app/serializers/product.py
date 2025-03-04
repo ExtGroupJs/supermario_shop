@@ -3,7 +3,6 @@ from rest_framework import serializers
 from apps.business_app.models.product import Product
 from apps.business_app.serializers.model import (
     CatalogModelSerializer,
-    ModelSerializer,
     ReadModelSerializer,
 )
 
