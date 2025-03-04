@@ -3,12 +3,10 @@ from django.urls import reverse
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.shop_products import ShopProducts
-from apps.business_app.tests import shop_products
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.users_app.models.groups import Groups
 from model_bakery import baker
 
-from rest_framework import status
 
 
 @pytest.mark.django_db

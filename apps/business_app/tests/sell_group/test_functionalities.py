@@ -4,7 +4,6 @@ from django.urls import reverse
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop_products import ShopProducts
-from apps.business_app.tests import sells, shop_products
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups

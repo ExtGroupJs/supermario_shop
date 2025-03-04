@@ -7,7 +7,6 @@ from apps.common.baseclass_for_testing import BaseTestClass
 from apps.users_app.models.groups import Groups
 from model_bakery import baker
 
-from apps.users_app.models.system_user import SystemUser
 
 
 @pytest.mark.django_db

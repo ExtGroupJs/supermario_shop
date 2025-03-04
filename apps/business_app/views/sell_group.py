@@ -1,26 +1,16 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
-from rest_framework.generics import GenericAPIView
+from rest_framework import filters
 
-from apps.business_app.models.product import Product
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
-from apps.business_app.serializers.product import (
-    ProductSerializer,
-    ReadProductSerializer,
-)
-from django.db.models import Count, Sum, F
 
-from apps.business_app.serializers.sell import SellSerializer
 
 from apps.business_app.serializers.sell_group import SellGroupSerializer
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.enums_mixin import EnumsMixin
-from apps.common.pagination import AllResultsSetPagination
 
 from apps.common.permissions import SellViewSetPermission
 from apps.users_app.models.system_user import SystemUser
-from apps.users_app.models.groups import Groups
 from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response

@@ -6,7 +6,6 @@ from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.dashboard import (
     DashboardCountsSerializer,
     DashboardInvestmentSerializer,
-    DashboardSerializer,
 )
 
 from django.db.models.functions import (

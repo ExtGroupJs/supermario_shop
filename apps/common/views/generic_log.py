@@ -1,4 +1,3 @@
-from typing import Generic
 from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets

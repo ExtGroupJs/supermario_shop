@@ -4,12 +4,10 @@ from apps.business_app.models.brand import Brand
 from apps.business_app.serializers.brand import BrandSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 
-from apps.common import permissions
 from apps.common.common_ordering_filter import CommonOrderingFilter
 
 from apps.common.permissions import CommonRolePermission
 from rest_framework.permissions import AllowAny
-from project_site import settings
 from rest_framework.decorators import action
 
 
