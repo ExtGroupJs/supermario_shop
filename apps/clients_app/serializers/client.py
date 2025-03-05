@@ -1,4 +1,3 @@
-from apps.business_app.serializers.shop import ShopSerializer
 from rest_framework import serializers
 
 from apps.business_app.serializers.model import ModelSerializer

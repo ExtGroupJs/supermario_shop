@@ -1,7 +1,8 @@
 from faker import Faker
 from model_bakery.recipe import Recipe
 
-from apps.users_app.models import SystemUser
+from apps.users_app.models.system_user import SystemUser
+
 
 faker = Faker(0)
 

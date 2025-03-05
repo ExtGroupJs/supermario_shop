@@ -59,4 +59,11 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
         super().save(*args, **kwargs)
 
     def investment(self):
-        return self.cost_price * self.quantity
+        from apps.business_app.models.sell import Sell
+
+        related_sells = Sell.objects.filter(shop_product=self)
+        accumulated_selled = 0
+        for sell in related_sells:
+            accumulated_selled += self.cost_price * sell.quantity
+        accumulated_selled += self.cost_price * self.quantity
+        return accumulated_selled
