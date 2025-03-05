@@ -42,9 +42,7 @@ $(document).ready(function () {
       ],
       //Adding server-side processing
       serverSide: true,
-      search: {
-        return: true,
-      },
+     
       processing: true,
       ajax: function (data, callback, settings) {
         dir = "";
