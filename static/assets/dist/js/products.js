@@ -184,6 +184,8 @@ $("#modal-crear-products").on("hide.bs.modal", (event) => {
   edit_products = false;
   const elements = [...form.elements];
   elements.forEach((elem) => elem.classList.remove("is-invalid"));
+
+ 
 });
 
 let edit_products = false;
@@ -211,7 +213,20 @@ $("#modal-crear-products").on("show.bs.modal", function (event) {
       })
       .catch(function (error) {});
   } else {
+    
     modal.find(".modal-title").text("Crear Producto");
+  // Suponiendo que tienes un elemento <select> con el id "model"
+const selectElement = document.getElementById("model");
+
+// Obtener el primer elemento (opción) del select
+const firstOption = selectElement.options[0]; // Esto te da la primera opción
+
+// Si necesitas el valor o el texto de la primera opción
+const firstOptionValue = firstOption.value; // Valor del primer elemento
+const firstOptionText = firstOption.text; // Texto del primer elemento
+
+// Para establecer este valor en el select2
+$("#model").val(firstOptionValue).trigger("change");
   }
 });
 
