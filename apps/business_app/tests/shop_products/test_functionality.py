@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import datetime
 import pytest
 from django.urls import reverse
 from apps.business_app.models.shop_products import ShopProducts
@@ -18,12 +17,12 @@ class TestShopProductsViewSet(BaseTestClass):
     def setUp(self):
         super().setUp()
 
-    # @freeze_time(datetime.datetime.now() - timedelta(days=40))
+    @freeze_time(datetime.now() - timedelta(days=40))
     def test_is_new_is_in_response_and_is_false_since_has_more_than_one_month(self):
         """
         Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
         """
-        with freeze_time(datetime.datetime.now() - timedelta(days=40)):
+        with freeze_time(datetime.now() - timedelta(days=40)):
             baker.make(
                 ShopProducts,
                 cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
@@ -44,7 +43,7 @@ class TestShopProductsViewSet(BaseTestClass):
         """
         Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
         """
-        with freeze_time(datetime.datetime.now() - timedelta(days=29)):
+        with freeze_time(datetime.now() - timedelta(days=29)):
             baker.make(
                 ShopProducts,
                 cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),

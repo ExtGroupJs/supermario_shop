@@ -64,10 +64,18 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
             cost_price=random_equal_cost,
             quantity=random_qty,
         )
+        url = reverse("dashboard-shop-product-investment")
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("investments"),
+            random_equal_cost
+            * random_qty,  # Initial investment only depends on the cost price of the product
+        )
+
         first_sell_qty = random_qty - int(random_qty / 2)
         baker.make(Sell, shop_product=shop_product, quantity=first_sell_qty)
 
-        url = reverse("dashboard-shop-product-investment")
         response = self.client.post(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
