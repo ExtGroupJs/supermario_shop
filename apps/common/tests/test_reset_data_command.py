@@ -170,7 +170,6 @@ class TestResetDataCommand(BaseTestClass):
     def test_shop_product_investment_remains_the_same_when_removed_sell_groups(self):
         shop = baker.make(Shop)
 
-
         random_equal_cost = baker.random_gen.gen_integer(min_int=10, max_int=20)
         random_initial_qty = baker.random_gen.gen_integer(min_int=10, max_int=20)
         shop_product = baker.make(

@@ -12,7 +12,7 @@ def update_inventory(inc_pos_dec_neg, instance):
     related_product = ShopProducts.objects.filter(id=instance.shop_product.id).first()
     if related_product:
         related_product.quantity += inc_pos_dec_neg * instance.quantity
-        related_product.save(update_fields=["quantity"])    
+        related_product.save(update_fields=["quantity"])
 
 
 @receiver(post_save, sender=Sell)
