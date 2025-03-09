@@ -14,7 +14,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 
 
-
 class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     queryset = Model.objects.all().annotate(brand_name=F("brand__name"))
     serializer_class = ModelSerializer

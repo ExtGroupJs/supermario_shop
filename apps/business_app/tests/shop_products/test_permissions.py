@@ -7,7 +7,6 @@ from apps.users_app.models.groups import Groups
 from model_bakery import baker
 
 
-
 @pytest.mark.django_db
 class TestShopProductsViewSet(BaseTestClass):
     fixtures = ["auth.group.json"]

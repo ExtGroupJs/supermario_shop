@@ -11,7 +11,6 @@ from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
 
 
-
 from apps.users_app.models.system_user import SystemUser
 
 

@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 
 from apps.business_app.models.brand import Brand
