@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
         GenericLog.objects.all().delete()
         shop_products = ShopProducts.objects.filter(quantity__gt=0)
-        
+
         content_type = ContentType.objects.get_for_model(ShopProducts)
         created_by_id = SystemUser.objects.get(username="dev").id
         logs_to_create = []
@@ -35,7 +35,7 @@ class Command(BaseCommand):
                 performed_action=GenericLog.ACTION.CREATED,
                 object_id=shop_product.id,
                 content_type=content_type,
-                created_by_id = created_by_id,
+                created_by_id=created_by_id,
                 details={
                     "quantity": {
                         "old_value": None,

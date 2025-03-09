@@ -9,9 +9,10 @@ def update_inventory(inc_pos_dec_neg, instance):
     """
     The increment only defines the operation, if is -1 the value is decremented, if +1, incremented
     """
-    related_product = ShopProducts.all_objects.get(id=instance.shop_product.id)
-    related_product.quantity += inc_pos_dec_neg * instance.quantity
-    related_product.save(update_fields=["quantity"])
+    related_product = ShopProducts.objects.filter(id=instance.shop_product.id).first()
+    if related_product:
+        related_product.quantity += inc_pos_dec_neg * instance.quantity
+        related_product.save(update_fields=["quantity"])
 
 
 @receiver(post_save, sender=Sell)
