@@ -1,5 +1,5 @@
 import random
-from django.db.models import Q, QuerySet, Value, F
+from django.db.models import Value, F
 from django.db.models.functions import Concat
 
 from django.contrib.auth import login, logout

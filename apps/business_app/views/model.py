@@ -13,8 +13,6 @@ from django.db.models import F
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 
-from project_site import settings
-
 
 class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     queryset = Model.objects.all().annotate(brand_name=F("brand__name"))

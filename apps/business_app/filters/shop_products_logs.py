@@ -1,6 +1,5 @@
 import django_filters
 from django.db.models import F, Q
-from django.db.models.functions import Cast
 from apps.common.filters.generic_log import GenericLogFilter
 from apps.common.models.generic_log import GenericLog
 

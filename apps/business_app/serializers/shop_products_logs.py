@@ -1,7 +1,5 @@
-from os import read
 from rest_framework import serializers
 
-from apps.business_app.models.shop_products import ShopProducts
 from apps.common.serializers.generic_log import GenericLogSerializer
 from apps.users_app.models.system_user import SystemUser
 from project_site import settings

@@ -1,9 +1,6 @@
-from email.policy import default
-from math import e
 from rest_framework import serializers
 
 from apps.business_app.models.sell import Sell
-from datetime import datetime
 
 
 class SellSerializer(serializers.ModelSerializer):

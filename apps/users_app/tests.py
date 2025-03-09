@@ -1,14 +1,8 @@
-import random
 import re
 
 import pytest
 from django.contrib.auth.models import User
-from django.core.management import call_command
-from django.core.management.base import CommandError
 from django.urls import reverse
-from faker import Faker
-from model_bakery import random_gen
-from model_bakery.exceptions import InvalidQuantityException
 from rest_framework import status
 
 # from apps.users_app.models import Country, SystemUser
