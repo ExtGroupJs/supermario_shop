@@ -43,7 +43,7 @@ class TestShopProductsViewSet(BaseTestClass):
         """
         Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
         """
-        with freeze_time(datetime.datetime.now() - timedelta(days=29)):
+        with freeze_time(datetime.now() - timedelta(days=29)):
             baker.make(
                 ShopProducts,
                 cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
