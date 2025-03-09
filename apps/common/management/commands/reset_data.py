@@ -1,12 +1,9 @@
-from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from requests import delete
 from termcolor import colored
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop_products import ShopProducts
-from apps.business_app.tests import shop_products
 from apps.common.models.generic_log import GenericLog
 from django.contrib.contenttypes.models import ContentType
 
