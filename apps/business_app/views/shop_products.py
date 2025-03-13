@@ -10,7 +10,6 @@ from apps.business_app.serializers.shop_products import (
 )
 
 
-
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
 
@@ -98,10 +97,10 @@ class ShopProductsViewSet(
             ).exists()
         ):
             if self.action in ("list_for_sale",):
-                queryset = queryset.filter(quantity_non_zero)            
+                queryset = queryset.filter(quantity_non_zero)
             return queryset
         if self.action in ("catalog",):
-                queryset = queryset.annotate(sales_count=Sum('sells__quantity'))
+            queryset = queryset.annotate(sales_count=Sum("sells__quantity"))
         if self.request.user.pk:
             system_user = SystemUser.objects.get(id=self.request.user.pk)
             queryset = queryset.filter(shop=system_user.shop)

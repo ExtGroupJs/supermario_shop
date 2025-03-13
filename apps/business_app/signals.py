@@ -2,6 +2,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from apps.business_app.models.sell import Sell
+from apps.business_app.models.shop_products import ShopProducts
 
 
 def update_inventory(inc_pos_dec_neg, instance):

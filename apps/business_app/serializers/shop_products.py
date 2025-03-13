@@ -65,7 +65,6 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
     sales_count = serializers.IntegerField(default=0)
     product = CatalogProductSerializer(read_only=True)
 
-
     class Meta(ReadShopProductsSerializer.Meta):
         fields = (
             "id",
