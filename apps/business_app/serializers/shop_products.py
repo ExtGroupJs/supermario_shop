@@ -1,6 +1,5 @@
 from datetime import timedelta
 import datetime
-from email.policy import default
 from rest_framework import serializers
 
 from apps.business_app.models.shop_products import ShopProducts
