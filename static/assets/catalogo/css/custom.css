@@ -1,0 +1,72 @@
+.li-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 100%;
+}
+
+.li-btn i {
+    margin: 0;
+    padding: 0;
+}
+
+/* Estilos para la vista de lista */
+.single-product-wrap.d-flex {
+    background: #fff;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.single-product-wrap.d-flex .product_desc {
+    padding: 0 20px;
+}
+
+.single-product-wrap.d-flex .product-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;
+    flex: 0 0 440px !important; /* Aumentado un 20% de 200px */
+}
+
+.single-product-wrap.d-flex .product-image img {
+    object-fit: contain;
+    max-height: 440px; /* Aumentado un 20% de 200px */
+}
+
+/* Estilos para los botones de cambio de vista */
+.shop-item-filter-list a {
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.shop-item-filter-list a:hover {
+    background-color: #f5f5f5;
+}
+
+.shop-item-filter-list a.active {
+    background-color: #fed700;
+    color: #333;
+}
+
+/* Transición suave para el cambio de ícono */
+.shop-item-filter-list a i {
+    transition: all 0.3s ease;
+}
+
+.li-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 100%;
+}
+
+.li-btn i {
+    margin: 0;
+    padding: 0;
+}

@@ -7,7 +7,8 @@ let product__model = "";
 let searchValue = "";
 let shopValue = "";
 let orderingValue = "";
-let product__model__brand= "";
+let product__model__brand = "";
+let currentViewMode = 'grid';
 
 // Función para cargar productos
 function loadProducts(page) {
@@ -19,7 +20,7 @@ function loadProducts(page) {
     search: searchValue, // Aquí puedes agregar la lógica para manejar la búsqueda si es necesario
     ordering: orderingValue, // Aquí puedes agregar la lógica para manejar el ordenamiento si es necesario
     product__model: product__model,
-    product__model__brand:product__model__brand,
+    product__model__brand: product__model__brand,
     shop: shopValue,
   };
 
@@ -54,7 +55,9 @@ function renderProducts(products) {
   productArea.innerHTML = ""; // Limpiar productos existentes
 
   products.forEach((product) => {
-    const productHTML = `
+    console.log("product", product);
+    if (currentViewMode === 'grid') {
+      const productHTML = `
         <div class="col-lg-4 col-md-4 col-sm-6 mt-40">
           <div class="single-product-wrap">
             <div class="product-image">
@@ -71,11 +74,7 @@ function renderProducts(products) {
                   </h5>
                   <div class="rating-box">
                     <ul class="rating">
-                      <li><i class="fa fa-star-o"></i></li>
-                      <li><i class="fa fa-star-o"></i></li>
-                      <li><i class="fa fa-star-o"></i></li>
-                      <li><i class="fa fa-star-o"></i></li>
-                      <li><i class="fa fa-star-o"></i></li>
+                      ${generateStarsHTML(product.sales_count || 0)}
                     </ul>
                   </div>
                 </div>
@@ -92,10 +91,65 @@ function renderProducts(products) {
             </div>
           </div>
         </div>`;
-    productArea.insertAdjacentHTML("beforeend", productHTML);
+      productArea.insertAdjacentHTML("beforeend", productHTML);
+    } else {
+      const productHTML = `
+        <div class="col-12 mt-40">
+          <div class="single-product-wrap d-flex">
+            <div class="product-image">
+              <a>
+                <img src="${product.product.image || '/static_output/assets/dist/img/producto-sin-imagen.jpg'}" alt="${product.product.name}">
+              </a>
+              ${product.is_new ? '<span class="sticker">New</span>' : ''}
+            </div>
+            <div class="product_desc flex-grow-1 ml-4">
+              <div class="product_desc_info">
+                <div class="product-review">
+                  <h5 class="manufacturer">
+                    <a>${product.product.model.brand.name} ${product.product.model.name}</a>
+                  </h5>
+                  <div class="rating-box">
+                    <ul class="rating">
+                      ${generateStarsHTML(product.sales_count || 0)}
+                    </ul>
+                  </div>
+                </div>
+                <h4><a class="product_name" href="#">${product.product.name}</a></h4>
+                <div class="price-box">
+                  <span class="new-price">$${product.sell_price}</span>
+                </div>
+              </div>
+              <div class="add-actions">
+                <ul class="add-actions-link">
+                  <li><a href="#" title="quick view" class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter" onclick="viewProductDetails(${product.id})"><i class="fa fa-eye"></i></a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      productArea.insertAdjacentHTML("beforeend", productHTML);
+    }
   });
 }
 
+// Función para generar las estrellas basadas en las ventas
+function generateStarsHTML(sales) {
+  // Aseguramos un mínimo de 2 estrellas
+  const minStars = 2;
+  // Calculamos estrellas adicionales basadas en ventas (máximo 3 estrellas adicionales)
+  const additionalStars = Math.min(Math.floor(sales / 5), 3);
+  const totalStars = Math.max(minStars, additionalStars);
+  
+  let starsHTML = '';
+  for (let i = 0; i < 5; i++) {
+    if (i < totalStars) {
+      starsHTML += '<li><i class="fa fa-star"></i></li>';
+    } else {
+      starsHTML += '<li><i class="fa fa-star-o"></i></li>';
+    }
+  }
+  return starsHTML;
+}
 
 // Función para actualizar la paginación
 function updatePagination() {
@@ -344,6 +398,28 @@ function captureOrderingValue() {
   currentPage = 1;
   loadProducts(currentPage);
 }
+
+function toggleViewMode(event, element) {
+  event.preventDefault();
+  const viewMode = element.getAttribute('data-view');
+  const icon = document.getElementById('view-mode-icon');
+  
+  // Cambiar el modo de vista
+  if (viewMode === 'grid') {
+    element.setAttribute('data-view', 'list');
+    icon.classList.remove('fa-th');
+    icon.classList.add('fa-list');
+  } else {
+    element.setAttribute('data-view', 'grid');
+    icon.classList.remove('fa-list');
+    icon.classList.add('fa-th');
+  }
+  
+  // Actualizar modo de vista y volver a renderizar
+  currentViewMode = viewMode;
+  loadProducts(currentPage);
+}
+
 // Función para mostrar los detalles del producto
 async function showProductDetails(productId) {
   try {

@@ -70,6 +70,8 @@ MM Auto Part
   rel="stylesheet"
   href="{% static 'assets/catalogo/css/responsive.css'%}"
 />
+<!-- Custom CSS -->
+<link rel="stylesheet" href="{% static 'assets/catalogo/css/custom.css'%}" />
 <!-- Modernizr js -->
 <script src="{% static 'assets/catalogo/js/vendor/modernizr-2.8.3.min.js'%}"></script>
 
@@ -129,7 +131,7 @@ MM Auto Part
             <!-- Begin Header Middle Right Area -->
             <div class="col-lg-9 pl-0 ml-sm-15 ml-xs-15">
               <!-- Begin Header Middle Searchbox Area -->
-              <form action="#" class="hm-searchbox">
+              <form action="#" class="hm-searchbox" onsubmit="event.preventDefault(); searchProducts();">
                 <select class="select-search-category" id="brandsSelect">
                   <option value="">Seleccione una marca</option>
                   <!-- Opción por defecto -->
@@ -142,7 +144,7 @@ MM Auto Part
                 <button
                   class="li-btn"
                   id="searchButton"
-                  onclick="searchProducts()"
+                  type="submit"
                 >
                   <i class="fa fa-search"></i>
                 </button>
@@ -179,7 +181,7 @@ MM Auto Part
     <div class="content-wraper pt-5 pb-60 pt-sm-30">
       <div class="container">
         <div class="row">
-          <div class="col-lg-9 order-1 order-lg-2">
+          <div class="col-lg-9 order-lg-2 order-2">
             <!-- Begin Li's Banner Area -->
 
             <!-- Li's Banner Area End Here -->
@@ -191,26 +193,12 @@ MM Auto Part
                   <ul class="nav shop-item-filter-list" role="tablist">
                     <li class="active" role="presentation">
                       <a
-                        data-toggle="tab"
-                        aria-selected="true"
-                        class="active show"
-                        role="tab"
-                        aria-controls="grid-view"
-                        href="#grid-view"
-                        ><i class="fa fa-th"></i
-                      ></a>
+                        href="#"
+                        class="active show view-mode-btn"
+                        data-view="list"
+                        onclick="toggleViewMode(event, this)"
+                      ><i class="fa fa-list" id="view-mode-icon"></i></a>
                     </li>
-                    {% comment %}
-                    <li role="presentation">
-                      <a
-                        data-toggle="tab"
-                        role="tab"
-                        aria-controls="list-view"
-                        href="#list-view"
-                        ><i class="fa fa-th-list"></i
-                      ></a>
-                    </li>
-                    {% endcomment %}
                   </ul>
                   <!-- shop-item-filter-list end -->
                 </div>
@@ -276,7 +264,7 @@ MM Auto Part
             </div>
             <!-- shop-products-wrapper end -->
           </div>
-          <div class="col-lg-3 order-2 order-lg-1">
+          <div class="col-lg-3 order-lg-1 order-1">
             <!--sidebar-categores-box start  -->
             <div
               class="sidebar-categores-box mt-sm-30 mt-xs-30"
