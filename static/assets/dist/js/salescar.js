@@ -4,7 +4,6 @@ const csrfToken = document.cookie
   .find((c) => c.trim().startsWith("csrftoken="))
   ?.split("=")[1];
 
-const list_url = "/business-gestion/shop-products/list-for-sale";
 const url = "/business-gestion/shop-products/";
 let productosSeleccionados = [];
 let importe_total = 0;
@@ -17,18 +16,16 @@ $(document).ready(function () {
 function cargarProductos() {
   load.hidden = false;
   axios
-    .get(list_url)
+    .get(url)
     .then((res) => {
       const productos = res.data.results;
 
-
       productos.forEach((producto) => {
-       if(producto.quantity>0){
-        $("#producto").append(
-          new Option(`${producto.__repr__}`, producto.id, false, false)
-        );
-       }
-      
+        if (producto.quantity > 0) {
+          $("#producto").append(
+            new Option(`${producto.__repr__}`, producto.id, false, false)
+          );
+        }
       });
       cargarProductoEspecifico($("#producto").val());
     })
@@ -50,12 +47,10 @@ function cargarProductoEspecifico(id) {
         `Precio: $${especificProducto.sell_price}`
       );
       var nuevaUrl = especificProducto.product.image;
-console.log('✌️nuevaUrl --->', nuevaUrl);
+      console.log("✌️nuevaUrl --->", nuevaUrl);
 
-document.getElementById('productImagen').src = nuevaUrl;
-    
+      document.getElementById("productImagen").src = nuevaUrl;
 
-      ;
       load.hidden = true;
     })
     .catch((error) => {
@@ -119,13 +114,13 @@ function existe() {
 
 // Actualizar la tabla de productos seleccionados
 function actualizarTabla() {
-  importe_total=0;
+  importe_total = 0;
   const tbody = $("#productosTable tbody");
-  const showimport=document.getElementById("impTotal"); 
+  const showimport = document.getElementById("impTotal");
   tbody.empty();
 
   productosSeleccionados.forEach((item) => {
-    importe_total+=item.importe;
+    importe_total += item.importe;
     tbody.append(`
             <tr>
                 <td>${item.producto}</td>
@@ -136,7 +131,7 @@ function actualizarTabla() {
             </tr>
         `);
   });
-  showimport.innerText=`Importe total: ${importe_total}$`;
+  showimport.innerText = `Importe total: ${importe_total}$`;
   $("#cantidad").focus().select().val("");
 }
 
@@ -157,17 +152,20 @@ $("#crearVenta").on("click", function () {
       title: "Error",
       text: `No hay productos seleccionados para vender.`,
     });
-    load.hidden = true; 
+    load.hidden = true;
     return;
   }
 
   const descuento = parseInt($("#descuento").val()) || 0;
-  const extraInfo = $("#extra_info").val() || '';
+  const extraInfo = $("#extra_info").val() || "";
   const paymentMethod = $("#payment_method").val();
-  const sellerId = localStorage.getItem('id'); 
+  const sellerId = localStorage.getItem("id");
 
   // Calcular el importe total
-  let importe_total = productosSeleccionados.reduce((total, item) => total + item.importe, 0);
+  let importe_total = productosSeleccionados.reduce(
+    (total, item) => total + item.importe,
+    0
+  );
   const importe_total_con_descuento = importe_total - descuento;
 
   const payload = {
@@ -175,11 +173,11 @@ $("#crearVenta").on("click", function () {
     extra_info: extraInfo,
     payment_method: paymentMethod,
     seller: sellerId,
-    sells: productosSeleccionados.map(item => ({
+    sells: productosSeleccionados.map((item) => ({
       shop_product: item.id,
       quantity: item.cantidad,
-      extra_info: extraInfo
-    }))
+      extra_info: extraInfo,
+    })),
   };
 
   axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
@@ -192,10 +190,10 @@ $("#crearVenta").on("click", function () {
       });
 
       html += `</ul><hr><h4>Importe Total: $${importe_total}</h4>`;
-      if (descuento>0) {
-        html += `<h4>Importe Total con Descuento: $${importe_total_con_descuento}</h4><hr>`; 
+      if (descuento > 0) {
+        html += `<h4>Importe Total con Descuento: $${importe_total_con_descuento}</h4><hr>`;
       }
-      
+
       Swal.fire({
         icon: "success",
         title: "Venta creada con éxito",
@@ -207,7 +205,7 @@ $("#crearVenta").on("click", function () {
       $("#descuento").val("");
       $("#extra_info").val("");
       $("#payment_method").val("U"); // Restablecer a USD por defecto
-     
+
       load.hidden = true;
     })
     .catch((error) => {
@@ -219,5 +217,3 @@ $("#crearVenta").on("click", function () {
       });
     });
 });
-
-

@@ -53,6 +53,7 @@ class ShopProductsViewSet(
                 Value(") "),
             )
         )
+        .annotate(sales_count=Sum("sells__quantity"))
     )
     filterset_fields = {
         "shop": ["exact"],
@@ -86,35 +87,22 @@ class ShopProductsViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        quantity_non_zero = Q(quantity__gt=0)
-        if (
-            self.request.user.groups
-            and self.request.user.groups.filter(
-                id__in=(
-                    Groups.SUPER_ADMIN.value,
-                    Groups.SHOP_OWNER.value,
-                )
-            ).exists()
-        ):
-            if self.action in ("list_for_sale",):
-                queryset = queryset.filter(quantity_non_zero)
-            return queryset
-        if self.action in ("catalog",):
-            queryset = queryset.annotate(sales_count=Sum("sells__quantity"))
-        if self.request.user.pk:
-            system_user = SystemUser.objects.get(id=self.request.user.pk)
-            queryset = queryset.filter(shop=system_user.shop)
-        return queryset.filter(quantity_non_zero)
-
-    @action(
-        detail=False,
-        methods=["GET"],
-        url_name="list-for-sale",
-        url_path="list-for-sale",
-        serializer_class=ReadShopProductsSerializer,
-    )
-    def list_for_sale(self, request):
-        return self.list(request)
+        quantity_non_zero_query = Q(quantity__gt=0)
+        filter_by_shop = (
+            Q(shop=SystemUser.objects.get(id=self.request.user.id).shop)
+            if self.request.user
+            and not (
+                self.request.user.groups
+                and self.request.user.groups.filter(
+                    id__in=(
+                        Groups.SUPER_ADMIN.value,
+                        Groups.SHOP_OWNER.value,
+                    )
+                ).exists()
+            )
+            else Q()
+        )
+        return queryset.filter(quantity_non_zero_query, filter_by_shop)
 
     @action(
         detail=False,
