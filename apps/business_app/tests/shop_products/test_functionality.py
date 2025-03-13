@@ -17,7 +17,7 @@ class TestShopProductsViewSet(BaseTestClass):
     def setUp(self):
         super().setUp()
 
-    # @freeze_time(datetime.datetime.now() - timedelta(days=40))
+    @freeze_time(datetime.now() - timedelta(days=40))
     def test_is_new_is_in_response_and_is_false_since_has_more_than_one_month(self):
         """
         Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
