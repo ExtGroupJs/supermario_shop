@@ -42,10 +42,11 @@ class ShopProductsSerializer(serializers.ModelSerializer):
 class ReadShopProductsSerializer(ShopProductsSerializer):
     product = ReadProductSerializer(read_only=True)
     product_name = serializers.CharField(read_only=True)
+    sales_count = serializers.IntegerField(default=0)
 
     class Meta(ShopProductsSerializer.Meta):
         model = ShopProducts
-        fields = ShopProductsSerializer.Meta.fields
+        fields = ShopProductsSerializer.Meta.fields + ("sales_count",)
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
@@ -62,7 +63,6 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
 
 class CatalogShopProductSerializer(ReadShopProductsSerializer):
     one_month_ago = datetime.datetime.now() - timedelta(days=30)
-    sales_count = serializers.IntegerField(default=0)
     product = CatalogProductSerializer(read_only=True)
 
     class Meta(ReadShopProductsSerializer.Meta):
