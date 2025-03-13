@@ -1,5 +1,6 @@
 from datetime import timedelta
 import datetime
+from email.policy import default
 from rest_framework import serializers
 
 from apps.business_app.models.shop_products import ShopProducts
@@ -61,8 +62,9 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
 
 class CatalogShopProductSerializer(ReadShopProductsSerializer):
     one_month_ago = datetime.datetime.now() - timedelta(days=30)
-
+    sales_count = serializers.IntegerField(default=0)
     product = CatalogProductSerializer(read_only=True)
+
 
     class Meta(ReadShopProductsSerializer.Meta):
         fields = (
@@ -70,6 +72,7 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
             "sell_price",
             "product",
             "shop_name",
+            "sales_count",
             "__repr__",
         )
 

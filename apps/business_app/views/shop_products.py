@@ -9,6 +9,8 @@ from apps.business_app.serializers.shop_products import (
     ShopProductsSerializer,
 )
 
+
+
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
 
@@ -18,7 +20,7 @@ from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
-from django.db.models import F, Value
+from django.db.models import F, Value, Q, Sum
 from django.db.models.functions import Concat
 
 
@@ -85,6 +87,7 @@ class ShopProductsViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        quantity_non_zero = Q(quantity__gt=0)
         if (
             self.request.user.groups
             and self.request.user.groups.filter(
@@ -95,12 +98,14 @@ class ShopProductsViewSet(
             ).exists()
         ):
             if self.action in ("list_for_sale",):
-                queryset = queryset.filter(quantity__gt=0)
+                queryset = queryset.filter(quantity_non_zero)            
             return queryset
+        if self.action in ("catalog",):
+                queryset = queryset.annotate(sales_count=Sum('sells__quantity'))
         if self.request.user.pk:
             system_user = SystemUser.objects.get(id=self.request.user.pk)
             queryset = queryset.filter(shop=system_user.shop)
-        return queryset.filter(quantity__gt=0)
+        return queryset.filter(quantity_non_zero)
 
     @action(
         detail=False,
