@@ -88,11 +88,7 @@ class ShopProductsViewSet(
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        request_user = (
-            self.request.user
-            if not self.request.user.is_anonymous
-            else None
-        )
+        request_user = self.request.user if not self.request.user.is_anonymous else None
         is_admin_or_owner = (
             request_user
             and request_user.groups
