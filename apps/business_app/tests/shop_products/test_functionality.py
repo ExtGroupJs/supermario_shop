@@ -27,14 +27,16 @@ class TestShopProductsViewSet(BaseTestClass):
                 ShopProducts,
                 cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
                 sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+                quantity = baker.random_gen.gen_integer(min_int=1, max_int=10)
             )
         url = reverse("shop-products-catalog")
         self.client.force_authenticate(user=self.user)
-        self.user.groups.add(Groups.SHOP_OWNER)
+        # self.user.groups.add(Groups.SHOP_OWNER)
 
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"],1)
         retreived_object = response.data["results"][0]
         self.assertIn("is_new", retreived_object.keys())
         self.assertFalse(retreived_object.get("is_new"))
