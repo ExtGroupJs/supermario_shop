@@ -16,7 +16,7 @@ $(document).ready(function () {
 function cargarProductos() {
   load.hidden = false;
   axios
-    .get(url)
+    .get(url + "?quantity__gte=1")
     .then((res) => {
       const productos = res.data.results;
 

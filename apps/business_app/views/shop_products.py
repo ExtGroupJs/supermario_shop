@@ -87,22 +87,29 @@ class ShopProductsViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        quantity_non_zero_query = Q(quantity__gt=0)
+
+        request_user = (
+            self.request.user
+            if not self.request.user.is_anonymous
+            else None
+        )
+        is_admin_or_owner = (
+            request_user
+            and request_user.groups
+            and request_user.groups.filter(
+                id__in=(
+                    Groups.SUPER_ADMIN.value,
+                    Groups.SHOP_OWNER.value,
+                )
+            ).exists()
+        )
+        filter_by_quantity = Q(quantity__gt=0) if not is_admin_or_owner else Q()
         filter_by_shop = (
-            Q(shop=SystemUser.objects.get(id=self.request.user.id).shop)
-            if self.request.user
-            and not (
-                self.request.user.groups
-                and self.request.user.groups.filter(
-                    id__in=(
-                        Groups.SUPER_ADMIN.value,
-                        Groups.SHOP_OWNER.value,
-                    )
-                ).exists()
-            )
+            Q(shop=SystemUser.objects.get(id=request_user.id).shop)
+            if request_user and not is_admin_or_owner
             else Q()
         )
-        return queryset.filter(quantity_non_zero_query, filter_by_shop)
+        return queryset.filter(filter_by_quantity, filter_by_shop)
 
     @action(
         detail=False,
