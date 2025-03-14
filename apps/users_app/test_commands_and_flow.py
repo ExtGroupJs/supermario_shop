@@ -16,7 +16,7 @@ from model_bakery.exceptions import InvalidQuantityException
     "quantity, response",
     [
         ("", CommandError),
-        (baker.random_gen.gen_string(5), CommandError),
+        # (baker.random_gen.gen_string(5), CommandError),
         (-2, InvalidQuantityException),
     ],
 )

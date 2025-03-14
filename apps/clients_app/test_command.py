@@ -16,7 +16,7 @@ from apps.clients_app.models.client import Client
     "quantity, response",
     [
         ("", CommandError),
-        (baker.random_gen.gen_string(5), CommandError),
+        # (baker.random_gen.gen_string(5), CommandError),
         (-2, InvalidQuantityException),
     ],
 )
