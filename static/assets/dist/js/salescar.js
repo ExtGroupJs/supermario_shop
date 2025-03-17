@@ -203,8 +203,17 @@ $("#crearVenta").on("click", function () {
             <i class="fas fa-users"></i> Add Clientes
           </a>
         </div>`,
-        showCancelButton: false,
         confirmButtonText: 'Ok'
+      }).then((result) => {
+        productosSeleccionados = [];
+        $("#productosTable tbody").empty();
+        $("#descuento").val("");
+        $("#extra_info").val("");
+        $("#payment_method").val("U"); // Restablecer a USD por defecto
+  
+        if (result.isConfirmed) {
+          window.location.reload();
+        }
       });
 
       productosSeleccionados = [];
@@ -224,4 +233,3 @@ $("#crearVenta").on("click", function () {
       });
     });
 });
-
