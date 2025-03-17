@@ -26,7 +26,6 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
         "extra_info",
     ]
 
-
     def get_permissions(self):
         if self.action == "list":
             permission_classes = [SellViewSetPermission]

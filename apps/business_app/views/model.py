@@ -37,8 +37,6 @@ class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
         "brand_name",
     ]
 
-
-
     def get_permissions(self):
         if self.action == "list":
             permission_classes = [SellViewSetPermission]

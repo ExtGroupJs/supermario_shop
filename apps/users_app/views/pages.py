@@ -21,20 +21,28 @@ def usuarios(request):
 
 
 def first_login(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
         from django.contrib.auth import authenticate, login
         from django.contrib import messages
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            next_url = request.GET.get('next')
+            next_url = request.GET.get("next")
             if next_url:
                 return redirect(next_url)
-            return redirect('dashboard' if user.groups.filter(id=Groups.SHOP_OWNER.value).exists() else 'sales_tienda')
+            return redirect(
+                "dashboard"
+                if user.groups.filter(id=Groups.SHOP_OWNER.value).exists()
+                else "sales_tienda"
+            )
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos. Por favor, inténtelo de nuevo.')
+            messages.error(
+                request,
+                "Usuario o contraseña incorrectos. Por favor, inténtelo de nuevo.",
+            )
     return render(request, "login/login.html")
 
 
