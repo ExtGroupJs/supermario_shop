@@ -197,7 +197,14 @@ $("#crearVenta").on("click", function () {
       Swal.fire({
         icon: "success",
         title: "Venta creada con éxito",
-        html: `<hr>Productos vendidos: \n` + html,
+        html: `<hr>Productos vendidos: \n` + html + `
+        <div class="mt-3">
+          <a href="../clients/" class="btn btn-primary">
+            <i class="fas fa-users"></i> Add Clientes
+          </a>
+        </div>`,
+        showCancelButton: false,
+        confirmButtonText: 'Ok'
       });
 
       productosSeleccionados = [];
@@ -217,3 +224,4 @@ $("#crearVenta").on("click", function () {
       });
     });
 });
+

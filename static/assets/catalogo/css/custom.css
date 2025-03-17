@@ -68,5 +68,9 @@
 
 .li-btn i {
     margin: 0;
-    padding: 0;
+    padding: 7px;
+}
+
+.whatsapp-ico {
+    color: #0d6618;
 }
