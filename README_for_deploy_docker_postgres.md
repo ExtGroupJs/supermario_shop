@@ -101,11 +101,11 @@ docker exec -it marioshop_postgres bash
 ### 3. Restaurar la base de datos
 
 ```bash
-psql -U postgres -d supermario_shop -f /backup.sql
+psql -U postgres -d mario_shop_db -f /backup.sql
 ```
 ## Notas Adicionales
 
--   Asegúrate de que la base de datos (`supermario_shop`) ya exista antes de intentar restaurar el respaldo. Si no existe, puedes crearla con:
+-   Asegúrate de que la base de datos (`mario_shop_db`) ya exista antes de intentar restaurar el respaldo. Si no existe, puedes crearla con:
     
     ```bash
     createdb -U postgres mi_base_de_datos
