@@ -198,12 +198,9 @@ if DEBUG:
         "127.0.0.1",
         "10.0.2.2",
     ]
-# Authentication settings
-LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/dashboard/"
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
+
 
 LANGUAGE_CODE = "es-es"
 # LANGUAGE_CODE = "en-us"
