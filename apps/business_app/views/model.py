@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
 
-from apps.common.permissions import CommonRolePermission
+from apps.common.permissions import CommonRolePermission, SellViewSetPermission
 from django.db.models import F
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -36,6 +36,13 @@ class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
         "name",
         "brand_name",
     ]
+
+    def get_permissions(self):
+        if self.action == "list":
+            permission_classes = [SellViewSetPermission]
+        else:
+            permission_classes = self.permission_classes
+        return [permission() for permission in permission_classes]
 
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):

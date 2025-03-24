@@ -7,7 +7,7 @@ from apps.business_app.serializers.shop import ShopSerializer
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
 
-from apps.common.permissions import CommonRolePermission
+from apps.common.permissions import CommonRolePermission, SellViewSetPermission
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 
@@ -25,6 +25,13 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
         "name",
         "extra_info",
     ]
+
+    def get_permissions(self):
+        if self.action == "list":
+            permission_classes = [SellViewSetPermission]
+        else:
+            permission_classes = self.permission_classes
+        return [permission() for permission in permission_classes]
 
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):

@@ -97,7 +97,8 @@ const table = $("#tabla-de-Datos").DataTable({
         { data: "shop_product_name", title: "Producto" },     
         { data: "created_timestamp", title: "Fecha" },
         { data: "init_value", title: "Existencia" },
-        { data: "info", title: "Cantidad" },
+        { data: "info", title: "Cambio" },
+        { data: "new_value", title: "Valor actual" },
         { data: "created_by", title: "Responsable" },
          ],
     order: [[2, 'desc'],[1, 'desc']], // Primero ordena por grupo, luego por fecha

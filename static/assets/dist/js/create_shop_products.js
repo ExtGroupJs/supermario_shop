@@ -27,10 +27,12 @@ $(function () {
       quantity: {
         required: true,
         digits: true, // Solo números
+        min:0,
       },
       cost_price: {
         required: true,
         number: true, // Solo números
+        min:0,
       },
       sell_price: {
         required: true,
@@ -45,14 +47,17 @@ $(function () {
       quantity: {
         required: "Este campo es obligatorio.",
         digits: "Por favor, introduzca solo números.",
+        
       },
       cost_price: {
         required: "Este campo es obligatorio.",
         number: "Por favor, introduzca un número válido.",
+        min: "Por favor, valores mayores o iguales a 0.",
       },
       sell_price: {
         required: "Este campo es obligatorio.",
         number: "Por favor, introduzca un número válido.",
+        min: "Por favor, valores mayores o iguales a 0.",
         greaterThan:
           "El precio de venta debe ser mayor que el precio de costo.",
       },

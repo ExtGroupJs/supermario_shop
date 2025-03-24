@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     "apps.users_app",
     "apps.common",
     "apps.business_app",
+    "apps.clients_app",
     "django_extensions",
     "solo",
     "drf_spectacular",

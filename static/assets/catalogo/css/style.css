@@ -3074,12 +3074,14 @@ textarea:focus {
   transition: all 0.3s ease-in-out;
   float: left;
   margin-right: 12px !important;
+
 }
 .social-link > li > a {
   width: 40px;
   height: 40px;
   line-height: 40px !important;
   text-align: center;
+  padding-top: 10px !important;
 }
 .social-link > li > a > i {
   font-size: 18px;
@@ -3099,7 +3101,7 @@ textarea:focus {
   background: #ed3c32;
 }
 .facebook {
-  background: #3c5b9b;
+   background: #3c5b9b;
 }
 .youtube {
   background: #c72982;

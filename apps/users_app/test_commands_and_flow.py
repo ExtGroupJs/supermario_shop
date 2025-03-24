@@ -4,31 +4,34 @@ import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
+from django.core.management.base import CommandError
 
-# from apps.users_app.models import Country, SystemUser
-
-
-# @pytest.mark.django_db
-# @pytest.mark.parametrize(
-#     "quantity, response",
-#     [
-#         ("", CommandError),
-#         ("dsfgsfgs", CommandError),
-#         (-2, InvalidQuantityException),
-#     ],
-# )
-# def test_errors_in_create_test_users_command(quantity, response):
-#     with pytest.raises(response):
-#         call_command("create_test_users", quantity)
+from model_bakery import baker
+from django.core.management import call_command
+from model_bakery.exceptions import InvalidQuantityException
 
 
-# @pytest.mark.django_db
-# def test_create_test_users_command():
-#     quantity = random.randint(1, 100)
-#     call_command("create_test_users", str(quantity))
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "quantity, response",
+    [
+        ("", CommandError),
+        # (baker.random_gen.gen_string(5), CommandError),
+        (-2, InvalidQuantityException),
+    ],
+)
+def test_errors_in_create_test_users_command(quantity, response):
+    with pytest.raises(response):
+        call_command("create_test_users", quantity)
 
-#     user_quantity = User.objects.exclude(username="admin").count()
-#     assert user_quantity == quantity
+
+@pytest.mark.django_db
+def test_create_test_users_command():
+    quantity = baker.random_gen.gen_integer(1, 10)
+    call_command("create_test_users", str(quantity))
+
+    user_quantity = User.objects.exclude(username="admin").count()
+    assert user_quantity == quantity
 
 
 @pytest.mark.django_db
