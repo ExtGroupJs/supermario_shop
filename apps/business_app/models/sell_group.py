@@ -1,5 +1,6 @@
 from django.db import models
 
+from apps.clients_app.models.client import Client
 from apps.common.models import BaseModel
 from apps.users_app.models.system_user import SystemUser
 from django.utils.translation import gettext_lazy as _
@@ -28,6 +29,15 @@ class SellGroup(BaseModel):
         max_length=1,
         choices=PAYMENT_METODS,
         default=PAYMENT_METODS.USD,
+    )
+    client = models.ForeignKey(
+        to=Client,
+        on_delete=models.SET_NULL,
+        related_name="sells",
+        verbose_name=_("Cliente"),
+        null=True,
+        blank=True,
+        default=None,
     )
 
     class Meta:

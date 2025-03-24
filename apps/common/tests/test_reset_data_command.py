@@ -1,6 +1,5 @@
 import pytest
 from django.urls import reverse
-from redis import int_or_str
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup

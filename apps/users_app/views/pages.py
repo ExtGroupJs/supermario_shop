@@ -34,6 +34,10 @@ def brands(request):
     return render(request, "brands/brands.html")
 
 
+def clients(request):
+    return render(request, "clients/clients.html")
+
+
 @user_passes_test(is_owner)
 def models(request):
     return render(request, "models/models.html")

@@ -9,6 +9,7 @@ from apps.business_app.serializers.shop_products import (
     ShopProductsSerializer,
 )
 
+
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
 
@@ -18,7 +19,7 @@ from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
-from django.db.models import F, Value
+from django.db.models import F, Value, Q, Sum
 from django.db.models.functions import Concat
 
 
@@ -52,6 +53,7 @@ class ShopProductsViewSet(
                 Value(") "),
             )
         )
+        .annotate(sales_count=Sum("sells__quantity"))
     )
     filterset_fields = {
         "shop": ["exact"],
@@ -85,32 +87,25 @@ class ShopProductsViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if (
-            self.request.user.groups
-            and self.request.user.groups.filter(
+
+        request_user = self.request.user if not self.request.user.is_anonymous else None
+        is_admin_or_owner = (
+            request_user
+            and request_user.groups
+            and request_user.groups.filter(
                 id__in=(
                     Groups.SUPER_ADMIN.value,
                     Groups.SHOP_OWNER.value,
                 )
             ).exists()
-        ):
-            if self.action in ("list_for_sale",):
-                queryset = queryset.filter(quantity__gt=0)
-            return queryset
-        if self.request.user.pk:
-            system_user = SystemUser.objects.get(id=self.request.user.pk)
-            queryset = queryset.filter(shop=system_user.shop)
-        return queryset.filter(quantity__gt=0)
-
-    @action(
-        detail=False,
-        methods=["GET"],
-        url_name="list-for-sale",
-        url_path="list-for-sale",
-        serializer_class=ReadShopProductsSerializer,
-    )
-    def list_for_sale(self, request):
-        return self.list(request)
+        )
+        filter_by_quantity = Q(quantity__gt=0) if not is_admin_or_owner else Q()
+        filter_by_shop = (
+            Q(shop=SystemUser.objects.get(id=request_user.id).shop)
+            if request_user and not is_admin_or_owner
+            else Q()
+        )
+        return queryset.filter(filter_by_quantity, filter_by_shop)
 
     @action(
         detail=False,

@@ -141,6 +141,7 @@
       data.append("password", document.getElementById('input-password').value)
       // Envio de datos con axios al endpoint
       load.hidden = false;
+    
       axios.post('../user-gestion/users/login/', data)
         .then(function (res) {
           if (res.status == 202) {

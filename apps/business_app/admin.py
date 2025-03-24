@@ -139,12 +139,14 @@ class SellGroupAdmin(admin.ModelAdmin):
         "seller",
         "extra_info",
         "payment_method",
+        "client",
     ]
     fields = [
         "discount",
         "seller",
         "extra_info",
         "payment_method",
+        "client",
     ]
 
 
