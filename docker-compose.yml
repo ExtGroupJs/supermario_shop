@@ -6,7 +6,7 @@ services:
     container_name: marioshop_postgres
     image: postgres:16
     environment:
-      POSTGRES_DB: ${DB_REMOTE_NAME}
+      POSTGRES_DB: ${DB_REMOTE_NAME}${ENVIRONMENT}
       POSTGRES_USER: ${DB_REMOTE_USER}
       POSTGRES_PASSWORD: ${DB_REMOTE_PASSWORD}
     ports:

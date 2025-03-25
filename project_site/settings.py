@@ -41,6 +41,8 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
+ENVIRONMENT = env.str("ENVIRONMENT", default="development")
+
 DEBUG = env.bool("DEBUG")
 DEBUG_PROPAGATE_EXCEPTIONS = DEBUG
 
@@ -146,6 +148,7 @@ RUNNING_FROM = env("RUNNING_FROM", default=RUNNING_FROM_LOCAL)
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+ENVIRONMENT = env('ENVIRONMENT', default="")
 
 if RUNNING_FROM == RUNNING_FROM_LOCAL:
     conexion = {
@@ -155,7 +158,7 @@ if RUNNING_FROM == RUNNING_FROM_LOCAL:
 else:
     conexion = {
         "ENGINE": env("DB_REMOTE_ENGINE"),
-        "NAME": env("DB_REMOTE_NAME"),
+        "NAME": f"{env('DB_REMOTE_NAME')}{ENVIRONMENT}",
         "USER": env("DB_REMOTE_USER"),
         "PASSWORD": env("DB_REMOTE_PASSWORD"),
         "HOST": env("DB_REMOTE_HOST"),
