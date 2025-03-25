@@ -102,12 +102,25 @@ docker exec -it marioshop_postgres bash
 
 ```bash
 psql -U postgres -d mario_shop_db -f /backup.sql
+psql -U postgres -d mario_shop_db_test -f /backup.sql
+
 ```
 ## Notas Adicionales
 
--   Asegúrate de que la base de datos (`mario_shop_db`) ya exista antes de intentar restaurar el respaldo. Si no existe, puedes crearla con:
+-   Asegúrate de que las base de datos (`mario_shop_db` y `mario_shop_db_test`) ya existan antes de intentar restaurar el respaldo. Si no existe, puedes crearla con:
     
     ```bash
-    createdb -U postgres mi_base_de_datos
+    createdb -U postgres mario_shop_db
+    createdb -U postgres mario_shop_db_test
     ```
+
+Luego entonces:
+```bash
+psql -U postgres -d mario_shop_db -f /backup.sql
+psql -U postgres -d mario_shop_db_test -f /backup.sql
+```
 -  Si el archivo de respaldo es un archivo comprimido (por ejemplo, `.tar` o `.gz`), necesitarás descomprimirlo antes de la restauración.
+
+
+finalmente:
+'exit'
