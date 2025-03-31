@@ -34,6 +34,10 @@ const table = $("#tabla-de-Datos").DataTable({
         {
             extend: "pdf",
             text: "PDF",
+            exportOptions: {
+              columns: [1,2,3,4,5,6],
+              stripHtml: false, // No eliminar imágenes
+            },
         },
         {
             extend: "print",

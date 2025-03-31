@@ -36,7 +36,13 @@ $(document).ready(function () {
       {
         extend: "pdf",
         text: "PDF",
+        exportOptions: {
+          columns: [0, 2, 3],
+          stripHtml: false, // No eliminar imágenes
+        },
       },
+
+
       {
         extend: "print",
         text: "Print",
@@ -69,9 +75,6 @@ $(document).ready(function () {
     ],
     // Adding server-side processing
     serverSide: true,
-    search: {
-      return: true,
-    },
     processing: true,
     ajax: function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
