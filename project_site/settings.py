@@ -307,3 +307,4 @@ CACHES = {
         "TIMEOUT": CACHE_DEFAULT_TIMEOUT,
     }
 }
+

@@ -7,6 +7,7 @@ from apps.business_app.serializers.dashboard import (
     DashboardCountsSerializer,
     DashboardInvestmentSerializer,
 )
+from twilio.rest import Client
 
 from django.db.models.functions import (
     TruncDay,
@@ -54,6 +55,21 @@ class DashboardViewSet(
         investments = 0
         for obj in objects:
             investments += obj.investment()
+        
+
+        # Tus credenciales de Twilio
+        account_sid = 'TU_ACCOUNT_SID'
+        auth_token = 'TU_AUTH_TOKEN'
+        client = Client(account_sid, auth_token)
+
+        # Enviar un mensaje
+        message = client.messages.create(
+            from_='whatsapp:+14155238886',  # Número de WhatsApp de Twilio
+            body='¡Hola desde Twilio!',
+            to='whatsapp:+1234567890'  # Tu número de WhatsApp
+        )
+
+        print(f'Mensaje enviado con SID: {message.sid}')
         return Response({"investments": investments})
 
     @action(
