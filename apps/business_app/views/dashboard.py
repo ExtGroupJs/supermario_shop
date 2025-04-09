@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import viewsets
 
 from apps.business_app.models.sell import Sell
@@ -58,18 +59,18 @@ class DashboardViewSet(
         
 
         # Tus credenciales de Twilio
-        account_sid = 'TU_ACCOUNT_SID'
-        auth_token = 'TU_AUTH_TOKEN'
+        account_sid = settings.TWILIO_ACCOUNT_SID
+        auth_token = settings.TWILIO_AUTH_TOKEN
         client = Client(account_sid, auth_token)
 
         # Enviar un mensaje
         message = client.messages.create(
-            from_='whatsapp:+14155238886',  # Número de WhatsApp de Twilio
+            from_=f'whatsapp:{settings.TWILIO_PHONE_NUMBER}',  # Número de WhatsApp de Twilio
             body='¡Hola desde Twilio!',
-            to='whatsapp:+1234567890'  # Tu número de WhatsApp
+            to='whatsapp:+5353774017'  # Tu número de WhatsApp
         )
-
         print(f'Mensaje enviado con SID: {message.sid}')
+        
         return Response({"investments": investments})
 
     @action(
