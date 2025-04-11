@@ -58,6 +58,7 @@ class ProductAdmin(SafeDeleteAdmin):
         "image",
     ]
     field_to_highlight = "id"
+    search_fields = ["name", "model__name"]
 
 
 ProductAdmin.highlight_deleted_field.name = ProductAdmin.field_to_highlight
