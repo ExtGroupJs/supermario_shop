@@ -18,6 +18,14 @@ class Product(SafeDeleteModel, BaseModel):
     class Meta:
         verbose_name = "Producto"
         verbose_name_plural = "Productos"
+        constraints = [
+            # Restricción: Combinación única de 'nombre' y 'categoria'
+            models.UniqueConstraint(
+                fields=["name", "model"],
+                name="name_model_unique",
+                violation_error_message="Ya existe un producto con este nombre y para este modelo.",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.model})"
