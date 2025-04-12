@@ -7,6 +7,7 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 // url del endpoint principal
 const url = "/business-gestion/shop-products/";
+let load = document.getElementById("load");
 
 $(function () {
   // bsCustomFileInput.init();
@@ -229,7 +230,6 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
       .then(function (response) {
         // Recibir la respuesta
         const shopProduct = response.data;
-console.log('✌️shopProduct --->', shopProduct);
         modal.find(".modal-title").text("Editar "+ shopProduct.product_name );
         form.elements.quantity.value = shopProduct.quantity;
         form.elements.cost_price.value = shopProduct.cost_price;
@@ -292,6 +292,7 @@ $(function () {
       },
     },
     submitHandler: function (form) {
+      load.hidden = false;
       event.preventDefault();
       var table = $("#tabla-de-Datos").DataTable();
       const csrfToken = document.cookie
@@ -313,6 +314,7 @@ $(function () {
           .patch(`${url}` + selected_id + "/", data)
           .then((response) => {
             if (response.status === 200) {
+              load.hidden = true;
               $("#modal-crear-shop-products").modal("hide");
               Swal.fire({
                 icon: "success",
@@ -326,6 +328,7 @@ $(function () {
             }
           })
           .catch((error) => {
+            load.hidden = true;
             let dict = error.response.data;
             let textError = "Revise los siguientes campos: ";
             for (const key in dict) {
@@ -345,6 +348,7 @@ $(function () {
           .post(`${url}`, data)
           .then((response) => {
             if (response.status === 201) {
+              load.hidden = true;
               Swal.fire({
                 icon: "success",
                 title: "Entrada de Producto creada con éxito",
@@ -356,6 +360,7 @@ $(function () {
             }
           })
           .catch((error) => {
+            load.hidden = true;
             let dict = error.response.data;
             let textError = "Revise los siguientes campos: ";
             for (const key in dict) {
@@ -483,6 +488,7 @@ function agregarCantidad(shopProductId, cantidad_actual) {
     },
   }).then((result) => {
     if (result.isConfirmed) {
+      load.hidden = false;
       const cantidadAgregada = Number(result.value) + Number(cantidad_actual);
       const table = $("#tabla-de-Datos").DataTable();
       // Realizar la petición para actualizar la cantidad
@@ -490,6 +496,7 @@ function agregarCantidad(shopProductId, cantidad_actual) {
         .patch(`${url}${shopProductId}/`, { quantity: cantidadAgregada })
         .then((response) => {
           if (response.status === 200) {
+            load.hidden = true;
             Swal.fire({
               icon: "success",
               title: "¡Éxito!",
@@ -502,6 +509,7 @@ function agregarCantidad(shopProductId, cantidad_actual) {
           }
         })
         .catch((error) => {
+          load.hidden = true;
           Swal.fire({
             icon: "error",
             title: "Error",
