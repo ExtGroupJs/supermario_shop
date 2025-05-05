@@ -71,6 +71,7 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
             "product",
             "shop_name",
             "sales_count",
+            "extra_info",
             "__repr__",
         )
 
