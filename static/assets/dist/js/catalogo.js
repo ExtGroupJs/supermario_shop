@@ -473,7 +473,7 @@ console.log("product",product);
     ).textContent = `$${product.sell_price}`;
     document.getElementById("modalShopName").textContent = product.shop_name;
     document.getElementById("modalDescription").textContent =
-      product.product.description || "Sin descripción";
+      product.extra_info || "Sin descripción";
 
     // Agregar botón de WhatsApp en el modal
     const whatsappButton = document.createElement('button');
