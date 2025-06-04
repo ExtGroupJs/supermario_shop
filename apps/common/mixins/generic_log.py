@@ -1,3 +1,4 @@
+import json
 from django.forms import model_to_dict
 from django.contrib.contenttypes.models import ContentType
 from apps.common.middlewares import get_current_user
