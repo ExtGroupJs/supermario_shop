@@ -147,16 +147,20 @@ class TestShopProductsViewSet(BaseTestClass):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()
-        self.assertEqual(response_data["count"], sells + incomings + 1) # without params all logs are retrieved
-
+        self.assertEqual(
+            response_data["count"], sells + incomings + 1
+        )  # without params all logs are retrieved
 
         response = self.client.get(f"{url}?entries=true")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()
-        self.assertEqual(response_data["count"], incomings + 1) # only incrementations in quantity are retrieved
+        self.assertEqual(
+            response_data["count"], incomings + 1
+        )  # only incrementations in quantity are retrieved
 
         response = self.client.get(f"{url}?entries=false")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()
-        self.assertEqual(response_data["count"], sells) # only decrementations in quantity are retrieved
-        
+        self.assertEqual(
+            response_data["count"], sells
+        )  # only decrementations in quantity are retrieved

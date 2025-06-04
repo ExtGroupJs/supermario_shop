@@ -62,6 +62,7 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
         shop_product = baker.make(
             ShopProducts,
             shop=shop,
+            sell_price=random_equal_cost + 1,
             cost_price=random_equal_cost,
             quantity=random_qty,
         )
