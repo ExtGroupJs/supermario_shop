@@ -28,8 +28,8 @@ class GenericLogMixin:
                 original_value = original_object_dict.get(field)
                 if original_value != new_value:
                     details[field] = {
-                        "old_value": str(getattr(original_object, field)),
-                        "new_value": str(getattr(self, field)),
+                        "old_value": getattr(original_object, field),
+                        "new_value": getattr(self, field),
                     }
         else:
             action = GenericLog.ACTION.CREATED
@@ -37,7 +37,7 @@ class GenericLogMixin:
                 if new_value:
                     details[field] = {
                         "old_value": None,
-                        "new_value": str(getattr(self, field)),
+                        "new_value": getattr(self, field),
                     }
         super().save(*args, **kwargs)
         if details:
