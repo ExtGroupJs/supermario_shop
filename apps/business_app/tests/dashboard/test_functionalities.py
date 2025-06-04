@@ -31,6 +31,7 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
                 ShopProducts,
                 shop=shop,
                 cost_price=random_equal_cost,
+                sell_price=random_equal_cost + 1,  # is irrelevant for this test
                 quantity=1,
                 _quantity=shop_products_per_shop,
             )

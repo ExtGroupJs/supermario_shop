@@ -125,6 +125,7 @@ class TestResetDataCommand(BaseTestClass):
             ShopProducts,
             shop=shop,
             cost_price=random_equal_cost,
+            sell_price=random_equal_cost + 1,  # is irrelevant for this test
             quantity=random_initial_qty,
         )
         url = reverse("dashboard-shop-product-investment")
