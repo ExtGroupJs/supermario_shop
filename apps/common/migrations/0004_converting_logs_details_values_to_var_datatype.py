@@ -12,7 +12,7 @@ def convert_strings_values_to_int(apps, schema_editor):
                 old_value = v["old_value"]
                 if isinstance(new_value, str) and new_value.isnumeric():
                     generic_log.details[k]["new_value"] = int(new_value)
-                
+
                 if isinstance(old_value, str) and old_value.isnumeric():
                     generic_log.details[k]["old_value"] = int(old_value)
 

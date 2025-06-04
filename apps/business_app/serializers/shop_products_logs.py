@@ -26,10 +26,8 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
         new_value = int(instance.details.get("quantity").get("new_value"))
         response["init_value"] = old_value
         response["new_value"] = new_value
-
-        created_by_dev_user = (
-            instance.created_by_id == SystemUser.objects.get(username="dev").id
-        )
+        dev_user = SystemUser.objects.filter(username="dev").first()
+        created_by_dev_user = dev_user and dev_user.id == instance.created_by_id
         operation = ""
         if created_by_dev_user:
             operation = "+" if new_value > old_value else "-"
