@@ -38,7 +38,7 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
         response["info"] = (
-            f"{operation}{abs_value} {action}{'s' if abs_value>1 else ''}"
+            f"{operation}{abs_value} {action}{'s' if abs_value > 1 else ''}"
         )
         return response
 

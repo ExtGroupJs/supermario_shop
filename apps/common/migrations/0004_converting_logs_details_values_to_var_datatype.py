@@ -10,16 +10,13 @@ def convert_strings_values_to_int(apps, schema_editor):
             for k, v in generic_log.details.items():
                 new_value = v["new_value"]
                 old_value = v["old_value"]
-                try:
+                if isinstance(new_value, str) and new_value.isnumeric():
                     generic_log.details[k]["new_value"] = int(new_value)
-                except(ValueError, TypeError):
-                    pass
-                if old_value:
-                    try:
-                        generic_log.details[k]["old_value"] = int(old_value)
-                    except(ValueError, TypeError):
-                        pass
-            generic_log.save()
+                
+                if isinstance(old_value, str) and old_value.isnumeric():
+                    generic_log.details[k]["old_value"] = int(old_value)
+
+        generic_log.save()
 
 
 class Migration(migrations.Migration):
@@ -27,4 +24,6 @@ class Migration(migrations.Migration):
         ("common", "0003_converting_logs_details_to_dict_when_create"),
     ]
 
-    operations = [migrations.RunPython(convert_strings_values_to_int, migrations.RunPython.noop)]
+    operations = [
+        migrations.RunPython(convert_strings_values_to_int, migrations.RunPython.noop)
+    ]

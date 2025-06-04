@@ -1,4 +1,3 @@
-import json
 from django.forms import model_to_dict
 from django.contrib.contenttypes.models import ContentType
 from apps.common.middlewares import get_current_user
@@ -24,21 +23,31 @@ class GenericLogMixin:
         details = {}
         if self.pk is not None:
             original_object = self.__class__.objects.get(pk=self.pk)
-            original_object_dict = model_to_dict(original_object)
             for field, new_value in updated_object_dict.items():
-                original_value = original_object_dict.get(field)
-                if original_value != new_value:
+                old_value = getattr(original_object, field)
+                incoming_value = getattr(self, field)
+
+                if old_value != incoming_value:
+                    if hasattr(old_value, "_meta"):
+                        old_value = old_value.__str__()
+
+                    if hasattr(incoming_value, "_meta"):
+                        new_value = incoming_value.__str__()
+
                     details[field] = {
-                        "old_value": getattr(original_object, field),
-                        "new_value": getattr(self, field),
+                        "old_value": old_value,
+                        "new_value": new_value,
                     }
         else:
             action = GenericLog.ACTION.CREATED
             for field, new_value in updated_object_dict.items():
                 if new_value:
+                    incoming_value = getattr(self, field)
+                    if hasattr(incoming_value, "_meta"):
+                        new_value = incoming_value.__str__()
                     details[field] = {
                         "old_value": None,
-                        "new_value": getattr(self, field),
+                        "new_value": new_value,
                     }
         super().save(*args, **kwargs)
         if details:
