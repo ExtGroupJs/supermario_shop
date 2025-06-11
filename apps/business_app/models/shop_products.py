@@ -22,24 +22,20 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
         verbose_name="Información Extra", null=True, blank=True
     )
     quantity = models.PositiveIntegerField(verbose_name="Cantidad", default=0)
-    cost_price = models.DecimalField(
+    cost_price = models.FloatField(
         verbose_name="Precio de costo",
-        decimal_places=2,
-        max_digits=8,
-        validators=[validators.MinValueValidator(limit_value=0)],
+        validators=[validators.MinValueValidator(limit_value=0.2)],
     )
-    sell_price = models.DecimalField(
+    sell_price = models.FloatField(
         verbose_name="Precio de venta",
-        decimal_places=2,
-        max_digits=8,
-        validators=[validators.MinValueValidator(limit_value=0)],
+        validators=[validators.MinValueValidator(limit_value=0.3)],
     )
 
     def clean(self):
         super().clean()
         if self.cost_price >= self.sell_price:
             raise ValidationError(
-                'El campo "campo_menor" debe ser menor que "campo_mayor".'
+                "El Precio de Costo debe ser menor que Precio de Venta."
             )
 
     class Meta:
