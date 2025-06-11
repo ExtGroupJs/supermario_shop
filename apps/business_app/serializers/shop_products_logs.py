@@ -26,10 +26,8 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
         new_value = int(instance.details.get("quantity").get("new_value"))
         response["init_value"] = old_value
         response["new_value"] = new_value
-
-        created_by_dev_user = (
-            instance.created_by_id == SystemUser.objects.get(username="dev").id
-        )
+        dev_user = SystemUser.objects.filter(username="dev").first()
+        created_by_dev_user = dev_user and dev_user.id == instance.created_by_id
         operation = ""
         if created_by_dev_user:
             operation = "+" if new_value > old_value else "-"
@@ -38,7 +36,7 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
         response["info"] = (
-            f"{operation}{abs_value} {action}{'s' if abs_value>1 else ''}"
+            f"{operation}{abs_value} {action}{'s' if abs_value > 1 else ''}"
         )
         return response
 
