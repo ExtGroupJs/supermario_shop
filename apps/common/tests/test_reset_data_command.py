@@ -176,7 +176,7 @@ class TestResetDataCommand(BaseTestClass):
             ShopProducts,
             shop=shop,
             cost_price=random_equal_cost,
-            sell_price=random_equal_cost +1,
+            sell_price=random_equal_cost + 1,
             quantity=random_initial_qty,
         )
 

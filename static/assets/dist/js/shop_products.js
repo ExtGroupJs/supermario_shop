@@ -25,7 +25,6 @@ $(document).ready(function () {
       [10, 25, 50, 100, "Todos"], // Etiquetas
     ],
 
-   
     dom: '<"top"l>Bfrtip',
     buttons: [
       {
@@ -56,7 +55,8 @@ $(document).ready(function () {
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
-      const params = {};''
+      const params = {};
+      ("");
       filters.forEach((filter) => {
         if (filter.value) {
           params[filter.name] = filter.value;
@@ -67,7 +67,7 @@ $(document).ready(function () {
         params["updated_timestamp__gte"] = myDateStart;
         params["updated_timestamp__lte"] = myDateEnd;
       }
-      
+
       // Añadir parámetros de paginación
       params.page_size = data.length;
       params.page = data.start / data.length + 1;
@@ -102,7 +102,6 @@ $(document).ready(function () {
             return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
           }
         },
-
       },
       { data: "product_name", title: "Producto" },
       { data: "quantity", title: "Cantidad" },
@@ -144,7 +143,6 @@ $(document).ready(function () {
     },
 
     order: [[6, "desc"]],
-    
   });
   function convertirFecha(fecha, hora) {
     // Dividir la fecha en partes
@@ -182,13 +180,10 @@ $(document).ready(function () {
   // Restablecer filtros
   $("#reset-filters").on("click", function () {
     $("#filter-form")[0].reset();
-     myDateStart = null;
- myDateEnd = null;
+    myDateStart = null;
+    myDateEnd = null;
     table.ajax.reload();
   });
-
-
-
 
   // Mostrar/Ocultar filtros
   $("#toggle-filters").on("click", function () {
@@ -211,7 +206,6 @@ $("#modal-crear-shop-products").on("hide.bs.modal", (event) => {
 let form = document.getElementById("form-create-shop-products");
 let edit_shopProducts = false;
 $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
-
   var button = $(event.relatedTarget); // Button that triggered the modal
 
   var modal = $(this);
@@ -221,22 +215,21 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
 
     edit_shopProducts = true;
 
-    
     load.hidden = false;
     // Realizar la petición con Axios
-    
+
     axios
       .get(`${url}` + selected_id + "/")
       .then(function (response) {
         // Recibir la respuesta
         const shopProduct = response.data;
-        modal.find(".modal-title").text("Editar "+ shopProduct.product_name );
+        modal.find(".modal-title").text("Editar " + shopProduct.product_name);
         form.elements.quantity.value = shopProduct.quantity;
         form.elements.cost_price.value = shopProduct.cost_price;
         form.elements.sell_price.value = shopProduct.sell_price;
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
-         form.elements.product.value = shopProduct.product.id;
+        form.elements.product.value = shopProduct.product.id;
         $("#product").val(shopProduct.product.id).trigger("change.select2");
         load.hidden = true;
       })
@@ -245,7 +238,6 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
     modal.find(".modal-title").text("Crear Entrada de Producto");
   }
 });
-
 
 // form validator
 $(function () {
@@ -308,7 +300,6 @@ $(function () {
       data.append("sell_price", document.getElementById("sell_price").value);
       data.append("extra_info", document.getElementById("extra_info").value);
 
-    
       if (edit_shopProducts) {
         axios
           .patch(`${url}` + selected_id + "/", data)
@@ -426,7 +417,6 @@ function poblarListas() {
         cargarProductoEspecifico($product.value);
       }
     });
-
 }
 
 function function_delete(id, name, shop) {
@@ -489,20 +479,20 @@ function agregarCantidad(shopProductId, cantidad_actual) {
   }).then((result) => {
     if (result.isConfirmed) {
       load.hidden = false;
-      const cantidadAgregada = Number(result.value) + Number(cantidad_actual);
+      const cantidadResultante = Number(result.value) + Number(cantidad_actual);
       const table = $("#tabla-de-Datos").DataTable();
       // Realizar la petición para actualizar la cantidad
       axios
-        .patch(`${url}${shopProductId}/`, { quantity: cantidadAgregada })
+        .patch(`${url}${shopProductId}/`, { quantity: cantidadResultante })
         .then((response) => {
           if (response.status === 200) {
             load.hidden = true;
             Swal.fire({
               icon: "success",
               title: "¡Éxito!",
-              text: `Se han agregado ${cantidadAgregada} unidades al producto.`,
+              text: `Se han agregado ${cantidad_actual} unidades al producto. Quedan ${cantidadResultante} en inventario`,
               showConfirmButton: false,
-              timer: 2000, // Mensaje de éxito por 2 segundos
+              timer: 3000, // Mensaje de éxito por 2 segundos
             });
             // Recargar la tabla para reflejar los cambios
             table.ajax.reload();
@@ -521,32 +511,31 @@ function agregarCantidad(shopProductId, cantidad_actual) {
   });
 }
 function marcarComoNew(shopProductId) {
- 
-      const table = $("#tabla-de-Datos").DataTable();
-      // Realizar la petición para actualizar la cantidad
-      axios
-        .patch(`${url}${shopProductId}/`, { })
-        .then((response) => {
-          if (response.status === 200) {
-            Swal.fire({
-              icon: "success",
-              title: "¡Éxito!",
-              text: `Se han marcado como nuevo el producto seleccionado.`,
-              showConfirmButton: false,
-              timer: 2000, // Mensaje de éxito por 2 segundos
-            });
-            // Recargar la tabla para reflejar los cambios
-            table.ajax.reload();
-          }
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "No se pudo marcar como nuevo.",
-            showConfirmButton: true,
-          });
-        });    
+  const table = $("#tabla-de-Datos").DataTable();
+  // Realizar la petición para actualizar la cantidad
+  axios
+    .patch(`${url}${shopProductId}/`, {})
+    .then((response) => {
+      if (response.status === 200) {
+        Swal.fire({
+          icon: "success",
+          title: "¡Éxito!",
+          text: `Se han marcado como nuevo el producto seleccionado.`,
+          showConfirmButton: false,
+          timer: 2000, // Mensaje de éxito por 2 segundos
+        });
+        // Recargar la tabla para reflejar los cambios
+        table.ajax.reload();
+      }
+    })
+    .catch((error) => {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo marcar como nuevo.",
+        showConfirmButton: true,
+      });
+    });
 }
 
 function esNegativo(num) {
@@ -569,7 +558,6 @@ function verLogs(shopProductId, name) {
     return date.toLocaleString("es-ES", options).replace(",", " -");
   }
 
-
   const logsTable = $("#tabla-de-logs").DataTable({
     responsive: true,
     ajax: {
@@ -577,7 +565,7 @@ function verLogs(shopProductId, name) {
       data: {
         object_id: shopProductId,
         performed_action: "U", // Filtrar solo por performed_action "U"
-        //ordering:"-created_timestamp"
+        ordering: "-created_timestamp",
       },
       dataSrc: "results",
     },
@@ -623,7 +611,7 @@ function verLogs(shopProductId, name) {
       if (data.info.includes("entrado")) {
         $(row).addClass("table-success"); // Rojo
       } else if (data.quantity === 1) {
-       // $(row).addClass("table-warning"); // Amarillo
+        // $(row).addClass("table-warning"); // Amarillo
       }
     },
     // order: [[0, "desc"]],
@@ -638,14 +626,13 @@ function verLogs(shopProductId, name) {
 
 let especificProducto;
 function cargarProductoEspecifico(id) {
-
   axios
     .get("/business-gestion/products/" + id + "/")
     .then((res) => {
-      especificProducto = res.data;      
+      especificProducto = res.data;
       var nuevaUrl = especificProducto.image;
-document.getElementById('productImagen').src = nuevaUrl;
-     load.hidden = true;
+      document.getElementById("productImagen").src = nuevaUrl;
+      load.hidden = true;
     })
     .catch((error) => {
       load.hidden = true;
@@ -653,12 +640,10 @@ document.getElementById('productImagen').src = nuevaUrl;
     });
 }
 
-
 $(document).on("click", "#productImagen", function () {
   load.hidden = false;
   const fullsizeImage = $(this).attr("src"); // Obtiene la URL de la imagen
   console.log("✌️fullsizeImage --->", fullsizeImage);
-
 
   Swal.fire({
     imageUrl: fullsizeImage,
@@ -682,7 +667,6 @@ $(document).on("click", ".thumbnail", function () {
     showCloseButton: false,
     showConfirmButton: true,
   });
-
 });
 let myDateStart = null;
 let myDateEnd = null;
@@ -715,4 +699,3 @@ $(function () {
     }
   );
 });
-

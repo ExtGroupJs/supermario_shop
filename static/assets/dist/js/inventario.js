@@ -156,7 +156,7 @@ function verLogs(shopProductId, name) {
       data: {
         object_id: shopProductId,
         performed_action: "U", // Filtrar solo por performed_action "U"
-        //ordering:"-created_timestamp"
+        ordering: "-created_timestamp",
       },
       dataSrc: "results",
     },
@@ -202,7 +202,7 @@ function verLogs(shopProductId, name) {
       if (data.info.includes("entrado")) {
         $(row).addClass("table-success"); // Rojo
       } else if (data.quantity === 1) {
-       // $(row).addClass("table-warning"); // Amarillo
+        // $(row).addClass("table-warning"); // Amarillo
       }
     },
     // order: [[0, "desc"]],

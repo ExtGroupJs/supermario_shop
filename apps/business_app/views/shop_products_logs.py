@@ -11,7 +11,7 @@ from django.db.models.functions import Concat
 
 
 class ShopProductsLogsViewSet(GenericLogViewSet):
-    shop_products = ShopProducts.all_objects.filter(id=OuterRef("object_id"))
+    shop_products = ShopProducts.objects.filter(id=OuterRef("object_id"))
 
     queryset = GenericLog.objects.filter(
         content_type=ContentType.objects.get_for_model(ShopProducts),
@@ -46,3 +46,9 @@ class ShopProductsLogsViewSet(GenericLogViewSet):
         "shop_product_name",
     ]
     filterset_class = ShopProductsLogsFilter
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(
+            shop_product_name__isnull=False
+        )  # this grants the logs are returned for non deleted shop_products
