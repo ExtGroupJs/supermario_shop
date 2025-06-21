@@ -490,7 +490,7 @@ function agregarCantidad(shopProductId, cantidad_actual) {
             Swal.fire({
               icon: "success",
               title: "¡Éxito!",
-              text: `Se han agregado ${cantidad_actual} unidades al producto. Quedan ${cantidadResultante} en inventario`,
+              text: `Se han agregado ${result.value} unidades al producto. Quedan ${cantidadResultante} en inventario`,
               showConfirmButton: false,
               timer: 3000, // Mensaje de éxito por 2 segundos
             });
