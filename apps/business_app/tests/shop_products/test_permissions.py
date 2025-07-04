@@ -68,3 +68,23 @@ class TestShopProductsViewSet(BaseTestClass):
             self._test_permissions(
                 url, allowed_roles=allowed_groups, request_using_protocol=protocol
             )
+
+    def test_move_to_another_shop(self):
+        """
+        Solo el SUPER_ADMIN y el SHOP_OWNER pueden invocar este EP
+        """
+        test_shop_product = baker.make(
+            ShopProducts,
+            cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
+            sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+        )
+        url = reverse(
+            "shop-products-move-to-another-shop", kwargs={"pk": test_shop_product.id}
+        )
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER]
+
+        self._test_permissions(
+            url,
+            allowed_roles=allowed_groups,
+            request_using_protocol=self.client.post,
+        )

@@ -74,6 +74,8 @@ class BaseTestClass(TestCase):
         self.assertEqual(
             request_using_protocol(url, format="json").status_code,
             expected_status,
+            msg=f"When calling EP <{url}> with NO AUTHENTICATION: "
+            f"<{expected_status}> was expected, <{request_using_protocol(url, format='json').status_code}> was received",
         )
         self.client.force_authenticate(self.user)
 
@@ -81,6 +83,8 @@ class BaseTestClass(TestCase):
         self.assertEqual(
             request_using_protocol(url, format="json").status_code,
             expected_status,
+            msg=f"When calling EP <{url}> with NO ROLE: "
+            f"<{expected_status}> was expected, <{request_using_protocol(url, format='json').status_code}> was received",
         )
         for role in allowed_roles:
             self.user.groups.clear()  # Remove the group to avoid side effects in other tests.
@@ -88,6 +92,8 @@ class BaseTestClass(TestCase):
             self.assertNotEqual(
                 request_using_protocol(url, format="json").status_code,
                 expected_status,
+                msg=f"When calling EP <{url}> with ALLOWED ROLE: "
+                f"'{role.label}', a value different than <{expected_status}> was expected.",
             )
 
         for group in self._get_not_allowed_groups(allowed_roles):
@@ -96,6 +102,8 @@ class BaseTestClass(TestCase):
             self.assertEqual(
                 request_using_protocol(url, format="json").status_code,
                 expected_status,
+                msg=f"When calling EP <{url}> with NON ALLOWED ROLE: "
+                f"'{group.label}', <{expected_status}> was expected, <{request_using_protocol(url, format='json').status_code}> was received",
             )
 
     def _get_not_allowed_groups(self, allowed_groups):
