@@ -11,7 +11,6 @@ from rest_framework import status
 from freezegun import freeze_time
 
 
-
 @pytest.mark.django_db
 class TestShopProductsViewSet(BaseTestClass):
     fixtures = ["auth.group.json"]
