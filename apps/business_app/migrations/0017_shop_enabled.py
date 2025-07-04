@@ -8,6 +8,12 @@ def add_shop_matanzas(apps, schema_editor):
     Shop.objects.get_or_create(name="Matanzas")
 
 
+def disable_miami_shop(apps, schema_editor):
+    Shop = apps.get_model("business_app", "Shop")
+    Shop.objects.filter(name="Miami").update(enabled=False)
+    Shop.objects.filter(name="Cuba").update(name="Ciego de Ávila")
+
+
 def remove_shop_matanzas(apps, schema_editor):
     Shop = apps.get_model("business_app", "Shop")
     Shop.objects.filter(name="Matanzas").delete()
@@ -25,4 +31,5 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=True, verbose_name="Habilitado"),
         ),
         migrations.RunPython(add_shop_matanzas, remove_shop_matanzas),
+        migrations.RunPython(disable_miami_shop, migrations.RunPython.noop),
     ]

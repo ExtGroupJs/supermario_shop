@@ -49,12 +49,12 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
+        request = self.context.get("request")
         if (
-            self.context.get("request")
-            .user.groups.exclude(
+            request
+            and request.user.groups.exclude(
                 id__in=[Groups.SHOP_OWNER.value, Groups.SUPER_ADMIN.value]
-            )
-            .exists()
+            ).exists()
         ):
             response.pop("cost_price", None)
         return response
@@ -79,3 +79,54 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
         response = super().to_representation(instance)
         response["is_new"] = instance.updated_timestamp >= self.one_month_ago
         return response
+
+
+class MoveToAnotherShopSerializer(ReadShopProductsSerializer):
+    class Meta:
+        model = ShopProducts
+        fields = (
+            "shop",
+            "quantity",
+        )
+
+    def validate_shop(self, new_shop):
+        if not new_shop:
+            raise serializers.ValidationError("La tienda destino es requerida.")
+        if new_shop == self.instance.shop:
+            raise serializers.ValidationError(
+                "No puedes mover el producto a la misma tienda."
+            )
+        return new_shop
+
+    def validate_quantity(self, quantity):
+        if quantity < 1:
+            raise serializers.ValidationError("La cantidad debe ser mayor que cero.")
+        if quantity > self.instance.quantity:
+            raise serializers.ValidationError(
+                "La cantidad a mover no puede ser mayor que la cantidad disponible."
+            )
+        return quantity
+
+    def save(self, **kwargs):
+        new_shop = self.validated_data["shop"]
+        quantity_to_move = self.validated_data["quantity"]
+        product = self.instance.product
+
+        # Buscar si ya existe un ShopProducts en el shop destino con el mismo producto
+        try:
+            dest_shop_product = ShopProducts.objects.get(shop=new_shop, product=product)
+            dest_shop_product.quantity += quantity_to_move
+            dest_shop_product.save(update_fields=["quantity"])
+        except ShopProducts.DoesNotExist:
+            # Crear nuevo registro en el shop destino
+            ShopProducts.objects.create(
+                shop=new_shop,
+                product=product,
+                quantity=quantity_to_move,
+                cost_price=self.instance.cost_price,
+                sell_price=self.instance.sell_price,
+                extra_info=self.instance.extra_info,
+            )
+        self.instance.quantity -= quantity_to_move
+        self.instance.save(update_fields=["quantity"])
+        return self.instance

@@ -5,16 +5,18 @@ from rest_framework.generics import GenericAPIView
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.shop_products import (
     CatalogShopProductSerializer,
+    MoveToAnotherShopSerializer,
     ReadShopProductsSerializer,
     ShopProductsSerializer,
 )
+from rest_framework.response import Response
 
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.serializer_map import SerializerMapMixin
 
 from apps.common.pagination import AllResultsSetPagination
-from apps.common.permissions import ShopProductsViewSetPermission
+from apps.common.permissions import CommonRolePermission, ShopProductsViewSetPermission
 from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
@@ -126,3 +128,24 @@ class ShopProductsViewSet(
     )
     def catalog_shop_product_detail(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        permission_classes=[CommonRolePermission],  # TODO test for this
+        serializer_class=MoveToAnotherShopSerializer,
+        url_name="move-to-another-shop",
+        url_path="move-to-another-shop",
+    )
+    def move_to_another_shop(self, request, *args, **kwargs):
+        """
+        Move a shop product to another shop.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance=instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        output_serializer = ReadShopProductsSerializer
+        return Response(
+            output_serializer(instance=instance, context={"request": request}).data
+        )
