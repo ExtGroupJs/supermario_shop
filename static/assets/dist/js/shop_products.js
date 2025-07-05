@@ -6,7 +6,12 @@ const csrfToken = document.cookie
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 // url del endpoint principal
-const url = "/business-gestion/shop-products/";
+let selectedShopId = localStorage.getItem("selectedShopId");
+let url = "/business-gestion/shop-products/";
+if (selectedShopId) {
+  url = `/business-gestion/shop-products/?shop=${selectedShopId}`;
+}
+
 let load = document.getElementById("load");
 
 $(function () {
@@ -236,6 +241,10 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
       .catch(function (error) {});
   } else {
     modal.find(".modal-title").text("Crear Entrada de Producto");
+    let selectedShopId = localStorage.getItem("selectedShopId");
+    if (selectedShopId) {
+      form.elements.shop.value = selectedShopId;
+    }
   }
 });
 
