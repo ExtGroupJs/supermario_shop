@@ -11,7 +11,7 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 let selectedShopId = localStorage.getItem("selectedShopId");
 let urlSell = "/business-gestion/sell-products/";
  if (selectedShopId) {
-   urlSell = `/business-gestion/sell-products/?shop=${selectedShopId}`;
+   urlSell = `/business-gestion/sell-products/?shop_product__shop=${selectedShopId}`;
  }
 
 $(function () {
