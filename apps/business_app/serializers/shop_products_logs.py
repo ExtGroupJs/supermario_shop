@@ -36,10 +36,10 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             action = instance.extra_log_info or "actualizado"
         else:
             action = "entrado" if new_value > old_value else "vendido"
+
         abs_value = abs(new_value - old_value)
-        response["info"] = (
-            f"{operation}{abs_value} {action}{'s' if abs_value > 1 else ''}"
-        )
+        suffix = "" if instance.extra_log_info else f"{'s' if abs_value > 1 else ''}"
+        response["info"] = f"{operation}{abs_value} {action}{suffix}"
         return response
 
     def get_product_image(self, obj):

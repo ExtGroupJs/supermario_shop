@@ -61,7 +61,7 @@ class GenericLogMixin:
                 object_id=self.pk,
                 details=details,
                 created_by_id=user and user.id,
-                extra_log_info=extra_log_info
+                extra_log_info=extra_log_info,
             )
 
     def delete(self, *args, **kwargs):

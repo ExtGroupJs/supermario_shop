@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('common', '0004_converting_logs_details_values_to_var_datatype'),
+        ("common", "0004_converting_logs_details_values_to_var_datatype"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='genericlog',
-            name='extra_log_info',
-            field=models.CharField(blank=True, null=True, verbose_name='Información adicional'),
+            model_name="genericlog",
+            name="extra_log_info",
+            field=models.CharField(
+                blank=True, null=True, verbose_name="Información adicional"
+            ),
         ),
     ]
