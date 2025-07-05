@@ -36,11 +36,19 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
 
         diff = new_value - old_value
         abs_diff = abs(diff)
-        operation = "+" if created_by_dev_user and diff > 0 else "-" if created_by_dev_user and diff < 0 else ""
+        operation = (
+            "+"
+            if created_by_dev_user and diff > 0
+            else "-"
+            if created_by_dev_user and diff < 0
+            else ""
+        )
         action = (
             instance.extra_log_info or "actualizado"
             if created_by_dev_user
-            else "entrado" if diff > 0 else "vendido"
+            else "entrado"
+            if diff > 0
+            else "vendido"
         )
         suffix = "" if instance.extra_log_info else ("s" if abs_diff > 1 else "")
         response["info"] = f"{operation}{abs_diff} {action}{suffix}"
