@@ -81,7 +81,14 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
         return response
 
 
-class MoveToAnotherShopSerializer(ReadShopProductsSerializer):
+class MoveToAnotherShopSerializer(serializers.ModelSerializer):
+    default_error_messages = dict(
+        serializers.ModelSerializer.default_error_messages,
+        destiny_shop_must_be_diferent="No puedes mover el producto a la misma tienda.",
+        quantity_lesser_than_one="La cantidad debe ser mayor que cero.",
+        quantity_greater_than_available="La cantidad a mover no puede ser mayor que la cantidad disponible.",
+    )
+
     class Meta:
         model = ShopProducts
         fields = (
@@ -90,21 +97,15 @@ class MoveToAnotherShopSerializer(ReadShopProductsSerializer):
         )
 
     def validate_shop(self, new_shop):
-        if not new_shop:
-            raise serializers.ValidationError("La tienda destino es requerida.")
         if new_shop == self.instance.shop:
-            raise serializers.ValidationError(
-                "No puedes mover el producto a la misma tienda."
-            )
+            self.fail("destiny_shop_must_be_diferent")
         return new_shop
 
     def validate_quantity(self, quantity):
         if quantity < 1:
-            raise serializers.ValidationError("La cantidad debe ser mayor que cero.")
+            self.fail("quantity_lesser_than_one")
         if quantity > self.instance.quantity:
-            raise serializers.ValidationError(
-                "La cantidad a mover no puede ser mayor que la cantidad disponible."
-            )
+            self.fail("quantity_greater_than_available")
         return quantity
 
     def save(self, **kwargs):

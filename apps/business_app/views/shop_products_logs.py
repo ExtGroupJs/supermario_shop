@@ -33,6 +33,7 @@ class ShopProductsLogsViewSet(GenericLogViewSet):
             ).values("full_name")[:1]
         ),
         product_image=Subquery(shop_products.values("product__image")[:1]),
+        shop=Subquery(shop_products.values("shop")[:1]),
     )
     serializer_class = ShopProductsLogsSerializer
     search_fields = [

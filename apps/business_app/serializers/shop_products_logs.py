@@ -7,6 +7,7 @@ from project_site import settings
 
 class ShopProductsLogsSerializer(GenericLogSerializer):
     shop_product_name = serializers.CharField(read_only=True)
+    shop = serializers.IntegerField(read_only=True)
     product_image = serializers.SerializerMethodField()
 
     class Meta(GenericLogSerializer.Meta):
@@ -16,6 +17,7 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
             "performed_action",
             "shop_product_name",
             "product_image",
+            "shop",
             "created_by",
         ]
 
