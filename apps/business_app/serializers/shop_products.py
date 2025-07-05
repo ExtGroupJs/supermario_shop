@@ -114,10 +114,11 @@ class MoveToAnotherShopSerializer(serializers.ModelSerializer):
         product = self.instance.product
 
         # Buscar si ya existe un ShopProducts en el shop destino con el mismo producto
+        extra_log_info=f"(transferido desde {self.instance.shop})"
         try:
             dest_shop_product = ShopProducts.objects.get(shop=new_shop, product=product)
             dest_shop_product.quantity += quantity_to_move
-            dest_shop_product.save(update_fields=["quantity"])
+            dest_shop_product.save(update_fields=["quantity"], extra_log_info=extra_log_info)
         except ShopProducts.DoesNotExist:
             # Crear nuevo registro en el shop destino
             ShopProducts.objects.create(
@@ -127,7 +128,8 @@ class MoveToAnotherShopSerializer(serializers.ModelSerializer):
                 cost_price=self.instance.cost_price,
                 sell_price=self.instance.sell_price,
                 extra_info=self.instance.extra_info,
+                extra_log_info=extra_log_info
             )
         self.instance.quantity -= quantity_to_move
-        self.instance.save(update_fields=["quantity"])
+        self.instance.save(update_fields=["quantity"], extra_log_info=f"(transferido a {new_shop})")
         return self.instance
