@@ -23,23 +23,27 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        raw_old_value = instance.details.get("quantity").get("old_value")
-        old_value = 0 if not raw_old_value else int(raw_old_value)
-        new_value = int(instance.details.get("quantity").get("new_value"))
+        quantity = instance.details.get("quantity", {})
+        old_value = int(quantity.get("old_value") or 0)
+        new_value = int(quantity.get("new_value") or 0)
         response["init_value"] = old_value
         response["new_value"] = new_value
-        dev_user = SystemUser.objects.filter(username="dev").first()
-        created_by_dev_user = dev_user and dev_user.id == instance.created_by_id
-        operation = ""
-        if created_by_dev_user:
-            operation = "+" if new_value > old_value else "-"
-            action = instance.extra_log_info or "actualizado"
-        else:
-            action = "entrado" if new_value > old_value else "vendido"
 
-        abs_value = abs(new_value - old_value)
-        suffix = "" if instance.extra_log_info else f"{'s' if abs_value > 1 else ''}"
-        response["info"] = f"{operation}{abs_value} {action}{suffix}"
+        dev_user_id = getattr(
+            SystemUser.objects.filter(username="dev").only("id").first(), "id", None
+        )
+        created_by_dev_user = dev_user_id == instance.created_by_id
+
+        diff = new_value - old_value
+        abs_diff = abs(diff)
+        operation = "+" if created_by_dev_user and diff > 0 else "-" if created_by_dev_user and diff < 0 else ""
+        action = (
+            instance.extra_log_info or "actualizado"
+            if created_by_dev_user
+            else "entrado" if diff > 0 else "vendido"
+        )
+        suffix = "" if instance.extra_log_info else ("s" if abs_diff > 1 else "")
+        response["info"] = f"{operation}{abs_diff} {action}{suffix}"
         return response
 
     def get_product_image(self, obj):
