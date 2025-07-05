@@ -38,6 +38,7 @@ class SellViewSet(
     permission_classes = [SellViewSetPermission]
     filterset_fields = {
         "shop_product": ["exact"],
+        "shop_product__shop": ["exact"],
         "seller": ["exact"],
         "shop_product__product": ["exact"],
         "shop_product__product__model": ["exact"],
