@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
+from itertools import product
 import pytest
 from django.urls import reverse
+from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
+from apps.business_app.serializers.shop_products import MoveToAnotherShopSerializer
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
@@ -195,3 +198,158 @@ class TestShopProductsViewSet(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()
         self.assertEqual(response_data["count"], None)
+
+    def test_move_to_another_shop_validations(self):
+        """ """
+
+        random_quantity = baker.random_gen.gen_integer(min_int=2, max_int=10)
+        test_shop_product = baker.make(
+            ShopProducts,
+            cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
+            sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+            quantity=random_quantity,
+        )
+        url = reverse(
+            "shop-products-move-to-another-shop", kwargs={"pk": test_shop_product.id}
+        )
+        destiny_shop = baker.make(Shop)
+
+        self.client.force_authenticate(user=self.user)
+        self.user.groups.add(Groups.SHOP_OWNER)
+
+        failing_key = "quantity"
+        # Testing quantity=0 is not allowed to be moved
+        payload = {
+            "shop": destiny_shop.id,
+            failing_key: 0,
+        }
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertEqual(
+            response.json()[failing_key][0],
+            MoveToAnotherShopSerializer.default_error_messages.get(
+                "quantity_lesser_than_one"
+            ),
+        )
+
+        # Testing quantity should not be greater han available quantity on shop_product instance
+        payload = {
+            "shop": destiny_shop.id,
+            failing_key: test_shop_product.quantity + 1,
+        }
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertEqual(
+            response.json()[failing_key][0],
+            MoveToAnotherShopSerializer.default_error_messages.get(
+                "quantity_greater_than_available"
+            ),
+        )
+
+        failing_key = "shop"
+        random_quantity_to_move = baker.random_gen.gen_integer(
+            min_int=1, max_int=test_shop_product.quantity
+        )
+        # Testing shop was not provided
+        payload = {
+            failing_key: test_shop_product.shop.id,
+            "quantity": random_quantity_to_move,
+        }
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertEqual(
+            response.json()[failing_key][0],
+            MoveToAnotherShopSerializer.default_error_messages.get(
+                "destiny_shop_must_be_diferent"
+            ),
+        )
+
+    def test_move_to_another_shop_logic(self):
+        """ """
+
+        random_quantity = baker.random_gen.gen_integer(min_int=3, max_int=10)
+        test_shop_product = baker.make(
+            ShopProducts,
+            cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
+            sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+            quantity=random_quantity,
+        )
+        url = reverse(
+            "shop-products-move-to-another-shop", kwargs={"pk": test_shop_product.id}
+        )
+        destiny_shop = baker.make(Shop)
+
+        self.client.force_authenticate(user=self.user)
+        self.user.groups.add(Groups.SHOP_OWNER)
+
+        random_quantity_to_move = baker.random_gen.gen_integer(
+            min_int=2, max_int=test_shop_product.quantity
+        )
+
+        payload = {
+            "shop": destiny_shop.id,
+            "quantity": random_quantity_to_move,
+        }
+        same_shop_product_in_new_shop = ShopProducts.objects.filter(
+            shop=destiny_shop, product=test_shop_product.product
+        ).first()
+
+        # Should not exist
+        self.assertIsNone(
+            same_shop_product_in_new_shop,
+        )
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        same_shop_product_in_new_shop = ShopProducts.objects.filter(
+            shop=destiny_shop, product=test_shop_product.product
+        ).first()
+
+        # Testing new shop product was created for destiny shop with correct quantity and same atributes thahn original one!!!
+        self.assertIsNotNone(same_shop_product_in_new_shop)
+        self.assertEqual(
+            test_shop_product.cost_price, same_shop_product_in_new_shop.cost_price
+        )
+        self.assertEqual(
+            test_shop_product.sell_price, same_shop_product_in_new_shop.sell_price
+        )
+        self.assertEqual(
+            test_shop_product.product, same_shop_product_in_new_shop.product
+        )
+        self.assertEqual(
+            test_shop_product.extra_info, same_shop_product_in_new_shop.extra_info
+        )
+        self.assertNotEqual(test_shop_product.shop, same_shop_product_in_new_shop.shop)
+
+        # Testing the correct amount was substracted from original shop product and assigned to destiny one
+        test_shop_product.refresh_from_db()
+        self.assertEqual(
+            test_shop_product.quantity, random_quantity - payload["quantity"]
+        )
+        self.assertEqual(same_shop_product_in_new_shop.quantity, payload["quantity"])
+
+        first_payload_qty = payload["quantity"]
+        random_quantity_to_move = baker.random_gen.gen_integer(
+            min_int=1, max_int=test_shop_product.quantity
+        )
+
+        payload = {
+            "shop": destiny_shop.id,
+            "quantity": random_quantity_to_move,
+        }
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        before_qty = test_shop_product.quantity
+        test_shop_product.refresh_from_db()
+        self.assertEqual(test_shop_product.quantity, before_qty - payload["quantity"])
+        same_shop_product_in_new_shop.refresh_from_db()
+        self.assertEqual(
+            same_shop_product_in_new_shop.quantity,
+            first_payload_qty + payload["quantity"],
+        )
