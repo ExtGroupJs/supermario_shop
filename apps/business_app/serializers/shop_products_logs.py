@@ -33,7 +33,7 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
         operation = ""
         if created_by_dev_user:
             operation = "+" if new_value > old_value else "-"
-            action = "corregido"
+            action = instance.extra_log_info or "actualizado"
         else:
             action = "entrado" if new_value > old_value else "vendido"
         abs_value = abs(new_value - old_value)
