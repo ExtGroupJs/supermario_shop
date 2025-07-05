@@ -122,16 +122,19 @@ $(document).ready(function () {
            <button type="button" title="Agregar Cantidad" class="btn bg-olive" onclick="agregarCantidad('${row.id}','${row.quantity}')">
                 <i class="fas fa-plus"></i>
               </button>
-           <button type="button" title="Marcar como New" class="btn bg-olive" onclick="marcarComoNew('${row.id}')">
+            <button type="button" title="Mover" class="btn bg-olive "  onclick="moveToAnotherShop('${row.id}')">
+                      <i class="nav-icon fas fa-dolly"></i>
+                    </button>             
+            <button type="button" title="Marcar como New" class="btn bg-olive" onclick="marcarComoNew('${row.id}')">
                <i class="nav-icon fas fa-clipboard-check"></i>
               </button>
-                    <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
+            <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
                       <i class="fas fa-edit"></i>
-                    </button>
-                    <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.shop_name}')" >
+                    </button>                  
+             <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.shop_name}')" >
                       <i class="fas fa-trash"></i>
                     </button>
-                    <button type="button" title="Ver Logs" class="btn bg-olive" onclick="verLogs('${row.id}','${row.product.name}')">
+             <button type="button" title="Ver Logs" class="btn bg-olive" onclick="verLogs('${row.id}','${row.product.name}')">
                 <i class="fas fa-history"></i>
               </button>
                   </div>`;
@@ -519,6 +522,101 @@ function agregarCantidad(shopProductId, cantidad_actual) {
     }
   });
 }
+
+function moveToAnotherShop(id) {
+  load.hidden = false;
+  // Obtener la tienda seleccionada globalmente
+  const selectedShopId = localStorage.getItem("selectedShopId");
+  axios.get("/business-gestion/shops/").then(function (response) {
+    const shops = response.data.results;
+    // Filtrar la tienda de origen (si existe)
+    const filteredShops = selectedShopId
+      ? shops.filter(shop => String(shop.id) !== String(selectedShopId))
+      : shops;
+    let selectHtml = '<select id="swal-shop-select" class="swal2-input" style="width: 200px; margin-right: 10px;">';
+    filteredShops.forEach(shop => {
+      selectHtml += `<option value="${shop.id}">${shop.name}</option>`;
+    });
+    selectHtml += "</select>";
+
+    // Coloca los inputs en una fila usando flexbox
+    const htmlInputs = `
+      <div style="display: flex; align-items: center; justify-content: center;">
+        ${selectHtml}
+        <input id="swal-quantity-input" type="number" min="1" class="swal2-input" style="width: 120px;" placeholder="Cantidad">
+      </div>
+    `;
+
+    load.hidden = true;
+    Swal.fire({
+      title: "Mover a otra tienda",
+      html: htmlInputs,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Mover",
+      preConfirm: () => {
+        const shopId = document.getElementById("swal-shop-select").value;
+        const quantity = document.getElementById("swal-quantity-input").value;
+        if (!shopId || !quantity || quantity <= 0) {
+          Swal.showValidationMessage("Seleccione una tienda y una cantidad válida.");
+          return false;
+        }
+        return { shop: Number(shopId), quantity: Number(quantity) };
+      }
+    }).then(result => {
+      if (result.isConfirmed && result.value) {
+        load.hidden = false;
+        axios
+          .post(`/business-gestion/shop-products/${id}/move-to-another-shop/`, result.value)
+          .then(res => {
+            load.hidden = true;
+            Swal.fire({
+              icon: "success",
+              title: "Producto movido exitosamente",
+              showConfirmButton: false,
+              timer: 1500
+            });
+            $("#tabla-de-Datos").DataTable().ajax.reload();
+          })
+          .catch(error => {
+            load.hidden = true;
+            if (error.response.data.quantity) {
+              Swal.fire({
+                icon: "error",
+                title: "Error al mover producto",
+                text: error.response.data.quantity[0],
+                showConfirmButton: true
+              });
+            } else if (error.response.data.shop) {
+              Swal.fire({
+                icon: "error",
+                title: "Error al mover producto",
+                text: error.response.data.shop[0] || "Ocurrió un error.",
+                showConfirmButton: true
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Error al mover producto",
+                text: "Ocurrió un error.",
+                showConfirmButton: true
+              });
+            }
+          });
+      } else {
+        load.hidden = true;
+      }
+    });
+  });
+}
+
+
+
+
+
+
+
+
 function marcarComoNew(shopProductId) {
   const table = $("#tabla-de-Datos").DataTable();
   // Realizar la petición para actualizar la cantidad

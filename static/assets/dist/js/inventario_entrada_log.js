@@ -9,7 +9,7 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 // url del endpoint principal
 let selectedShopId = localStorage.getItem("selectedShopId");
-const urlSell = "/business-gestion/shop-products-logs/";
+let urlSell = "/business-gestion/shop-products-logs/";
 if (selectedShopId) {
   urlSell = `/business-gestion/shop-products-logs/?shop=${selectedShopId}`;
 }
