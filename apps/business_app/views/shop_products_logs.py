@@ -11,29 +11,35 @@ from django.db.models.functions import Concat
 
 
 class ShopProductsLogsViewSet(GenericLogViewSet):
-    shop_products = ShopProducts.objects.filter(id=OuterRef("object_id"))
+    # Prefetch the content type once
+    shop_product_content_type = ContentType.objects.get_for_model(ShopProducts)
+
+    # Get all needed shop product data in a single subquery
+    shop_products_subquery = (
+        ShopProducts.objects.filter(id=OuterRef("object_id"))
+        .annotate(
+            full_name=Concat(
+                F("product__name"),
+                Value(" ("),
+                F("product__model__brand__name"),
+                Value(" - "),
+                F("product__model__name"),
+                Value(")"),
+                Value(" ("),
+                F("shop__name"),
+                Value(")"),
+            )
+        )
+        .values("full_name", "product__image", "shop")
+    )
 
     queryset = GenericLog.objects.filter(
-        content_type=ContentType.objects.get_for_model(ShopProducts),
+        content_type=shop_product_content_type,
         details__has_key="quantity",
     ).annotate(
-        shop_product_name=Subquery(
-            shop_products.annotate(
-                full_name=Concat(
-                    F("product__name"),
-                    Value(" ("),
-                    F("product__model__brand__name"),
-                    Value(" - "),
-                    F("product__model__name"),
-                    Value(")"),
-                    Value(" ("),
-                    F("shop__name"),
-                    Value(")"),
-                )
-            ).values("full_name")[:1]
-        ),
-        product_image=Subquery(shop_products.values("product__image")[:1]),
-        shop=Subquery(shop_products.values("shop")[:1]),
+        shop_product_name=Subquery(shop_products_subquery.values("full_name")[:1]),
+        product_image=Subquery(shop_products_subquery.values("product__image")[:1]),
+        shop=Subquery(shop_products_subquery.values("shop")[:1]),
     )
     serializer_class = ShopProductsLogsSerializer
     search_fields = [
