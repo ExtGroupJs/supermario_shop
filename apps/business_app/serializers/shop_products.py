@@ -123,13 +123,15 @@ class MoveToAnotherShopSerializer(serializers.ModelSerializer):
             )
         except ShopProducts.DoesNotExist:
             # Crear nuevo registro en el shop destino
-            ShopProducts.objects.create(
+            created_shopproduct = ShopProducts(
                 shop=new_shop,
                 product=product,
                 quantity=quantity_to_move,
                 cost_price=self.instance.cost_price,
                 sell_price=self.instance.sell_price,
                 extra_info=self.instance.extra_info,
+            )
+            created_shopproduct.save(
                 extra_log_info=extra_log_info,
             )
         self.instance.quantity -= quantity_to_move

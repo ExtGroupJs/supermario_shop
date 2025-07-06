@@ -326,6 +326,19 @@ class TestShopProductsViewSet(BaseTestClass):
         )
         self.assertNotEqual(test_shop_product.shop, same_shop_product_in_new_shop.shop)
 
+        self.assertEqual(
+            GenericLog.objects.filter(
+                object_id=test_shop_product.id, extra_log_info__isnull=False
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            GenericLog.objects.filter(
+                object_id=same_shop_product_in_new_shop.id, extra_log_info__isnull=False
+            ).count(),
+            1,
+        )
+
         # Testing the correct amount was substracted from original shop product and assigned to destiny one
         test_shop_product.refresh_from_db()
         self.assertEqual(
@@ -351,4 +364,17 @@ class TestShopProductsViewSet(BaseTestClass):
         self.assertEqual(
             same_shop_product_in_new_shop.quantity,
             first_payload_qty + payload["quantity"],
+        )
+
+        self.assertEqual(
+            GenericLog.objects.filter(
+                object_id=test_shop_product.id, extra_log_info__isnull=False
+            ).count(),
+            2,
+        )
+        self.assertEqual(
+            GenericLog.objects.filter(
+                object_id=same_shop_product_in_new_shop.id, extra_log_info__isnull=False
+            ).count(),
+            2,
         )
