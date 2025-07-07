@@ -42,21 +42,16 @@ class ShopProductsViewSet(
         CommonOrderingFilter,
     ]
 
-    queryset = (
-        ShopProducts.objects.all()
-        .annotate(shop_name=F("shop__name"))
-        .annotate(
-            product_name=Concat(
-                F("product__name"),
-                Value(" ("),
-                F("product__model__brand__name"),
-                Value(" - "),
-                F("product__model__name"),
-                Value(") "),
-            )
-        )
-        .annotate(sales_count=Sum("sells__quantity"))
-    )
+    queryset = ShopProducts.objects.annotate(
+        shop_name=F("shop__name"),
+        product_name=F("product__name"),
+        model_brand=Concat(
+            F("product__model__brand__name"),
+            Value(" - "),
+            F("product__model__name"),
+        ),
+        sales_count=Sum("sells__quantity"),
+    ).all()
     filterset_fields = {
         "shop": ["exact"],
         "product": ["exact"],
@@ -79,6 +74,7 @@ class ShopProductsViewSet(
     ordering = ["shop_name"]
     ordering_fields = [
         "product_name",
+        "model_brand",
         "shop_name",
         "extra_info",
         "quantity",

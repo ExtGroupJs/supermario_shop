@@ -109,6 +109,7 @@ $(document).ready(function () {
         },
       },
       { data: "product_name", title: "Producto" },
+      { data: "model_brand", title: "Marca - Modelo" },
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },

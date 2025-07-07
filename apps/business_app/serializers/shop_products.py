@@ -15,6 +15,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
 
     shop_name = serializers.CharField(read_only=True)
     product_name = serializers.CharField(read_only=True)
+    model_brand = serializers.CharField(read_only=True)
 
     class Meta:
         model = ShopProducts
@@ -27,6 +28,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "shop_name",
             "product",
             "product_name",
+            "model_brand",
             "extra_info",
             "created_timestamp",
             "updated_timestamp",
