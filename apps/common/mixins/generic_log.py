@@ -19,6 +19,8 @@ class GenericLogMixin:
 
     def save(self, *args, **kwargs):
         updated_object_dict = model_to_dict(self)
+        extra_log_info = kwargs.pop("extra_log_info", None)
+
         action = GenericLog.ACTION.UPDATED
         details = {}
         if self.pk is not None:
@@ -59,6 +61,7 @@ class GenericLogMixin:
                 object_id=self.pk,
                 details=details,
                 created_by_id=user and user.id,
+                extra_log_info=extra_log_info,
             )
 
     def delete(self, *args, **kwargs):

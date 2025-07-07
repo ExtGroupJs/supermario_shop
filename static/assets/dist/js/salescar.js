@@ -4,7 +4,13 @@ const csrfToken = document.cookie
   .find((c) => c.trim().startsWith("csrftoken="))
   ?.split("=")[1];
 
-const url = "/business-gestion/shop-products/";
+let selectedShopId = localStorage.getItem("selectedShopId");
+let url = "/business-gestion/shop-products/?quantity__gte=1";
+if (selectedShopId) {
+  url = `/business-gestion/shop-products/?quantity__gte=1&shop=${selectedShopId}`;
+}
+
+
 let productosSeleccionados = [];
 let importe_total = 0;
 // Cargar productos al inicio
@@ -16,7 +22,7 @@ $(document).ready(function () {
 function cargarProductos() {
   load.hidden = false;
   axios
-    .get(url + "?quantity__gte=1")
+    .get(url)
     .then((res) => {
       const productos = res.data.results;
 
@@ -47,7 +53,7 @@ function cargarProductoEspecifico(id) {
         `Precio: $${especificProducto.sell_price}`
       );
       var nuevaUrl = especificProducto.product.image;
-      console.log("✌️nuevaUrl --->", nuevaUrl);
+     
 
       document.getElementById("productImagen").src = nuevaUrl;
 

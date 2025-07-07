@@ -93,6 +93,7 @@ $(document).ready(function () {
         },
       },
       { data: "product_name", title: "Producto" },
+      { data: "model_brand", title: "Marca - Modelo" },
       { data: "quantity", title: "Cantidad" },
 
       { data: "sell_price", title: "Precio de Venta" },
@@ -155,7 +156,7 @@ function verLogs(shopProductId, name) {
       url: "/business-gestion/shop-products-logs/",
       data: {
         object_id: shopProductId,
-        performed_action: "U", // Filtrar solo por performed_action "U"
+        // performed_action: "U", // Filtrar solo por performed_action "U"
         ordering: "-created_timestamp",
       },
       dataSrc: "results",

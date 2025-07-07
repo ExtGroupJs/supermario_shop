@@ -27,12 +27,12 @@ $(function () {
       quantity: {
         required: true,
         digits: true, // Solo números
-        min:0,
+        min: 0,
       },
       cost_price: {
         required: true,
         number: true, // Solo números
-        min:0,
+        min: 0,
       },
       sell_price: {
         required: true,
@@ -47,7 +47,6 @@ $(function () {
       quantity: {
         required: "Este campo es obligatorio.",
         digits: "Por favor, introduzca solo números.",
-        
       },
       cost_price: {
         required: "Este campo es obligatorio.",
@@ -76,7 +75,7 @@ $(function () {
       data.append("cost_price", document.getElementById("cost_price").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       data.append("extra_info", document.getElementById("extra_info").value);
-    
+
       axios
         .post(`${url}`, data)
         .then((response) => {
@@ -96,7 +95,7 @@ $(function () {
           for (const key in dict) {
             textError = textError + ", " + key;
           }
-    
+
           Swal.fire({
             icon: "error",
             title: "Error al crear la Entrada de Producto",
@@ -131,11 +130,19 @@ $.validator.addMethod(
 );
 
 function poblarListas() {
+  let selectedShopId = localStorage.getItem("selectedShopId");
   // Poblar la lista de tiendas
   var $shop = document.getElementById("shop");
   axios.get("/business-gestion/shops/").then(function (response) {
     response.data.results.forEach(function (element) {
-      var option = new Option(element.name, element.id);
+      // Si hay una tienda seleccionada, la seleccionamos en el dropdown
+      if (selectedShopId && element.id == selectedShopId) {
+        var option = new Option(element.name, element.id, true, true);
+        $shop.add(option);
+        $shop.value = element.id; // Aseguramos que el valor del select sea el id de la tienda
+      } else {
+        var option = new Option(element.name, element.id);
+      }
       $shop.add(option);
     });
   });
