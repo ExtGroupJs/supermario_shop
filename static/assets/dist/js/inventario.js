@@ -155,7 +155,7 @@ function verLogs(shopProductId, name) {
       url: "/business-gestion/shop-products-logs/",
       data: {
         object_id: shopProductId,
-        performed_action: "U", // Filtrar solo por performed_action "U"
+        // performed_action: "U", // Filtrar solo por performed_action "U"
         ordering: "-created_timestamp",
       },
       dataSrc: "results",

@@ -531,10 +531,11 @@ function moveToAnotherShop(id) {
     const shops = response.data.results;
     // Filtrar la tienda de origen (si existe)
     const filteredShops = selectedShopId
-      ? shops.filter(shop => String(shop.id) !== String(selectedShopId))
+      ? shops.filter((shop) => String(shop.id) !== String(selectedShopId))
       : shops;
-    let selectHtml = '<select id="swal-shop-select" class="swal2-input" style="width: 200px; margin-right: 10px;">';
-    filteredShops.forEach(shop => {
+    let selectHtml =
+      '<select id="swal-shop-select" class="swal2-input" style="width: 200px; margin-right: 10px;">';
+    filteredShops.forEach((shop) => {
       selectHtml += `<option value="${shop.id}">${shop.name}</option>`;
     });
     selectHtml += "</select>";
@@ -558,48 +559,53 @@ function moveToAnotherShop(id) {
         const shopId = document.getElementById("swal-shop-select").value;
         const quantity = document.getElementById("swal-quantity-input").value;
         if (!shopId || !quantity || quantity <= 0) {
-          Swal.showValidationMessage("Seleccione una tienda y una cantidad válida.");
+          Swal.showValidationMessage(
+            "Seleccione una tienda y una cantidad válida."
+          );
           return false;
         }
         return { shop: Number(shopId), quantity: Number(quantity) };
-      }
-    }).then(result => {
+      },
+    }).then((result) => {
       if (result.isConfirmed && result.value) {
         load.hidden = false;
         axios
-          .post(`/business-gestion/shop-products/${id}/move-to-another-shop/`, result.value)
-          .then(res => {
+          .post(
+            `/business-gestion/shop-products/${id}/move-to-another-shop/`,
+            result.value
+          )
+          .then((res) => {
             load.hidden = true;
             Swal.fire({
               icon: "success",
               title: "Producto movido exitosamente",
               showConfirmButton: false,
-              timer: 1500
+              timer: 1500,
             });
             $("#tabla-de-Datos").DataTable().ajax.reload();
           })
-          .catch(error => {
+          .catch((error) => {
             load.hidden = true;
             if (error.response.data.quantity) {
               Swal.fire({
                 icon: "error",
                 title: "Error al mover producto",
                 text: error.response.data.quantity[0],
-                showConfirmButton: true
+                showConfirmButton: true,
               });
             } else if (error.response.data.shop) {
               Swal.fire({
                 icon: "error",
                 title: "Error al mover producto",
                 text: error.response.data.shop[0] || "Ocurrió un error.",
-                showConfirmButton: true
+                showConfirmButton: true,
               });
             } else {
               Swal.fire({
                 icon: "error",
                 title: "Error al mover producto",
                 text: "Ocurrió un error.",
-                showConfirmButton: true
+                showConfirmButton: true,
               });
             }
           });
@@ -609,13 +615,6 @@ function moveToAnotherShop(id) {
     });
   });
 }
-
-
-
-
-
-
-
 
 function marcarComoNew(shopProductId) {
   const table = $("#tabla-de-Datos").DataTable();
@@ -671,7 +670,7 @@ function verLogs(shopProductId, name) {
       url: "/business-gestion/shop-products-logs/",
       data: {
         object_id: shopProductId,
-        performed_action: "U", // Filtrar solo por performed_action "U"
+        // performed_action: "U", // Filtrar solo por performed_action "U"
         ordering: "-created_timestamp",
       },
       dataSrc: "results",
