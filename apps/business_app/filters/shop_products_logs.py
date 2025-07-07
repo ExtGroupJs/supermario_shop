@@ -8,6 +8,7 @@ class ShopProductsLogsFilter(GenericLogFilter):
     entries = django_filters.BooleanFilter(
         field_name="entries", method="filter_entries"
     )
+    shop = django_filters.NumberFilter(field_name="shop", lookup_expr="exact")
 
     class Meta(GenericLogFilter.Meta):
         fields = {

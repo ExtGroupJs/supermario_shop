@@ -5,7 +5,15 @@ const csrfToken = document.cookie
   ?.split("=")[1];
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 // url del endpoint principal
-const urlSell = "/business-gestion/sell-products/";
+
+
+// url del endpoint principal
+let selectedShopId = localStorage.getItem("selectedShopId");
+let urlSell = "/business-gestion/sell-products/";
+ if (selectedShopId) {
+   urlSell = `/business-gestion/sell-products/?shop_product__shop=${selectedShopId}`;
+ }
+
 $(function () {
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
