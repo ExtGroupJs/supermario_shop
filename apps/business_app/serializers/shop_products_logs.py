@@ -34,16 +34,10 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
 
         diff = new_value - old_value
         abs_diff = abs(diff)
-        operation = (
-            "+"
-            if created_by_dev_user and diff > 0
-            else "-"
-            if created_by_dev_user and diff < 0
-            else ""
-        )
+        operation = "-" if created_by_dev_user and diff < 0 else ""
         action = (
             instance.extra_log_info or "actualizado"
-            if created_by_dev_user
+            if created_by_dev_user and diff < 0
             else "entrado"
             if diff > 0
             else "vendido"
