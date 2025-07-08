@@ -6,6 +6,7 @@ const csrfToken = document.cookie
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 // url del endpoint principal
+let selectedShopId = localStorage.getItem("selectedShopId");
 const url = "/business-gestion/shop-products/";
 
 $(function () {
@@ -64,6 +65,7 @@ $(document).ready(function () {
       params.page = data.start / data.length + 1;
       params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
+      params.shop = selectedShopId;
 
       axios
         .get(url, { params })
