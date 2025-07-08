@@ -5,19 +5,14 @@ const csrfToken = document.cookie
   ?.split("=")[1];
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
-
-
 // url del endpoint principal
 let selectedShopId = localStorage.getItem("selectedShopId");
 let urlSell = "/business-gestion/shop-products-logs/";
-if (selectedShopId) {
-  urlSell = `/business-gestion/shop-products-logs/?shop=${selectedShopId}`;
-}
 
 $(function () {
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
- // $("#reservationdatetime").datetimepicker({ icons: { time: "far fa-clock" } });
+  // $("#reservationdatetime").datetimepicker({ icons: { time: "far fa-clock" } });
 });
 
 $(function () {
@@ -26,30 +21,30 @@ $(function () {
 
 // Inicializar DataTable
 $(document).ready(function () {
-const table = $("#tabla-de-Datos").DataTable({
+  const table = $("#tabla-de-Datos").DataTable({
     responsive: true,
     lengthMenu: [
-        [10, 25, 50, 100, -1],
-        [10, 25, 50, 100, "Todos"],
+      [10, 25, 50, 100, -1],
+      [10, 25, 50, 100, "Todos"],
     ],
     dom: '<"top"l>Bfrtip',
     buttons: [
-        {
-            extend: "excel",
-            text: "Excel",
+      {
+        extend: "excel",
+        text: "Excel",
+      },
+      {
+        extend: "pdf",
+        text: "PDF",
+        exportOptions: {
+          columns: [1, 2, 3, 4, 5, 6],
+          stripHtml: false, // No eliminar imágenes
         },
-        {
-            extend: "pdf",
-            text: "PDF",
-            exportOptions: {
-              columns: [1,2,3,4,5,6],
-              stripHtml: false, // No eliminar imágenes
-            },
-        },
-        {
-            extend: "print",
-            text: "Print",
-        },
+      },
+      {
+        extend: "print",
+        text: "Print",
+      },
     ],
     serverSide: true,
     // search: {
@@ -57,41 +52,44 @@ const table = $("#tabla-de-Datos").DataTable({
     // },
     processing: true,
     ajax: function (data, callback, settings) {
-        const filters = $("#filter-form").serializeArray();
-        dir = "";
-        if (data.order[0].dir == "desc") {
-            dir = "-";
+      const filters = $("#filter-form").serializeArray();
+      dir = "";
+      if (data.order[0].dir == "desc") {
+        dir = "-";
+      }
+      const params = {};
+      filters.forEach((filter) => {
+        if (filter.value) {
+          params[filter.name] = filter.value;
         }
-         const params = {};
-         filters.forEach((filter) => {
-            if (filter.value) {
-                 params[filter.name] = filter.value;
-            }
+      });
+
+      if (myDateStart !== null && myDateStart !== null) {
+        params["created_timestamp__gte"] = myDateStart;
+        params["created_timestamp__lte"] = myDateEnd;
+      }
+
+      params.page_size = data.length;
+      params.page = data.start / data.length + 1;
+      params.ordering = dir + data.columns[data.order[0].column].data;
+      params.search = data.search.value;
+      params.entries = true;
+      params.shop = selectedShopId;
+
+      axios
+        .get(urlSell, {
+          params,
+        })
+        .then((res) => {
+          callback({
+            recordsTotal: res.data.count,
+            recordsFiltered: res.data.count,
+            data: res.data.results,
+          });
+        })
+        .catch((error) => {
+          alert(error);
         });
-
-        if (myDateStart !== null && myDateStart !== null) {
-          params["created_timestamp__gte"] = myDateStart;
-          params["created_timestamp__lte"] = myDateEnd;
-        }
-       
-        params.page_size = data.length;
-        params.page = data.start / data.length + 1;
-        params.ordering = dir + data.columns[data.order[0].column].data;
-        params.search = data.search.value;
-        params.entries=true;
-
-        axios
-            .get(selectedShopId ? urlSell+`?shop=${selectedShopId}` : urlSell, { params })
-            .then((res) => {
-                callback({
-                    recordsTotal: res.data.count,
-                    recordsFiltered: res.data.count,
-                    data: res.data.results,
-                });
-            })
-            .catch((error) => {
-                alert(error);
-            });
     },
     columns: [
       {
@@ -104,19 +102,21 @@ const table = $("#tabla-de-Datos").DataTable({
             return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
           }
         },
-      },   
-        { data: "shop_product_name", title: "Producto" },     
-        { data: "created_timestamp", title: "Fecha" },
-        { data: "init_value", title: "Existencia" },
-        { data: "info", title: "Cambio" },
-        { data: "new_value", title: "Valor actual" },
-        { data: "created_by", title: "Responsable" },
-         ],
-    order: [[2, 'desc'],[1, 'desc']], // Primero ordena por grupo, luego por fecha
-   
-   
-    columnDefs: []
-});
+      },
+      { data: "shop_product_name", title: "Producto" },
+      { data: "created_timestamp", title: "Fecha" },
+      { data: "init_value", title: "Existencia" },
+      { data: "info", title: "Cambio" },
+      { data: "new_value", title: "Valor actual" },
+      { data: "created_by", title: "Responsable" },
+    ],
+    order: [
+      [2, "desc"],
+      [1, "desc"],
+    ], // Primero ordena por grupo, luego por fecha
+
+    columnDefs: [],
+  });
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();
@@ -126,8 +126,8 @@ const table = $("#tabla-de-Datos").DataTable({
   // Restablecer filtros
   $("#reset-filters").on("click", function () {
     $("#filter-form")[0].reset();
-     myDateStart = null;
- myDateEnd = null;
+    myDateStart = null;
+    myDateEnd = null;
     table.ajax.reload();
   });
 
@@ -136,7 +136,6 @@ const table = $("#tabla-de-Datos").DataTable({
     $("#filter-section").toggle();
   });
 });
-
 
 $(document).on("click", ".thumbnail", function () {
   const fullsizeImage = $(this).data("fullsize");
@@ -149,7 +148,6 @@ $(document).on("click", ".thumbnail", function () {
     showCloseButton: false,
     showConfirmButton: true,
   });
-
 });
 
 let myDateStart = null;

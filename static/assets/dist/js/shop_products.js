@@ -75,9 +75,10 @@ $(document).ready(function () {
       params.page = data.start / data.length + 1;
       params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
+      params.shop = selectedShopId;
 
       axios
-        .get(selectedShopId ? url+`?shop=${selectedShopId}` : url, { params })
+        .get(url, { params })
         .then((res) => {
           callback({
             recordsTotal: res.data.count,
