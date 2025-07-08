@@ -64,6 +64,8 @@ class SellViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        request_user = self.request.user if not self.request.user.is_anonymous else None
+
         product_name = Concat(
             F("shop_product__product__name"),
             Value(" ("),
@@ -72,7 +74,7 @@ class SellViewSet(
             F("shop_product__product__model__name"),
             Value(") "),
         )
-        if self.request.user.groups.filter(
+        if request_user.groups.filter(
             id__in=[Groups.SHOP_OWNER.value, Groups.SUPER_ADMIN.value]
         ).exists():
             queryset = queryset.annotate(
@@ -86,5 +88,7 @@ class SellViewSet(
                 )
             )
         else:
-            queryset = queryset.annotate(product_name=product_name)
+            queryset = queryset.filter(
+                shop_product__shop=SystemUser.objects.get(id=request_user.id).shop
+            ).annotate(product_name=product_name)
         return queryset
