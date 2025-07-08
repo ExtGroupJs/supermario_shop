@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import pytest
 from django.urls import reverse
 from apps.business_app.models.shop import Shop
+from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.shop_products import MoveToAnotherShopSerializer
 from apps.common.baseclass_for_testing import BaseTestClass
@@ -12,8 +13,8 @@ from model_bakery import baker
 from rest_framework import status
 
 from freezegun import freeze_time
-
 from apps.users_app.models.system_user import SystemUser
+
 
 @pytest.mark.django_db
 class TestShopProductsViewSet(BaseTestClass):
