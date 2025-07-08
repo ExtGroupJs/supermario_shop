@@ -6,16 +6,14 @@ const csrfToken = document.cookie
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 // url del endpoint principal
 
-
 // url del endpoint principal
 let selectedShopId = localStorage.getItem("selectedShopId");
 let urlSell = "/business-gestion/sell-products/";
 
-
 $(function () {
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
- // $("#reservationdatetime").datetimepicker({ icons: { time: "far fa-clock" } });
+  // $("#reservationdatetime").datetimepicker({ icons: { time: "far fa-clock" } });
 });
 
 $(function () {
@@ -23,101 +21,101 @@ $(function () {
 });
 
 $(document).ready(function () {
-  
   const table = $("#tabla-de-Datos").DataTable({
     responsive: true,
     lengthMenu: [
-        [10, 25, 50, 100, -1],
-        [10, 25, 50, 100, "Todos"],
+      [10, 25, 50, 100, -1],
+      [10, 25, 50, 100, "Todos"],
     ],
     dom: '<"top"l>Bfrtip',
     buttons: [
-        {
-            extend: "excel",
-            text: "Excel",
-        },
-        {
-            extend: "pdf",
-            text: "PDF",
-        },
-        {
-            extend: "print",
-            text: "Print",
-        },
+      {
+        extend: "excel",
+        text: "Excel",
+      },
+      {
+        extend: "pdf",
+        text: "PDF",
+      },
+      {
+        extend: "print",
+        text: "Print",
+      },
     ],
     serverSide: true,
     search: {
-        return: true,
+      return: true,
     },
     processing: true,
-    
+
     ajax: function (data, callback, settings) {
-        const filters = $("#filter-form").serializeArray();
-        if (filters[1].value != "") {
-            filters[1].value += ":23:59";
+      const filters = $("#filter-form").serializeArray();
+      if (filters[1].value != "") {
+        filters[1].value += ":23:59";
+      }
+      const params = {};
+      filters.forEach((filter) => {
+        if (filter.value) {
+          params[filter.name] = filter.value;
         }
-        const params = {};
-        filters.forEach((filter) => {
-            if (filter.value) {
-                params[filter.name] = filter.value;
-            }
+      });
+      dir = "";
+      if (data.order[0].dir == "desc") {
+        dir = "-";
+      }
+      params.page_size = data.length;
+      params.page = data.start / data.length + 1;
+      params.ordering = dir + data.columns[data.order[0].column].data;
+      params.search = data.search.value;
+      params.shop_product__shop = selectedShopId;
+
+      axios
+        .get(urlSell, { params })
+        .then((res) => {
+          callback({
+            recordsTotal: res.data.count,
+            recordsFiltered: res.data.count,
+            data: res.data.results,
+          });
+        })
+        .catch((error) => {
+          alert(error);
         });
-        dir = "";
-        if (data.order[0].dir == "desc") {
-            dir = "-";
-        }
-        params.page_size = data.length;
-        params.page = data.start / data.length + 1;
-        params.ordering = dir + data.columns[data.order[0].column].data;
-        params.search = data.search.value;
-        axios
-            .get(selectedShopId ? urlSell+`?shop_product__shop=${selectedShopId}` : urlSell, { params })
-            .then((res) => {
-                callback({
-                    recordsTotal: res.data.count,
-                    recordsFiltered: res.data.count,
-                    data: res.data.results,
-                });
-            })
-            .catch((error) => {
-                alert(error);
-            });
-          
     },
     columns: [
-        { 
-            data: "sell_group", 
-            title: "Grupo de Venta",
-            visible: false  // La columna estará oculta ya que se usa solo para agrupar
-        },
-        { data: "product_name", title: "Producto" },
-        { data: "quantity", title: "Cantidad" },
-        { data: "sell_price", title: "Precio unitario" },
-        { data: "total_priced", title: "Monto total" },
-        { data: "profits", title: "Ganancia" },
-        { data: "seller__first_name", title: "Vendedor" },
-        { data: "created_timestamp", title: "Fecha" },
-        {
-            data: "id",
-            title: "Acciones",
-            render: (data, type, row) => {
-                return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
+      {
+        data: "sell_group",
+        title: "Grupo de Venta",
+        visible: false, // La columna estará oculta ya que se usa solo para agrupar
+      },
+      { data: "product_name", title: "Producto" },
+      { data: "quantity", title: "Cantidad" },
+      { data: "sell_price", title: "Precio unitario" },
+      { data: "total_priced", title: "Monto total" },
+      { data: "profits", title: "Ganancia" },
+      { data: "seller__first_name", title: "Vendedor" },
+      { data: "created_timestamp", title: "Fecha" },
+      {
+        data: "id",
+        title: "Acciones",
+        render: (data, type, row) => {
+          return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
                     <i class="fas fa-trash"></i>
                     </button>`;
-            },
         },
+      },
     ],
     order: [[7, "desc"]], // Primero ordena por grupo, luego por fecha
     rowGroup: {
-        dataSrc: 'sell_group',
-        startRender: function(rows, group) {
-            // Obtener el descuento de la primera fila del grupo
-            const discount = rows.data()[0].discounts; // Asegúrate de que "discounts" esté en tus datos
-            return 'Grupo de Venta: ' + group + ' | Descuento: ' +' $'+discount ;
-        }
+      dataSrc: "sell_group",
+      startRender: function (rows, group) {
+        // Obtener el descuento de la primera fila del grupo
+        const discount = rows.data()[0].discounts; // Asegúrate de que "discounts" esté en tus datos
+        return "Grupo de Venta: " + group + " | Descuento: " + " $" + discount;
+      },
     },
-    columnDefs: []
-});
+    columnDefs: [],
+  });
 
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {

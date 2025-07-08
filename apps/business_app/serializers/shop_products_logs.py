@@ -27,21 +27,24 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
         response["init_value"] = old_value
         response["new_value"] = new_value
 
+        diff = new_value - old_value
+        operation = ""
+        action = "entrado" if diff > 0 else "vendido"
+
         dev_user_id = getattr(
             SystemUser.objects.filter(username="dev").only("id").first(), "id", None
         )
         created_by_dev_user = dev_user_id == instance.created_by_id
 
-        diff = new_value - old_value
+        if created_by_dev_user:
+            if diff < 0:
+                action = instance.extra_log_info or "actualizado"
+                operation = "-"
+            else:
+                action = instance.extra_log_info or action
+                operation = "+"
+
         abs_diff = abs(diff)
-        operation = "-" if created_by_dev_user and diff < 0 else ""
-        action = (
-            instance.extra_log_info or "actualizado"
-            if created_by_dev_user and diff < 0
-            else "entrado"
-            if diff > 0
-            else "vendido"
-        )
         suffix = "" if instance.extra_log_info else ("s" if abs_diff > 1 else "")
         response["info"] = f"{operation}{abs_diff} {action}{suffix}"
         return response
