@@ -5,10 +5,8 @@ const csrfToken = document.cookie
   ?.split("=")[1];
 
 let selectedShopId = localStorage.getItem("selectedShopId");
-let url = "/business-gestion/shop-products/?quantity__gte=1";
-if (selectedShopId) {
-  url = `/business-gestion/shop-products/?quantity__gte=1&shop=${selectedShopId}`;
-}
+let url = "/business-gestion/shop-products/";
+
 
 
 let productosSeleccionados = [];
@@ -22,7 +20,7 @@ $(document).ready(function () {
 function cargarProductos() {
   load.hidden = false;
   axios
-    .get(url)
+    .get(selectedShopId ? url+`?quantity__gte=1&shop=${selectedShopId}` : url+`?quantity__gte=1`)
     .then((res) => {
       const productos = res.data.results;
 

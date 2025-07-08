@@ -10,9 +10,7 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 // url del endpoint principal
 let selectedShopId = localStorage.getItem("selectedShopId");
 let urlSell = "/business-gestion/sell-products/";
- if (selectedShopId) {
-   urlSell = `/business-gestion/sell-products/?shop_product__shop=${selectedShopId}`;
- }
+
 
 $(function () {
   bsCustomFileInput.init();
@@ -73,9 +71,8 @@ $(document).ready(function () {
         params.ordering = dir + data.columns[data.order[0].column].data;
         params.search = data.search.value;
         axios
-            .get(`${urlSell}`, { params })
+            .get(selectedShopId ? urlSell+`?shop_product__shop=${selectedShopId}` : urlSell, { params })
             .then((res) => {
-                console.log('✌️res --->', res);
                 callback({
                     recordsTotal: res.data.count,
                     recordsFiltered: res.data.count,
