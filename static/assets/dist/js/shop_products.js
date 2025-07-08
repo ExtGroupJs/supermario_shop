@@ -9,7 +9,6 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 let selectedShopId = localStorage.getItem("selectedShopId");
 let url = "/business-gestion/shop-products/";
 
-
 let load = document.getElementById("load");
 
 $(function () {
