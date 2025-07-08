@@ -78,7 +78,7 @@ $(document).ready(function () {
       params.shop = selectedShopId;
 
       axios
-        .get(selectedShopId ? url+`?shop=${selectedShopId}` : url, { params })
+        .get(url, { params })
         .then((res) => {
           callback({
             recordsTotal: res.data.count,
