@@ -81,7 +81,7 @@ const table = $("#tabla-de-Datos").DataTable({
         params.entries=true;
 
         axios
-            .get(`${urlSell}`, { params })
+            .get(selectedShopId ? urlSell+`?shop=${selectedShopId}` : urlSell, { params })
             .then((res) => {
                 callback({
                     recordsTotal: res.data.count,

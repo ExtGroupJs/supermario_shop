@@ -8,9 +8,6 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 // url del endpoint principal
 let selectedShopId = localStorage.getItem("selectedShopId");
 let url = "/business-gestion/shop-products/";
-if (selectedShopId) {
-  url = `/business-gestion/shop-products/?shop=${selectedShopId}`;
-}
 
 let load = document.getElementById("load");
 
@@ -80,7 +77,7 @@ $(document).ready(function () {
       params.search = data.search.value;
 
       axios
-        .get(url, { params })
+        .get(selectedShopId ? url+`?shop=${selectedShopId}` : url, { params })
         .then((res) => {
           callback({
             recordsTotal: res.data.count,
