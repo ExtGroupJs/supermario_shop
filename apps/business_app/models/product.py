@@ -4,6 +4,8 @@ from safedelete import SOFT_DELETE_CASCADE
 from apps.business_app.models.model import Model
 from apps.common.models import BaseModel
 from safedelete.models import SafeDeleteModel
+from PIL import Image
+
 
 
 class Product(SafeDeleteModel, BaseModel):
@@ -21,3 +23,16 @@ class Product(SafeDeleteModel, BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.model})"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Abrir imagen
+        if self.image:
+            img = Image.open(self.image.path)
+
+            # Redimensionar manteniendo proporción
+            resized_image = img.resize(size=(768, 768), reducing_gap=3.0)
+
+            # Guardar imagen redimensionada
+            resized_image.save(self.image.path)
+
