@@ -7,7 +7,6 @@ from safedelete.models import SafeDeleteModel
 from PIL import Image
 
 
-
 class Product(SafeDeleteModel, BaseModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     name = models.CharField(verbose_name="Nombre", max_length=200)
@@ -35,4 +34,3 @@ class Product(SafeDeleteModel, BaseModel):
 
             # Guardar imagen redimensionada
             resized_image.save(self.image.path)
-
