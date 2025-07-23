@@ -17,7 +17,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
     shop_name = serializers.CharField(read_only=True)
     product_name = serializers.CharField(read_only=True)
     model_brand = serializers.CharField(read_only=True)
-    extra_log_info = serializers.CharField(write_only=True, default="test")
+    extra_log_info = serializers.CharField(write_only=True, default=None)
 
     class Meta:
         model = ShopProducts

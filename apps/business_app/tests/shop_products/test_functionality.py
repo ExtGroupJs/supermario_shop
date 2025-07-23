@@ -198,6 +198,101 @@ class TestShopProductsViewSet(BaseTestClass):
         response_data = response.json()
         self.assertEqual(response_data["count"], None)
 
+    def test_shop_products_edited_with_extra_log_info_if_needed(
+        self,
+    ):
+        """ """
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_authenticate(user=self.user)
+
+        shop_product = baker.make(
+            ShopProducts,
+            cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
+            sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+            quantity=baker.random_gen.gen_integer(min_int=1, max_int=10),
+        )
+
+        url = reverse("shop-products-detail", kwargs={"pk": shop_product.id})
+        payload = {"quantity": 11}
+
+        response = self.client.patch(url, data=payload)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        shop_product.refresh_from_db()
+        self.assertEqual(shop_product.quantity, payload["quantity"])
+        generated_logs = GenericLog.objects.filter(object_id=shop_product.id)
+        self.assertEqual(
+            generated_logs.count(), 2
+        )  # One when created, other when patched
+        for log in generated_logs:
+            self.assertIsNone(log.extra_log_info)
+
+        payload = {"quantity": 12, "extra_log_info": baker.random_gen.gen_string(10)}
+
+        response = self.client.patch(url, data=payload)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        shop_product.refresh_from_db()
+        self.assertEqual(shop_product.quantity, payload["quantity"])
+        generated_logs = GenericLog.objects.filter(object_id=shop_product.id)
+        self.assertEqual(
+            generated_logs.count(), 3
+        )  # One when created, other in the first patch, and the third now
+        last_generated_log = generated_logs.last()
+
+        self.assertIsNotNone(last_generated_log.extra_log_info)
+        self.assertTrue(last_generated_log.extra_log_info, payload["extra_log_info"])
+
+    def test_shop_products_created_with_no_extra_log_info_if_no_explicitly_set(
+        self,
+    ):
+        """ """
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_authenticate(user=self.user)
+
+        url = reverse("shop-products-list")
+        payload = {
+            "cost_price": baker.random_gen.gen_integer(min_int=1, max_int=2),
+            "sell_price": baker.random_gen.gen_integer(min_int=3, max_int=5),
+            "quantity": baker.random_gen.gen_integer(min_int=1, max_int=10),
+            "shop": baker.make("Shop").id,
+            "product": baker.make("Product").id,
+        }
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        generated_logs = GenericLog.objects.all()
+        self.assertEqual(generated_logs.count(), 1)
+        last_generated_log = generated_logs.last()
+
+        self.assertIsNone(last_generated_log.extra_log_info)
+    
+    def test_shop_products_created_with_extra_log_info_if_needed(
+        self,
+    ):
+        """ """
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_authenticate(user=self.user)
+
+        url = reverse("shop-products-list")
+        payload = {
+            "cost_price": baker.random_gen.gen_integer(min_int=1, max_int=2),
+            "sell_price": baker.random_gen.gen_integer(min_int=3, max_int=5),
+            "quantity": baker.random_gen.gen_integer(min_int=1, max_int=10),
+            "shop": baker.make("Shop").id,
+            "product": baker.make("Product").id,
+            "extra_log_info": baker.random_gen.gen_string(10)
+        }
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        generated_logs = GenericLog.objects.all()
+        self.assertEqual(generated_logs.count(), 1)
+        last_generated_log = generated_logs.last()
+
+        self.assertIsNotNone(last_generated_log.extra_log_info)
+        self.assertEqual(last_generated_log.extra_log_info, payload["extra_log_info"])
+
     def test_move_to_another_shop_validations(self):
         """ """
 
