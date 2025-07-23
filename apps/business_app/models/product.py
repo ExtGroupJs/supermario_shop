@@ -29,35 +29,23 @@ class Product(SafeDeleteModel, BaseModel):
 
         if self.image:
             img = Image.open(self.image.path)
-            # Convertir a RGB si tiene transparencia (RGBA → RGB con fondo blanco)
-
             if img.mode in ("RGBA", "LA", "P"):
                 img = img.convert("RGBA")
-                background = Image.new(
-                    "RGBA", img.size, (255, 255, 255, 255)
-                )  # Fondo blanco
+                background = Image.new("RGBA", img.size, (255, 255, 255, 255))
                 img = Image.alpha_composite(background, img).convert("RGB")
 
-            # Obtener dimensiones originales
             width, height = img.size
-
-            # Determinar el tamaño objetivo (cuadrado 768x768)
             target_size = (768, 768)
 
-            # Calcular la relación de aspecto y redimensionar manteniendo proporciones
             if width > height:
-                # Imagen horizontal (ancho > alto)
                 new_width = target_size[0]
                 new_height = int(height * (new_width / width))
             else:
-                # Imagen vertical (alto > ancho) o cuadrada
                 new_height = target_size[1]
                 new_width = int(width * (new_height / height))
 
-            # Redimensionar manteniendo la proporción
             resized_img = img.resize((new_width, new_height), reducing_gap=3.0)
 
-            # Crear una nueva imagen cuadrada con fondo blanco (o el color que prefieras)
             squared_img = Image.new("RGB", target_size, (255, 255, 255))  # Fondo blanco
 
             # Pegar la imagen redimensionada centrada
