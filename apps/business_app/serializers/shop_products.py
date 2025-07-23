@@ -7,6 +7,7 @@ from apps.business_app.serializers.product import (
     CatalogProductSerializer,
     ReadProductSerializer,
 )
+from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
 
 
@@ -51,9 +52,11 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             self.instance.save(extra_log_info=extra_log_info)
 
         else:
-            obj =self.create(validated_data)
-            obj.save(extra_log_info=extra_log_info)
-            self.instance = obj
+            self.instance =ShopProducts.objects.create(**validated_data)
+            if extra_log_info:
+                log_created = GenericLog.objects.get(object_id=self.instance.id)
+                log_created.extra_log_info=extra_log_info
+                log_created.save(update_fields=["extra_log_info"])
         return self.instance
 
 
