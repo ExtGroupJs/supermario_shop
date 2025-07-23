@@ -277,6 +277,9 @@ $(function () {
       extra_info: {
         required: false, // Campo no obligatorio
       },
+      extra_log_info: {
+        required: false, // Campo no obligatorio
+      },
     },
     messages: {
       quantity: {
@@ -310,6 +313,10 @@ $(function () {
       data.append("cost_price", document.getElementById("cost_price").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       data.append("extra_info", document.getElementById("extra_info").value);
+      data.append(
+        "extra_log_info",
+        document.getElementById("extra_log_info").value
+      );
 
       if (edit_shopProducts) {
         axios

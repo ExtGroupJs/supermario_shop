@@ -7,6 +7,7 @@ from apps.business_app.serializers.product import (
     CatalogProductSerializer,
     ReadProductSerializer,
 )
+from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
 
 
@@ -16,6 +17,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
     shop_name = serializers.CharField(read_only=True)
     product_name = serializers.CharField(read_only=True)
     model_brand = serializers.CharField(read_only=True)
+    extra_log_info = serializers.CharField(write_only=True, default=None)
 
     class Meta:
         model = ShopProducts
@@ -32,12 +34,30 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "extra_info",
             "created_timestamp",
             "updated_timestamp",
+            "extra_log_info",
             "__repr__",
         )
 
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y")
         # return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p") # con hora
+
+    def save(self, **kwargs):
+        validated_data = {**self.validated_data, **kwargs}
+        extra_log_info = validated_data.pop("extra_log_info", None)
+
+        if self.instance is not None:
+            for attr, value in validated_data.items():
+                setattr(self.instance, attr, value)
+            self.instance.save(extra_log_info=extra_log_info)
+
+        else:
+            self.instance = ShopProducts.objects.create(**validated_data)
+            if extra_log_info:
+                log_created = GenericLog.objects.get(object_id=self.instance.id)
+                log_created.extra_log_info = extra_log_info
+                log_created.save(update_fields=["extra_log_info"])
+        return self.instance
 
 
 class ReadShopProductsSerializer(ShopProductsSerializer):
