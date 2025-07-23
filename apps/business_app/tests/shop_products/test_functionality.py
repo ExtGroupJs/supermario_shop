@@ -265,7 +265,7 @@ class TestShopProductsViewSet(BaseTestClass):
         last_generated_log = generated_logs.last()
 
         self.assertIsNone(last_generated_log.extra_log_info)
-    
+
     def test_shop_products_created_with_extra_log_info_if_needed(
         self,
     ):
@@ -280,7 +280,7 @@ class TestShopProductsViewSet(BaseTestClass):
             "quantity": baker.random_gen.gen_integer(min_int=1, max_int=10),
             "shop": baker.make("Shop").id,
             "product": baker.make("Product").id,
-            "extra_log_info": baker.random_gen.gen_string(10)
+            "extra_log_info": baker.random_gen.gen_string(10),
         }
 
         response = self.client.post(url, data=payload, format="json")
