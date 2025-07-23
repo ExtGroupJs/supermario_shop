@@ -41,10 +41,10 @@ class ShopProductsSerializer(serializers.ModelSerializer):
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y")
         # return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p") # con hora
-    def save(self, **kwargs):    
+
+    def save(self, **kwargs):
         validated_data = {**self.validated_data, **kwargs}
-        extra_log_info = validated_data.pop("extra_log_info", "Entradod por capricho de omarito")
-        
+        extra_log_info = validated_data.pop("extra_log_info", None)
 
         if self.instance is not None:
             for attr, value in validated_data.items():
@@ -52,10 +52,10 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             self.instance.save(extra_log_info=extra_log_info)
 
         else:
-            self.instance =ShopProducts.objects.create(**validated_data)
+            self.instance = ShopProducts.objects.create(**validated_data)
             if extra_log_info:
                 log_created = GenericLog.objects.get(object_id=self.instance.id)
-                log_created.extra_log_info=extra_log_info
+                log_created.extra_log_info = extra_log_info
                 log_created.save(update_fields=["extra_log_info"])
         return self.instance
 
