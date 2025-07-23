@@ -16,6 +16,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
     shop_name = serializers.CharField(read_only=True)
     product_name = serializers.CharField(read_only=True)
     model_brand = serializers.CharField(read_only=True)
+    extra_log_info = serializers.CharField(write_only=True, default="test")
 
     class Meta:
         model = ShopProducts
@@ -32,12 +33,28 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "extra_info",
             "created_timestamp",
             "updated_timestamp",
+            "extra_log_info",
             "__repr__",
         )
 
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y")
         # return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p") # con hora
+    def save(self, **kwargs):    
+        validated_data = {**self.validated_data, **kwargs}
+        extra_log_info = validated_data.pop("extra_log_info", "Entradod por capricho de omarito")
+        
+
+        if self.instance is not None:
+            for attr, value in validated_data.items():
+                setattr(self.instance, attr, value)
+            self.instance.save(extra_log_info=extra_log_info)
+
+        else:
+            obj =self.create(validated_data)
+            obj.save(extra_log_info=extra_log_info)
+            self.instance = obj
+        return self.instance
 
 
 class ReadShopProductsSerializer(ShopProductsSerializer):
