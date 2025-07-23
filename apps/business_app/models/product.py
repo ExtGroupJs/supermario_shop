@@ -26,11 +26,34 @@ class Product(SafeDeleteModel, BaseModel):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         # Abrir imagen
+
         if self.image:
             img = Image.open(self.image.path)
+            if img.mode in ("RGBA", "LA", "P"):
+                img = img.convert("RGBA")
+                background = Image.new("RGBA", img.size, (255, 255, 255, 255))
+                img = Image.alpha_composite(background, img).convert("RGB")
 
-            # Redimensionar manteniendo proporción
-            resized_image = img.resize(size=(768, 768), reducing_gap=3.0)
+            width, height = img.size
+            target_size = (768, 768)
 
-            # Guardar imagen redimensionada
-            resized_image.save(self.image.path)
+            if width > height:
+                new_width = target_size[0]
+                new_height = int(height * (new_width / width))
+            else:
+                new_height = target_size[1]
+                new_width = int(width * (new_height / height))
+
+            resized_img = img.resize((new_width, new_height), reducing_gap=3.0)
+
+            squared_img = Image.new("RGB", target_size, (255, 255, 255))  # Fondo blanco
+
+            # Pegar la imagen redimensionada centrada
+            offset = (
+                (target_size[0] - new_width) // 2,  # Margen izquierdo
+                (target_size[1] - new_height) // 2,  # Margen superior
+            )
+            squared_img.paste(resized_img, offset)
+
+            # Guardar la imagen final
+            squared_img.save(self.image.path)
