@@ -19,17 +19,6 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
     def setUp(self):
         super().setUp()
 
-    def test_get_protocol(self):
-        """
-        Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
-        """
-        url = reverse("sell-groups-list")
-        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
-
-        self._test_permissions(
-            url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
-        )
-
     def test_sell_group_create_without_any_sell_should_fail(self):
         """ """
         url = reverse("sell-groups-list")

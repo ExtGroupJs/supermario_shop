@@ -88,6 +88,12 @@ class SellViewSetPermission(CommonRolePermission):
     ]
 
 
+class ShopProductInputGroupViewSetPermission(CommonRolePermission):
+    roles = CommonRolePermission.roles + [
+        Groups.SHOP_SELLER.value,
+    ]
+
+
 class ShopProductsViewSetPermission(CommonRolePermission):
     # TODO restringir a SHOP seller para tener acceso de solo lectura
 
