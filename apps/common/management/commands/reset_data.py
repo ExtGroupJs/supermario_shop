@@ -15,12 +15,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         all_sells = Sell.objects.all()
+
+        # this way to bypass the post_delete signal
         for sell in all_sells:
             sell.quantity = 0
 
         Sell.objects.bulk_update(all_sells, ["quantity"])
-        SellGroup.objects.all().delete()
         all_sells.delete()
+        SellGroup.objects.all().delete()
+
 
         GenericLog.objects.all().delete()
         shop_products = ShopProducts.objects.filter(quantity__gt=0)
@@ -39,9 +42,10 @@ class Command(BaseCommand):
                 details={
                     "quantity": {
                         "old_value": None,
-                        "new_value": str(shop_product.quantity),
+                        "new_value": shop_product.quantity,
                     }
                 },
+                extra_log_info="Reseteado por el comando 'reset_data'",
             )
             logs_to_create.append(log)
         GenericLog.objects.bulk_create(logs_to_create)

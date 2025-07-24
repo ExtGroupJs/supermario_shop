@@ -15,11 +15,11 @@ def update_inventory(inc_pos_dec_neg, instance):
         shop_product.quantity += inc_pos_dec_neg * instance.quantity
         extra_log_info = None
         extra = ""
-        if isinstance(instance, ShopProductInput):
+        if isinstance(instance, ShopProductInput) and instance.shop_product_input_group:
             if inc_pos_dec_neg == -1:
                 extra = " cancelada"
             extra_log_info = f"Entrada del {instance.shop_product_input_group.for_date.strftime('%d-%h-%Y')}{extra}"
-        elif isinstance(instance, Sell):
+        elif isinstance(instance, Sell) and instance.sell_group:
             if inc_pos_dec_neg == 1:
                 extra = " cancelada"
             extra_log_info = (

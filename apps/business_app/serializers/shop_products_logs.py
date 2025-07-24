@@ -43,7 +43,6 @@ class ShopProductsLogsSerializer(GenericLogSerializer):
                 operation = "+"
             action = instance.extra_log_info or "actualizado"
 
-
         abs_diff = abs(diff)
         suffix = "" if instance.extra_log_info else ("s" if abs_diff > 1 else "")
         response["info"] = f"{operation}{abs_diff} {action}{suffix}"

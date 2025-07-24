@@ -12,7 +12,7 @@ class ShopProductInputGroup(BaseModel):
     """ """
 
     for_date = models.DateTimeField(
-        verbose_name=_("For date timestamp"), default=timezone.now, null=True
+        verbose_name=_("For date timestamp"), default=timezone.now
     )
     shop_products = models.ManyToManyField(
         ShopProducts, through="ShopProductInput", related_name="input_groups"

@@ -41,7 +41,7 @@ class SellGroup(BaseModel):
         default=None,
     )
     for_date = models.DateTimeField(
-        verbose_name=_("For date timestamp"), default=timezone.now, null=True
+        verbose_name=_("For date timestamp"), default=timezone.now
     )
 
     class Meta:
