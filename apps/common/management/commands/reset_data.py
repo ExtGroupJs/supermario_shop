@@ -24,7 +24,6 @@ class Command(BaseCommand):
         all_sells.delete()
         SellGroup.objects.all().delete()
 
-
         GenericLog.objects.all().delete()
         shop_products = ShopProducts.objects.filter(quantity__gt=0)
 
