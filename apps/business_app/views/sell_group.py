@@ -71,6 +71,13 @@ class SellGroupViewSet(
     def perform_create(self, serializer):
         return serializer.save(seller=SystemUser.objects.get(id=self.request.user.id))
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        for sell in instance.sells.all():
+            sell.delete()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class PaymentMethodsViewSet(EnumsMixin):
     items = (("payment_methods", SellGroup.PAYMENT_METODS),)

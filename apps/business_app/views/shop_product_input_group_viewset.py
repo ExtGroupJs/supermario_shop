@@ -1,8 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
-from apps.business_app.models.sell_group import SellGroup
-
 
 from apps.business_app.models.shop_product_input_group_model import (
     ShopProductInputGroup,
@@ -13,7 +11,6 @@ from apps.business_app.serializers.shop_product_input_group_serializer import (
     ShopProductInputGroupSerializer,
 )
 from apps.common.common_ordering_filter import CommonOrderingFilter
-from apps.common.mixins.enums_mixin import EnumsMixin
 
 from apps.common.permissions import (
     ShopProductInputGroupViewSetPermission,
@@ -68,7 +65,3 @@ class ShopProductInputGroupViewSet(
 
     def perform_create(self, serializer):
         return serializer.save(author=SystemUser.objects.get(id=self.request.user.id))
-
-
-class PaymentMethodsViewSet(EnumsMixin):
-    items = (("payment_methods", SellGroup.PAYMENT_METODS),)
