@@ -73,8 +73,8 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             "sells": sells,
         }
         self.client.force_login(self.user)
-        sell_group_query = SellGroup.objects.all()
-        sell_query = Sell.objects.all()
+        sell_group_query = SellGroup.objects.filter(seller=self.user)
+        sell_query = Sell.objects.filter(seller=self.user)
         self.assertEqual(sell_group_query.count(), 0)
         self.assertEqual(sell_query.count(), 0)
 
@@ -101,6 +101,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertEqual(
             ShopProducts.objects.count(),
             GenericLog.objects.filter(
-                performed_action=GenericLog.ACTION.UPDATED
+                performed_action=GenericLog.ACTION.UPDATED,
+                created_by=self.user,
             ).count(),
         )

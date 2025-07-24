@@ -53,14 +53,13 @@ class ShopProductInputGroupViewSet(
     ordering_fields = ShopProductInputGroupSerializer.Meta.fields
 
     def create(self, request, *args, **kwargs):
-        author = SystemUser.objects.get(id=request.user.id)
-        request.data["author"] = author
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         shop_products_input = serializer.validated_data.pop("shop_products_input")
         created_shop_product_input_group = self.perform_create(serializer)
         for input in shop_products_input:
             input["shop_product_input_group"] = created_shop_product_input_group
+            input["author"] = created_shop_product_input_group.author
             ShopProductInput.objects.create(**input)
         headers = self.get_success_headers(serializer.data)
         return Response(

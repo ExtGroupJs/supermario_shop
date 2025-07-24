@@ -16,6 +16,7 @@ class ShopProductInputSerializer(serializers.ModelSerializer):
             "quantity",
             "created_timestamp",
             "for_date",
+            "author",
         )
         read_only_fields = ("id",)
 

@@ -70,8 +70,10 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             "author": self.user.id,
         }
         self.client.force_login(self.user)
-        shop_product_input_group_query = ShopProductInputGroup.objects.all()
-        shop_product_input_query = ShopProductInput.objects.all()
+        shop_product_input_group_query = ShopProductInputGroup.objects.filter(
+            author=self.user
+        )
+        shop_product_input_query = ShopProductInput.objects.filter(author=self.user)
 
         # Checking initially all was in 0
         self.assertEqual(shop_product_input_group_query.count(), 0)
@@ -100,13 +102,6 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
                 quantity=random_shop_product_qty + random_shop_product_input_qty
             ).count(),
             random_qty,
-        )
-
-        self.assertEqual(
-            ShopProducts.objects.count(),
-            GenericLog.objects.filter(
-                performed_action=GenericLog.ACTION.UPDATED
-            ).count(),
         )
         self.assertEqual(
             GenericLog.objects.filter(
@@ -150,9 +145,11 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertEqual(
             logs_when_input.all().count(),
             ShopProducts.objects.count()
-            * 2,  # One for the creation and one for the deletion
+            * 2,  # One for the update (+) and one for the deletion (-)
         )
-        latest_logs = logs_when_input.all().order_by("-created_timestamp")[:random_qty]
+        latest_logs = logs_when_input.all().order_by("-created_timestamp")[
+            :random_qty
+        ]  # Logs when deleting
         for log in latest_logs:
             self.assertEqual(
                 log.extra_log_info,

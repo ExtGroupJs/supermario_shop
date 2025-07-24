@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 
 from apps.clients_app.models.client import Client
@@ -38,6 +39,9 @@ class SellGroup(BaseModel):
         null=True,
         blank=True,
         default=None,
+    )
+    for_date = models.DateTimeField(
+        verbose_name=_("For date timestamp"), default=timezone.now, null=True
     )
 
     class Meta:

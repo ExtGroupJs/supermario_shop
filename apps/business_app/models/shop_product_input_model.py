@@ -2,6 +2,7 @@ from django.db import models
 
 from apps.business_app.models.shop_products import ShopProducts
 from apps.common.models.base_model import BaseModel
+from apps.users_app.models.system_user import SystemUser
 
 
 class ShopProductInput(BaseModel):
@@ -12,6 +13,13 @@ class ShopProductInput(BaseModel):
         ShopProducts, on_delete=models.CASCADE, related_name="shop_product_inputs"
     )
     quantity = models.PositiveIntegerField(verbose_name="Cantidad", default=1)
+    author = models.ForeignKey(
+        to=SystemUser,
+        on_delete=models.DO_NOTHING,
+        verbose_name="Autor de la entrada",
+        related_name="inputs",
+        null=True,
+    )
 
     class Meta:
         verbose_name = "Entrada de Producto"

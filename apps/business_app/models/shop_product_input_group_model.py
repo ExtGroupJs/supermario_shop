@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 
 from apps.business_app.models.shop_products import ShopProducts
@@ -11,7 +12,7 @@ class ShopProductInputGroup(BaseModel):
     """ """
 
     for_date = models.DateTimeField(
-        verbose_name=_("For date timestamp"), auto_now=True, null=True
+        verbose_name=_("For date timestamp"), default=timezone.now, null=True
     )
     shop_products = models.ManyToManyField(
         ShopProducts, through="ShopProductInput", related_name="input_groups"
@@ -23,7 +24,7 @@ class ShopProductInputGroup(BaseModel):
         to=SystemUser,
         on_delete=models.DO_NOTHING,
         verbose_name="Autor de la entrada",
-        related_name="inputs",
+        related_name="input_groups",
         null=True,
     )
 
