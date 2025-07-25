@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
@@ -19,6 +20,7 @@ class SellGroupSerializer(serializers.ModelSerializer):
             "payment_method",
             "seller",
             "updated_timestamp",
+            "for_date",
             "sells",
             "client",
         )
@@ -30,4 +32,11 @@ class SellGroupSerializer(serializers.ModelSerializer):
     def validate_sells(self, value: list):
         if len(value) < 1:
             raise ValidationError("La venta debe contener al menos un elemento")
+        return value
+
+    def validate_for_date(self, value):
+        if value > timezone.now():
+            raise ValidationError(
+                "La fecha de la venta no puede ser mayor al momento actual"
+            )
         return value

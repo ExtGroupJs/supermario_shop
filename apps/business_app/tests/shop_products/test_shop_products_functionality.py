@@ -20,7 +20,6 @@ class TestShopProductsViewSet(BaseTestClass):
     def setUp(self):
         super().setUp()
 
-    @freeze_time(datetime.now() - timedelta(days=40))
     def test_is_new_is_in_catalog_response_and_is_false_since_has_more_than_one_month(
         self,
     ):
