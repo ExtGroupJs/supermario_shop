@@ -243,7 +243,6 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response_content = response.json()
 
         # Checking 'for_date' was set by default to the current date
         self.assertEqual(shop_product_input_group_query.count(), 1)
@@ -293,7 +292,6 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response_content = response.json()
 
         # Checking 'for_date' was set to the payload 'for_date' field
         self.assertEqual(shop_product_input_group_query.count(), 1)

@@ -422,13 +422,17 @@ class TestShopProductsViewSet(BaseTestClass):
 
         self.assertEqual(
             GenericLog.objects.filter(
-                object_id=test_shop_product.id, extra_log_info__isnull=False
+                object_id=test_shop_product.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
             ).count(),
             1,
         )
         self.assertEqual(
             GenericLog.objects.filter(
-                object_id=same_shop_product_in_new_shop.id, extra_log_info__isnull=False
+                object_id=same_shop_product_in_new_shop.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
             ).count(),
             1,
         )
@@ -462,13 +466,17 @@ class TestShopProductsViewSet(BaseTestClass):
 
         self.assertEqual(
             GenericLog.objects.filter(
-                object_id=test_shop_product.id, extra_log_info__isnull=False
+                object_id=test_shop_product.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
             ).count(),
             2,
         )
         self.assertEqual(
             GenericLog.objects.filter(
-                object_id=same_shop_product_in_new_shop.id, extra_log_info__isnull=False
+                object_id=same_shop_product_in_new_shop.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
             ).count(),
             2,
         )

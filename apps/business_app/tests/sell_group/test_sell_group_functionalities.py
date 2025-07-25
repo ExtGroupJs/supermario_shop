@@ -192,7 +192,6 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response_content = response.json()
 
         # Checking 'for_date' was set by default to the current date
         self.assertEqual(sell_group_query.count(), 1)
@@ -242,7 +241,6 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response_content = response.json()
 
         # Checking 'for_date' was set to the payload 'for_date' field
         self.assertEqual(sell_group_query.count(), 1)
@@ -251,3 +249,97 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         created_group = sell_group_query.first()
         self.assertNotEqual(created_group.for_date, created_group.created_timestamp)
         self.assertEqual(created_group.for_date, payload["for_date"])
+
+    def test_selled_qty_greater_than_disponibility_should_raise_400_error(self):
+        """"""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        random_shop_product_qty = baker.random_gen.gen_integer(min_int=2, max_int=15)
+
+        sells = [
+            {
+                "shop_product": baker.make(
+                    ShopProducts,
+                    cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
+                    sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+                    quantity=random_shop_product_qty,
+                ).id,
+                "quantity": random_shop_product_qty + 1,
+            }
+        ]
+
+        payload = {
+            "discount": 0,
+            "extra_info": "",
+            "payment_method": "U",
+            "sells": sells,
+        }
+        self.client.force_login(self.user)
+        sell_group_query = SellGroup.objects.filter(seller=self.user)
+        sell_query = Sell.objects.filter(seller=self.user)
+
+        # Checking initially all was in 0
+        self.assertEqual(sell_group_query.count(), 0)
+        self.assertEqual(sell_query.count(), 0)
+
+        url = reverse("sell-groups-list")
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_content = response.json()
+        # Checking the only fail in the call was due to 'for_date' field with the expected message
+        self.assertTrue(len(response_content) == 1)
+        self.assertTrue("sells" in response_content.keys())
+        sell_errors = response_content["sells"]
+        self.assertTrue("non_field_errors" in sell_errors[0].keys())
+
+        self.assertEqual(
+            sell_errors[0]["non_field_errors"][0],
+            "La cantidad solicitada es mayor que la disponibilidad.",
+        )
+
+    def test_selled_qty_0_should_raise_400_error(self):
+        """"""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        random_shop_product_qty = baker.random_gen.gen_integer(min_int=2, max_int=15)
+
+        sells = [
+            {
+                "shop_product": baker.make(
+                    ShopProducts,
+                    cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
+                    sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+                    quantity=random_shop_product_qty,
+                ).id,
+                "quantity": 0,
+            }
+        ]
+
+        payload = {
+            "discount": 0,
+            "extra_info": "",
+            "payment_method": "U",
+            "sells": sells,
+        }
+        self.client.force_login(self.user)
+        sell_group_query = SellGroup.objects.filter(seller=self.user)
+        sell_query = Sell.objects.filter(seller=self.user)
+
+        # Checking initially all was in 0
+        self.assertEqual(sell_group_query.count(), 0)
+        self.assertEqual(sell_query.count(), 0)
+
+        url = reverse("sell-groups-list")
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_content = response.json()
+        # Checking the only fail in the call was due to 'for_date' field with the expected message
+        self.assertTrue(len(response_content) == 1)
+        self.assertTrue("sells" in response_content.keys())
+        sell_errors = response_content["sells"]
+        self.assertTrue("quantity" in sell_errors[0].keys())
+
+        self.assertEqual(
+            sell_errors[0]["quantity"][0],
+            "La venta debe ser de al menos un elemento",
+        )
