@@ -49,7 +49,7 @@ class SellSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_quantity(self, value):
-        if not value or value <= 1:
+        if not value or value < 1:
             raise serializers.ValidationError(
                 "La venta debe ser de al menos un elemento"
             )
