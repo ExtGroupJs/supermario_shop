@@ -6,7 +6,9 @@ from apps.business_app.models.sell_group import SellGroup
 
 
 from apps.business_app.serializers.sell_group import SellGroupSerializer
-from apps.business_app.serializers.sell_group_check_serializer import SellGroupCheckSerializer
+from apps.business_app.serializers.sell_group_check_serializer import (
+    SellGroupCheckSerializer,
+)
 from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.mixins.enums_mixin import EnumsMixin
 
@@ -103,7 +105,6 @@ class SellGroupViewSet(
 
         return Response({"product_names": product_names})
 
-
     @action(
         detail=False,
         methods=["POST"],
@@ -115,9 +116,20 @@ class SellGroupViewSet(
     def check_sell_group_list(self, request, *args, **kwargs):
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self_sells = serializer.validated_data.get("self_sells")
-        whatsapp_sells = serializer.validated_data.get("whatsapp_sells")
-        return Response({"product_names": ""})
+        self_sells = set(serializer.validated_data.get("self_sells"))
+        whatsapp_sells = set(serializer.validated_data.get("whatsapp_sells"))
+
+        result = ""
+        if self_sells == whatsapp_sells:
+            result = "las dos listas coinciden"
+        else:
+            remaining_self_sells = self_sells - whatsapp_sells
+            remaining_whatsapp_sells = whatsapp_sells - self_sells
+            result = {
+                "remaining_self_sells": remaining_self_sells,
+                "remaining_whatsapp_sells": remaining_whatsapp_sells,
+            }
+        return Response({"compare_results": result})
 
 
 class PaymentMethodsViewSet(EnumsMixin):
