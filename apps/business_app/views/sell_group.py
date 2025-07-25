@@ -111,7 +111,7 @@ class SellGroupViewSet(
         permission_classes=[CommonRolePermission],
         serializer_class=SellGroupCheckSerializer,
         url_name="check-sell-group-list",
-        url_path="check-group-list",
+        url_path="check-sell-group-list",
     )
     def check_sell_group_list(self, request, *args, **kwargs):
         serializer = self.get_serializer_class()(data=request.data)
