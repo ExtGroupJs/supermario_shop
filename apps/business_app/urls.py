@@ -7,6 +7,9 @@ from apps.business_app.views.model import ModelViewSet
 from apps.business_app.views.product import ProductViewSet
 from apps.business_app.views.sell_group import PaymentMethodsViewSet, SellGroupViewSet
 from apps.business_app.views.shop import ShopViewSet
+from apps.business_app.views.shop_product_input_group_viewset import (
+    ShopProductInputGroupViewSet,
+)
 from apps.business_app.views.shop_products import ShopProductsViewSet
 from apps.business_app.views.sell import SellViewSet
 from apps.business_app.views.shop_products_logs import ShopProductsLogsViewSet
@@ -98,6 +101,11 @@ router.register(
     "payment-methods",
     PaymentMethodsViewSet,
     basename="payment-methods",
+)
+router.register(
+    "shop-product-input-group",
+    ShopProductInputGroupViewSet,
+    basename="shop-product-input-group",
 )
 # (
 # router.register(

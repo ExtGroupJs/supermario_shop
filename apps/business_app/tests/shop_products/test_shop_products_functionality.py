@@ -20,7 +20,6 @@ class TestShopProductsViewSet(BaseTestClass):
     def setUp(self):
         super().setUp()
 
-    @freeze_time(datetime.now() - timedelta(days=40))
     def test_is_new_is_in_catalog_response_and_is_false_since_has_more_than_one_month(
         self,
     ):
@@ -423,13 +422,17 @@ class TestShopProductsViewSet(BaseTestClass):
 
         self.assertEqual(
             GenericLog.objects.filter(
-                object_id=test_shop_product.id, extra_log_info__isnull=False
+                object_id=test_shop_product.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
             ).count(),
             1,
         )
         self.assertEqual(
             GenericLog.objects.filter(
-                object_id=same_shop_product_in_new_shop.id, extra_log_info__isnull=False
+                object_id=same_shop_product_in_new_shop.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
             ).count(),
             1,
         )
@@ -463,13 +466,17 @@ class TestShopProductsViewSet(BaseTestClass):
 
         self.assertEqual(
             GenericLog.objects.filter(
-                object_id=test_shop_product.id, extra_log_info__isnull=False
+                object_id=test_shop_product.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
             ).count(),
             2,
         )
         self.assertEqual(
             GenericLog.objects.filter(
-                object_id=same_shop_product_in_new_shop.id, extra_log_info__isnull=False
+                object_id=same_shop_product_in_new_shop.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
             ).count(),
             2,
         )

@@ -6,6 +6,10 @@ from apps.business_app.models.product import Product
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop import Shop
+from apps.business_app.models.shop_product_input_group_model import (
+    ShopProductInputGroup,
+)
+from apps.business_app.models.shop_product_input_model import ShopProductInput
 from apps.business_app.models.shop_products import ShopProducts
 from safedelete.admin import SafeDeleteAdmin, highlight_deleted
 
@@ -141,96 +145,31 @@ class SellGroupAdmin(admin.ModelAdmin):
     ]
 
 
-# @admin.register(AllowedExtensions)
-# class AllowedExtensionsAdmin(admin.ModelAdmin):
-# empty_value_display = "-empty-"
-# list_display = [
-# "id",
-# "extension",
-# "typical_app_name",
-# ]
-# fields = [
-# "extension",
-# "typical_app_name",
-# ]
+@admin.register(ShopProductInputGroup)
+class ShopProductInputGroupAdmin(admin.ModelAdmin):
+    empty_value_display = "-empty-"
+    list_display = [
+        "id",
+        "for_date",
+        "extra_info",
+    ]
+    fields = [
+        "for_date",
+        "extra_info",
+    ]
 
 
-# @admin.register(UploadedFiles)
-# class UploadedFilesAdmin(admin.ModelAdmin):
-# empty_value_display = "-empty-"
-# list_display = [
-# "id",
-# "custom_name",
-# "description",
-# "original_file",
-# "system_user",
-# "google_sheet_id",
-# ]
-# fields = [
-# "custom_name",
-# "description",
-# "original_file",
-# "system_user",
-# "google_sheet_id",
-# ]
-
-# def save_model(self, request, obj, form, change):
-# try:
-# obj.save()
-# except Exception as e:
-# logger.error(f"{str(e)}")
-# # Display the exception in the admin interface
-# self.message_user(request, f"{str(e)}", level="error")
-
-
-# @admin.register(PdbFiles)
-# class PdbFilesAdmin(admin.ModelAdmin):
-# empty_value_display = "-empty-"
-# list_display = [
-# "id",
-# "custom_name",
-# "description",
-# "original_file",
-# "file",
-# ]
-# fields = [
-# "custom_name",
-# "description",
-# ]
-
-
-# @admin.register(WorkingCopyOfOriginalFile)
-# class WorkingCopyOfOriginalFileAdmin(admin.ModelAdmin):
-# empty_value_display = "-empty-"
-# list_display = [
-# "id",
-# "system_user",
-# "uploaded_file",
-# "pdb_file_copy",
-# ]
-# fields = [
-# "id",
-# "uploaded_file",
-# ]
-
-
-# @admin.register(InitialFileData)
-# class InitialFileDataAdmin(admin.ModelAdmin):
-# empty_value_display = "-empty-"
-# list_display = [
-# "id",
-# "row_index",
-# "allele",
-# "marker",
-# "original_value",
-# "min_value",
-# "max_value",
-# "uploaded_file_id",
-# ]
-# fields = [
-# "allele",
-# "marker",
-# "min_value",
-# "max_value",
-# "uploaded_file",
-# ]
+@admin.register(ShopProductInput)
+class ShopProductInputAdmin(admin.ModelAdmin):
+    empty_value_display = "-empty-"
+    list_display = [
+        "id",
+        "shop_product_input_group",
+        "shop_product",
+        "quantity",
+    ]
+    fields = [
+        "shop_product_input_group",
+        "shop_product",
+        "quantity",
+    ]
