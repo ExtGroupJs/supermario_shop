@@ -25,6 +25,18 @@ class TestShopProductsViewSet(BaseTestClass):
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
         )
 
+    def test_get_post_put_patch_protocols(self):
+        """
+        Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
+        """
+        url = reverse("shop-products-list")
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER]
+        test_protocols = [self.client.post, self.client.put, self.client.patch]
+        for protocol in test_protocols:
+            self._test_permissions(
+                url, allowed_roles=allowed_groups, request_using_protocol=protocol
+            )
+
     def test_get_one_protocol(self):
         """
         Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
@@ -68,3 +80,23 @@ class TestShopProductsViewSet(BaseTestClass):
             self._test_permissions(
                 url, allowed_roles=allowed_groups, request_using_protocol=protocol
             )
+
+    def test_move_to_another_shop(self):
+        """
+        Solo el SUPER_ADMIN y el SHOP_OWNER pueden invocar este EP
+        """
+        test_shop_product = baker.make(
+            ShopProducts,
+            cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
+            sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
+        )
+        url = reverse(
+            "shop-products-move-to-another-shop", kwargs={"pk": test_shop_product.id}
+        )
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER]
+
+        self._test_permissions(
+            url,
+            allowed_roles=allowed_groups,
+            request_using_protocol=self.client.post,
+        )

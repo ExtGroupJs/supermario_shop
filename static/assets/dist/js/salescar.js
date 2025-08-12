@@ -4,7 +4,9 @@ const csrfToken = document.cookie
   .find((c) => c.trim().startsWith("csrftoken="))
   ?.split("=")[1];
 
-const url = "/business-gestion/shop-products/";
+let selectedShopId = localStorage.getItem("selectedShopId");
+let url = "/business-gestion/shop-products/";
+
 let productosSeleccionados = [];
 let importe_total = 0;
 // Cargar productos al inicio
@@ -15,8 +17,11 @@ $(document).ready(function () {
 // Función para cargar productos
 function cargarProductos() {
   load.hidden = false;
+  const params = {};
+  params.quantity__gte = 1;
+  params.shop = selectedShopId;
   axios
-    .get(url + "?quantity__gte=1")
+    .get(url, { params })
     .then((res) => {
       const productos = res.data.results;
 
@@ -47,7 +52,6 @@ function cargarProductoEspecifico(id) {
         `Precio: $${especificProducto.sell_price}`
       );
       var nuevaUrl = especificProducto.product.image;
-      console.log("✌️nuevaUrl --->", nuevaUrl);
 
       document.getElementById("productImagen").src = nuevaUrl;
 
@@ -197,20 +201,23 @@ $("#crearVenta").on("click", function () {
       Swal.fire({
         icon: "success",
         title: "Venta creada con éxito",
-        html: `<hr>Productos vendidos: \n` + html + `
+        html:
+          `<hr>Productos vendidos: \n` +
+          html +
+          `
         <div class="mt-3">
           <a href="../clients/" class="btn btn-primary">
             <i class="fas fa-users"></i> Add Clientes
           </a>
         </div>`,
-        confirmButtonText: 'Ok'
+        confirmButtonText: "Ok",
       }).then((result) => {
         productosSeleccionados = [];
         $("#productosTable tbody").empty();
         $("#descuento").val("");
         $("#extra_info").val("");
         $("#payment_method").val("U"); // Restablecer a USD por defecto
-  
+
         if (result.isConfirmed) {
           window.location.reload();
         }

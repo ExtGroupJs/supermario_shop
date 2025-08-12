@@ -16,5 +16,6 @@ class GenericLogAdmin(admin.ModelAdmin):
         "object_id",
         "content_object",
         "details",
+        "extra_log_info",
         "created_by",
     ]

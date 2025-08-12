@@ -10,6 +10,7 @@ class Shop(models.Model):
     products = models.ManyToManyField(
         to="business_app.Product", through="business_app.ShopProducts"
     )
+    enabled = models.BooleanField(verbose_name="Habilitado", default=True)
 
     class Meta:
         verbose_name = "Tienda"

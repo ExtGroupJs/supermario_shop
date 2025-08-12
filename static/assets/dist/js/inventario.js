@@ -6,6 +6,7 @@ const csrfToken = document.cookie
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 // url del endpoint principal
+let selectedShopId = localStorage.getItem("selectedShopId");
 const url = "/business-gestion/shop-products/";
 
 $(function () {
@@ -64,6 +65,7 @@ $(document).ready(function () {
       params.page = data.start / data.length + 1;
       params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
+      params.shop = selectedShopId;
 
       axios
         .get(url, { params })
@@ -93,6 +95,7 @@ $(document).ready(function () {
         },
       },
       { data: "product_name", title: "Producto" },
+      { data: "model_brand", title: "Marca - Modelo" },
       { data: "quantity", title: "Cantidad" },
 
       { data: "sell_price", title: "Precio de Venta" },
@@ -155,8 +158,8 @@ function verLogs(shopProductId, name) {
       url: "/business-gestion/shop-products-logs/",
       data: {
         object_id: shopProductId,
-        performed_action: "U", // Filtrar solo por performed_action "U"
-        //ordering:"-created_timestamp"
+        // performed_action: "U", // Filtrar solo por performed_action "U"
+        ordering: "-created_timestamp",
       },
       dataSrc: "results",
     },
@@ -202,7 +205,7 @@ function verLogs(shopProductId, name) {
       if (data.info.includes("entrado")) {
         $(row).addClass("table-success"); // Rojo
       } else if (data.quantity === 1) {
-       // $(row).addClass("table-warning"); // Amarillo
+        // $(row).addClass("table-warning"); // Amarillo
       }
     },
     // order: [[0, "desc"]],

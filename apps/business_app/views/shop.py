@@ -13,7 +13,7 @@ from rest_framework.permissions import AllowAny
 
 
 class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
-    queryset = Shop.objects.all()
+    queryset = Shop.objects.filter(enabled=True)
     serializer_class = ShopSerializer
     permission_classes = [CommonRolePermission]
     filter_backends = [

@@ -33,12 +33,12 @@
       </div>
     </div><!-- /.container-fluid -->
   </section>
-
+ <div class="overlay"  id="load" hidden>
+              <i class="fas fa-2x fa-sync fa-spin"></i>
+            </div>
   <!-- Main content -->
   <section class="content">
-    <div class="overlay" id="load">
-      <i class="fas fa-2x fa-sync fa-spin"></i>
-    </div>
+   
     <div class="container-fluid">
       <div class="row">
         <div class="col-12">
@@ -201,6 +201,12 @@
             <label>Extra</label>
             <textarea class="form-control" rows="3" id="extra_info" name="extra_info"
               placeholder="Enter ..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Extra Log Info</label>
+            <textarea class="form-control" rows="3" id="extra_log_info" name="extra_log_info"
+              placeholder="Solo si es necesario"></textarea>
           </div>
 
         </div>

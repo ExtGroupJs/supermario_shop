@@ -6,7 +6,10 @@ const csrfToken = document.cookie
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 // url del endpoint principal
-const url = "/business-gestion/shop-products/";
+let selectedShopId = localStorage.getItem("selectedShopId");
+let url = "/business-gestion/shop-products/";
+
+let load = document.getElementById("load");
 
 $(function () {
   // bsCustomFileInput.init();
@@ -24,7 +27,6 @@ $(document).ready(function () {
       [10, 25, 50, 100, "Todos"], // Etiquetas
     ],
 
-   
     dom: '<"top"l>Bfrtip',
     buttons: [
       {
@@ -55,7 +57,8 @@ $(document).ready(function () {
       if (data.order[0].dir == "desc") {
         dir = "-";
       }
-      const params = {};''
+      const params = {};
+      ("");
       filters.forEach((filter) => {
         if (filter.value) {
           params[filter.name] = filter.value;
@@ -66,12 +69,13 @@ $(document).ready(function () {
         params["updated_timestamp__gte"] = myDateStart;
         params["updated_timestamp__lte"] = myDateEnd;
       }
-      
+
       // Añadir parámetros de paginación
       params.page_size = data.length;
       params.page = data.start / data.length + 1;
       params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
+      params.shop = selectedShopId;
 
       axios
         .get(url, { params })
@@ -101,9 +105,9 @@ $(document).ready(function () {
             return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
           }
         },
-
       },
       { data: "product_name", title: "Producto" },
+      { data: "model_brand", title: "Marca - Modelo" },
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
@@ -117,16 +121,19 @@ $(document).ready(function () {
            <button type="button" title="Agregar Cantidad" class="btn bg-olive" onclick="agregarCantidad('${row.id}','${row.quantity}')">
                 <i class="fas fa-plus"></i>
               </button>
-           <button type="button" title="Marcar como New" class="btn bg-olive" onclick="marcarComoNew('${row.id}')">
+            <button type="button" title="Mover" class="btn bg-olive "  onclick="moveToAnotherShop('${row.id}')">
+                      <i class="nav-icon fas fa-dolly"></i>
+                    </button>             
+            <button type="button" title="Marcar como New" class="btn bg-olive" onclick="marcarComoNew('${row.id}')">
                <i class="nav-icon fas fa-clipboard-check"></i>
               </button>
-                    <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
+            <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
                       <i class="fas fa-edit"></i>
-                    </button>
-                    <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.shop_name}')" >
+                    </button>                  
+             <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.shop_name}')" >
                       <i class="fas fa-trash"></i>
                     </button>
-                    <button type="button" title="Ver Logs" class="btn bg-olive" onclick="verLogs('${row.id}','${row.product.name}')">
+             <button type="button" title="Ver Logs" class="btn bg-olive" onclick="verLogs('${row.id}','${row.product.name}')">
                 <i class="fas fa-history"></i>
               </button>
                   </div>`;
@@ -143,7 +150,6 @@ $(document).ready(function () {
     },
 
     order: [[6, "desc"]],
-    
   });
   function convertirFecha(fecha, hora) {
     // Dividir la fecha en partes
@@ -181,13 +187,10 @@ $(document).ready(function () {
   // Restablecer filtros
   $("#reset-filters").on("click", function () {
     $("#filter-form")[0].reset();
-     myDateStart = null;
- myDateEnd = null;
+    myDateStart = null;
+    myDateEnd = null;
     table.ajax.reload();
   });
-
-
-
 
   // Mostrar/Ocultar filtros
   $("#toggle-filters").on("click", function () {
@@ -210,7 +213,6 @@ $("#modal-crear-shop-products").on("hide.bs.modal", (event) => {
 let form = document.getElementById("form-create-shop-products");
 let edit_shopProducts = false;
 $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
-
   var button = $(event.relatedTarget); // Button that triggered the modal
 
   var modal = $(this);
@@ -220,32 +222,33 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
 
     edit_shopProducts = true;
 
-    
     load.hidden = false;
     // Realizar la petición con Axios
-    
+
     axios
       .get(`${url}` + selected_id + "/")
       .then(function (response) {
         // Recibir la respuesta
         const shopProduct = response.data;
-console.log('✌️shopProduct --->', shopProduct);
-        modal.find(".modal-title").text("Editar "+ shopProduct.product_name );
+        modal.find(".modal-title").text("Editar " + shopProduct.product_name);
         form.elements.quantity.value = shopProduct.quantity;
         form.elements.cost_price.value = shopProduct.cost_price;
         form.elements.sell_price.value = shopProduct.sell_price;
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
-         form.elements.product.value = shopProduct.product.id;
+        form.elements.product.value = shopProduct.product.id;
         $("#product").val(shopProduct.product.id).trigger("change.select2");
         load.hidden = true;
       })
       .catch(function (error) {});
   } else {
     modal.find(".modal-title").text("Crear Entrada de Producto");
+    let selectedShopId = localStorage.getItem("selectedShopId");
+    if (selectedShopId) {
+      form.elements.shop.value = selectedShopId;
+    }
   }
 });
-
 
 // form validator
 $(function () {
@@ -274,6 +277,9 @@ $(function () {
       extra_info: {
         required: false, // Campo no obligatorio
       },
+      extra_log_info: {
+        required: false, // Campo no obligatorio
+      },
     },
     messages: {
       quantity: {
@@ -292,6 +298,7 @@ $(function () {
       },
     },
     submitHandler: function (form) {
+      load.hidden = false;
       event.preventDefault();
       var table = $("#tabla-de-Datos").DataTable();
       const csrfToken = document.cookie
@@ -306,13 +313,17 @@ $(function () {
       data.append("cost_price", document.getElementById("cost_price").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       data.append("extra_info", document.getElementById("extra_info").value);
+      data.append(
+        "extra_log_info",
+        document.getElementById("extra_log_info").value
+      );
 
-    
       if (edit_shopProducts) {
         axios
           .patch(`${url}` + selected_id + "/", data)
           .then((response) => {
             if (response.status === 200) {
+              load.hidden = true;
               $("#modal-crear-shop-products").modal("hide");
               Swal.fire({
                 icon: "success",
@@ -326,6 +337,7 @@ $(function () {
             }
           })
           .catch((error) => {
+            load.hidden = true;
             let dict = error.response.data;
             let textError = "Revise los siguientes campos: ";
             for (const key in dict) {
@@ -345,6 +357,7 @@ $(function () {
           .post(`${url}`, data)
           .then((response) => {
             if (response.status === 201) {
+              load.hidden = true;
               Swal.fire({
                 icon: "success",
                 title: "Entrada de Producto creada con éxito",
@@ -356,6 +369,7 @@ $(function () {
             }
           })
           .catch((error) => {
+            load.hidden = true;
             let dict = error.response.data;
             let textError = "Revise los siguientes campos: ";
             for (const key in dict) {
@@ -421,7 +435,6 @@ function poblarListas() {
         cargarProductoEspecifico($product.value);
       }
     });
-
 }
 
 function function_delete(id, name, shop) {
@@ -483,25 +496,28 @@ function agregarCantidad(shopProductId, cantidad_actual) {
     },
   }).then((result) => {
     if (result.isConfirmed) {
-      const cantidadAgregada = Number(result.value) + Number(cantidad_actual);
+      load.hidden = false;
+      const cantidadResultante = Number(result.value) + Number(cantidad_actual);
       const table = $("#tabla-de-Datos").DataTable();
       // Realizar la petición para actualizar la cantidad
       axios
-        .patch(`${url}${shopProductId}/`, { quantity: cantidadAgregada })
+        .patch(`${url}${shopProductId}/`, { quantity: cantidadResultante })
         .then((response) => {
           if (response.status === 200) {
+            load.hidden = true;
             Swal.fire({
               icon: "success",
               title: "¡Éxito!",
-              text: `Se han agregado ${cantidadAgregada} unidades al producto.`,
+              text: `Se han agregado ${result.value} unidades al producto. Quedan ${cantidadResultante} en inventario`,
               showConfirmButton: false,
-              timer: 2000, // Mensaje de éxito por 2 segundos
+              timer: 3000, // Mensaje de éxito por 2 segundos
             });
             // Recargar la tabla para reflejar los cambios
             table.ajax.reload();
           }
         })
         .catch((error) => {
+          load.hidden = true;
           Swal.fire({
             icon: "error",
             title: "Error",
@@ -512,33 +528,126 @@ function agregarCantidad(shopProductId, cantidad_actual) {
     }
   });
 }
-function marcarComoNew(shopProductId) {
- 
-      const table = $("#tabla-de-Datos").DataTable();
-      // Realizar la petición para actualizar la cantidad
-      axios
-        .patch(`${url}${shopProductId}/`, { })
-        .then((response) => {
-          if (response.status === 200) {
+
+function moveToAnotherShop(id) {
+  load.hidden = false;
+  // Obtener la tienda seleccionada globalmente
+  const selectedShopId = localStorage.getItem("selectedShopId");
+  axios.get("/business-gestion/shops/").then(function (response) {
+    const shops = response.data.results;
+    // Filtrar la tienda de origen (si existe)
+    const filteredShops = selectedShopId
+      ? shops.filter((shop) => String(shop.id) !== String(selectedShopId))
+      : shops;
+    let selectHtml =
+      '<select id="swal-shop-select" class="swal2-input" style="width: 200px; margin-right: 10px;">';
+    filteredShops.forEach((shop) => {
+      selectHtml += `<option value="${shop.id}">${shop.name}</option>`;
+    });
+    selectHtml += "</select>";
+
+    // Coloca los inputs en una fila usando flexbox
+    const htmlInputs = `
+      <div style="display: flex; align-items: center; justify-content: center;">
+        ${selectHtml}
+        <input id="swal-quantity-input" type="number" min="1" class="swal2-input" style="width: 120px;" placeholder="Cantidad">
+      </div>
+    `;
+
+    load.hidden = true;
+    Swal.fire({
+      title: "Mover a otra tienda",
+      html: htmlInputs,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Mover",
+      preConfirm: () => {
+        const shopId = document.getElementById("swal-shop-select").value;
+        const quantity = document.getElementById("swal-quantity-input").value;
+        if (!shopId || !quantity || quantity <= 0) {
+          Swal.showValidationMessage(
+            "Seleccione una tienda y una cantidad válida."
+          );
+          return false;
+        }
+        return { shop: Number(shopId), quantity: Number(quantity) };
+      },
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        load.hidden = false;
+        axios
+          .post(
+            `/business-gestion/shop-products/${id}/move-to-another-shop/`,
+            result.value
+          )
+          .then((res) => {
+            load.hidden = true;
             Swal.fire({
               icon: "success",
-              title: "¡Éxito!",
-              text: `Se han marcado como nuevo el producto seleccionado.`,
+              title: "Producto movido exitosamente",
               showConfirmButton: false,
-              timer: 2000, // Mensaje de éxito por 2 segundos
+              timer: 1500,
             });
-            // Recargar la tabla para reflejar los cambios
-            table.ajax.reload();
-          }
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "No se pudo marcar como nuevo.",
-            showConfirmButton: true,
+            $("#tabla-de-Datos").DataTable().ajax.reload();
+          })
+          .catch((error) => {
+            load.hidden = true;
+            if (error.response.data.quantity) {
+              Swal.fire({
+                icon: "error",
+                title: "Error al mover producto",
+                text: error.response.data.quantity[0],
+                showConfirmButton: true,
+              });
+            } else if (error.response.data.shop) {
+              Swal.fire({
+                icon: "error",
+                title: "Error al mover producto",
+                text: error.response.data.shop[0] || "Ocurrió un error.",
+                showConfirmButton: true,
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Error al mover producto",
+                text: "Ocurrió un error.",
+                showConfirmButton: true,
+              });
+            }
           });
-        });    
+      } else {
+        load.hidden = true;
+      }
+    });
+  });
+}
+
+function marcarComoNew(shopProductId) {
+  const table = $("#tabla-de-Datos").DataTable();
+  // Realizar la petición para actualizar la cantidad
+  axios
+    .patch(`${url}${shopProductId}/`, {})
+    .then((response) => {
+      if (response.status === 200) {
+        Swal.fire({
+          icon: "success",
+          title: "¡Éxito!",
+          text: `Se han marcado como nuevo el producto seleccionado.`,
+          showConfirmButton: false,
+          timer: 2000, // Mensaje de éxito por 2 segundos
+        });
+        // Recargar la tabla para reflejar los cambios
+        table.ajax.reload();
+      }
+    })
+    .catch((error) => {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo marcar como nuevo.",
+        showConfirmButton: true,
+      });
+    });
 }
 
 function esNegativo(num) {
@@ -561,15 +670,14 @@ function verLogs(shopProductId, name) {
     return date.toLocaleString("es-ES", options).replace(",", " -");
   }
 
-
   const logsTable = $("#tabla-de-logs").DataTable({
     responsive: true,
     ajax: {
       url: "/business-gestion/shop-products-logs/",
       data: {
         object_id: shopProductId,
-        performed_action: "U", // Filtrar solo por performed_action "U"
-        //ordering:"-created_timestamp"
+        // performed_action: "U", // Filtrar solo por performed_action "U"
+        ordering: "-created_timestamp",
       },
       dataSrc: "results",
     },
@@ -615,7 +723,7 @@ function verLogs(shopProductId, name) {
       if (data.info.includes("entrado")) {
         $(row).addClass("table-success"); // Rojo
       } else if (data.quantity === 1) {
-       // $(row).addClass("table-warning"); // Amarillo
+        // $(row).addClass("table-warning"); // Amarillo
       }
     },
     // order: [[0, "desc"]],
@@ -630,14 +738,13 @@ function verLogs(shopProductId, name) {
 
 let especificProducto;
 function cargarProductoEspecifico(id) {
-
   axios
     .get("/business-gestion/products/" + id + "/")
     .then((res) => {
-      especificProducto = res.data;      
+      especificProducto = res.data;
       var nuevaUrl = especificProducto.image;
-document.getElementById('productImagen').src = nuevaUrl;
-     load.hidden = true;
+      document.getElementById("productImagen").src = nuevaUrl;
+      load.hidden = true;
     })
     .catch((error) => {
       load.hidden = true;
@@ -645,12 +752,10 @@ document.getElementById('productImagen').src = nuevaUrl;
     });
 }
 
-
 $(document).on("click", "#productImagen", function () {
   load.hidden = false;
   const fullsizeImage = $(this).attr("src"); // Obtiene la URL de la imagen
   console.log("✌️fullsizeImage --->", fullsizeImage);
-
 
   Swal.fire({
     imageUrl: fullsizeImage,
@@ -674,7 +779,6 @@ $(document).on("click", ".thumbnail", function () {
     showCloseButton: false,
     showConfirmButton: true,
   });
-
 });
 let myDateStart = null;
 let myDateEnd = null;
@@ -707,4 +811,3 @@ $(function () {
     }
   );
 });
-

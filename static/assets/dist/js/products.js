@@ -6,14 +6,17 @@ const csrfToken = document.cookie
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 // url del endpoint principal
 const url = "/business-gestion/products/";
+let load = document.getElementById("load");
 
 $(function () {
+ 
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
   poblarListas();
 });
 
 $(document).ready(function () {
+  load.hidden = false;
   const table = $("#tabla-de-Datos").DataTable({
     lengthMenu: [
       [10, 25, 50, 100, -1], // Valores
@@ -164,6 +167,7 @@ $(document).ready(function () {
   $("#toggle-filters").on("click", function () {
     $("#filter-section").toggle();
   });
+  load.hidden = true;
 });
 
 let selected_id;
@@ -255,6 +259,7 @@ $(function () {
       },
     },
     submitHandler: function (form) {
+      load.hidden = false;
       event.preventDefault();
       var table = $("#tabla-de-Datos").DataTable();
       const csrfToken = document.cookie
@@ -276,6 +281,7 @@ $(function () {
           .then((response) => {
             if (response.status === 200) {
               $("#modal-crear-products").modal("hide");
+              load.hidden = true;
               Swal.fire({
                 icon: "success",
                 title: "Producto actualizado con éxito",
@@ -288,6 +294,7 @@ $(function () {
             }
           })
           .catch((error) => {
+            load.hidden = true;
             let dict = error.response.data;
             let textError = "Revise los siguientes campos: ";
             for (const key in dict) {
@@ -307,6 +314,7 @@ $(function () {
           .post(`${url}`, data)
           .then((response) => {
             if (response.status === 201) {
+              load.hidden = true;
               Swal.fire({
                 icon: "success",
                 title: "Producto creado con éxito",
@@ -318,6 +326,7 @@ $(function () {
             }
           })
           .catch((error) => {
+            load.hidden = true;
             let dict = error.response.data;
             let textError = "Revise los siguientes campos: ";
             for (const key in dict) {
