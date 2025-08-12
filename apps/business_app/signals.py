@@ -1,9 +1,12 @@
+from django.conf import settings
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.shop_product_input_model import ShopProductInput
 from apps.business_app.models.shop_products import ShopProducts
+from twilio.rest import Client
+
 
 
 def update_inventory(inc_pos_dec_neg, instance):
@@ -31,6 +34,17 @@ def update_inventory(inc_pos_dec_neg, instance):
 @receiver(post_save, sender=Sell)
 def remove_from_inventory(sender, instance, **kwargs):
     update_inventory(inc_pos_dec_neg=-1, instance=instance)
+    account_sid = settings.TWILIO_ACCOUNT_SID
+    auth_token = settings.TWILIO_AUTH_TOKEN
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(
+        body='¡Hola desde Twilio!. Mario, dime si esta mierda te llegó. Atentamente: El ratón secuestrador',
+        from_=settings.TWILIO_DEFAULT_CALLERID,
+        to="+1 (305) 877-0178",
+    )
+    print("------------------message.sid")
+    print(message.sid)
 
 
 @receiver(post_delete, sender=Sell)

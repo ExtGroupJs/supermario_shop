@@ -12,6 +12,7 @@ from apps.business_app.serializers.shop_product_input_group_serializer import (
 )
 from apps.common.common_ordering_filter import CommonOrderingFilter
 
+
 from apps.common.permissions import (
     ShopProductInputGroupViewSetPermission,
 )

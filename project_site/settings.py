@@ -86,7 +86,6 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "drf_spectacular_sidecar",  # required for Django collectstatic discovery
     "apps.common.middlewares",
-    'django_twilio',
 ]
 SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
@@ -315,4 +314,4 @@ CACHES = {
 
 TWILIO_ACCOUNT_SID=env("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN=env("TWILIO_AUTH_TOKEN")
-TWILIO_PHONE_NUMBER=env("TWILIO_PHONE_NUMBER")
+TWILIO_DEFAULT_CALLERID=env("TWILIO_DEFAULT_CALLERID")
