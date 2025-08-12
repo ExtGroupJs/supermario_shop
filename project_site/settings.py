@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "drf_spectacular_sidecar",  # required for Django collectstatic discovery
     "apps.common.middlewares",
+    'django_twilio',
 ]
 SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
