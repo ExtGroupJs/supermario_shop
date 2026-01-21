@@ -572,7 +572,6 @@ class Command(BaseCommand):
                     "extra_info": extra_info,
                 },
             )
-            print(shop_product.cost_price)
         self.stdout.write(
             self.style.SUCCESS("Successfully created Geely shop and products.")
         )
