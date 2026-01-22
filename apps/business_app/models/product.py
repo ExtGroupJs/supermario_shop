@@ -57,4 +57,3 @@ class Product(SafeDeleteModel, BaseModel):
 
             # Guardar la imagen final
             squared_img.save(self.image.path)
-

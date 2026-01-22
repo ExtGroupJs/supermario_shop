@@ -78,10 +78,10 @@ class ShopProductsAdmin(SafeDeleteAdmin):
         "id",
         "shop",
         "product",
-        "extra_info",
         "quantity",
         "cost_price",
         "sell_price",
+        "extra_info",
         "updated_timestamp",
     ) + SafeDeleteAdmin.list_display
     fields = [

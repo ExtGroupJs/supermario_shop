@@ -62,6 +62,10 @@ def catalog(request):
     return render(request, "catalogo/catalogo.html")
 
 
+def wholesale_catalog(request):
+    return render(request, "catalogo_por_mayor/catalogo_por_mayor.html")
+
+
 @user_passes_test(is_owner)
 def shop_products(request):
     return render(request, "shop_products/shop_products.html")
