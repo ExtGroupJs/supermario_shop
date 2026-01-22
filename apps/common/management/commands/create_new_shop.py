@@ -557,11 +557,13 @@ class Command(BaseCommand):
             model, _ = Model.objects.get_or_create(
                 name=model.strip().split(" - ")[1], defaults={"brand": brand}
             )
+            product = Product.objects.filter(name=product_name, model=model).first()
+            if not product:
+                product = Product.objects.create(
+                    name=product_name,
+                    model=model,
+                )
 
-            product, _ = Product.objects.get_or_create(
-                name=product_name,
-                model=model,
-            )
             shop_product, _ = ShopProducts.objects.update_or_create(
                 shop=new_shop,
                 product=product,
