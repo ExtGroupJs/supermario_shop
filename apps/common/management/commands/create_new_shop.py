@@ -545,9 +545,9 @@ class Command(BaseCommand):
             ("Cangreja", "Geely - Emgrand GC9", 3, 55, 130, "par "),
         ]
         new_shop, _ = Shop.objects.get_or_create(
-            name="Tienda al por mayor",
+            name=Shop.WHOLESALE_SHOP_NAME,
             defaults={
-                "extra_info": "Repuestos para vehículos Geely",
+                "extra_info": "Repuestos para vehículos",
             },
         )
         for product_name, model, quantity, cost_price, sell_price, extra_info in data:
@@ -562,7 +562,7 @@ class Command(BaseCommand):
                 name=product_name,
                 model=model,
             )
-            shop_product, _ = ShopProducts.objects.get_or_create(
+            shop_product, _ = ShopProducts.objects.update_or_create(
                 shop=new_shop,
                 product=product,
                 defaults={

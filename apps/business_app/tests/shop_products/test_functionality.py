@@ -491,7 +491,7 @@ class TestShopProductsViewSet(BaseTestClass):
             dev_user = SystemUser.objects.create_user(
                 username="dev", password="test_password"
             )
-        
+
         self.client.force_authenticate(user=dev_user)
         dev_user.groups.add(Groups.SHOP_OWNER)
 
@@ -505,7 +505,7 @@ class TestShopProductsViewSet(BaseTestClass):
 
         url = reverse("shop-products-detail", kwargs={"pk": shop_product.id})
         custom_log_info = "ajuste de inventario"
-        
+
         # Disminuir la cantidad con extra_log_info
         payload = {
             "quantity": 90,
@@ -516,22 +516,28 @@ class TestShopProductsViewSet(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Obtener los logs del producto específico
-        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by("-created_timestamp")
+        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by(
+            "-created_timestamp"
+        )
         self.assertEqual(all_logs.count(), 2)  # Creación + actualización
-        
+
         # Obtener el log de actualización (el más reciente)
         update_log = all_logs.first()
-        
+
         # Serializar el log para obtener el campo 'info'
-        from apps.business_app.serializers.shop_products_logs import ShopProductsLogsSerializer
-        
+        from apps.business_app.serializers.shop_products_logs import (
+            ShopProductsLogsSerializer,
+        )
+
         # Agregar los atributos necesarios para el serializer
         update_log.shop_product_name = str(shop_product)
-        update_log.product_image = shop_product.product.image.name if shop_product.product.image else None
-        
+        update_log.product_image = (
+            shop_product.product.image.name if shop_product.product.image else None
+        )
+
         serializer = ShopProductsLogsSerializer(update_log)
         log_data = serializer.data
-        
+
         # Verificar que el info contiene el extra_log_info
         self.assertIn(custom_log_info, log_data["info"])
         self.assertIn("-10", log_data["info"])
@@ -551,7 +557,7 @@ class TestShopProductsViewSet(BaseTestClass):
             dev_user = SystemUser.objects.create_user(
                 username="dev", password="test_password"
             )
-        
+
         self.client.force_authenticate(user=dev_user)
         dev_user.groups.add(Groups.SHOP_OWNER)
 
@@ -564,7 +570,7 @@ class TestShopProductsViewSet(BaseTestClass):
         )
 
         url = reverse("shop-products-detail", kwargs={"pk": shop_product.id})
-        
+
         # Disminuir la cantidad sin extra_log_info
         payload = {
             "quantity": 85,
@@ -574,22 +580,28 @@ class TestShopProductsViewSet(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Obtener los logs del producto específico
-        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by("-created_timestamp")
+        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by(
+            "-created_timestamp"
+        )
         self.assertEqual(all_logs.count(), 2)  # Creación + actualización
-        
+
         # Obtener el log de actualización (el más reciente)
         update_log = all_logs.first()
-        
+
         # Serializar el log para obtener el campo 'info'
-        from apps.business_app.serializers.shop_products_logs import ShopProductsLogsSerializer
-        
+        from apps.business_app.serializers.shop_products_logs import (
+            ShopProductsLogsSerializer,
+        )
+
         # Agregar los atributos necesarios para el serializer
         update_log.shop_product_name = str(shop_product)
-        update_log.product_image = shop_product.product.image.name if shop_product.product.image else None
-        
+        update_log.product_image = (
+            shop_product.product.image.name if shop_product.product.image else None
+        )
+
         serializer = ShopProductsLogsSerializer(update_log)
         log_data = serializer.data
-        
+
         # Verificar que el info contiene "actualizado" por defecto
         self.assertIn("actualizado", log_data["info"])
         self.assertIn("-15", log_data["info"])
@@ -609,7 +621,7 @@ class TestShopProductsViewSet(BaseTestClass):
             dev_user = SystemUser.objects.create_user(
                 username="dev", password="test_password"
             )
-        
+
         self.client.force_authenticate(user=dev_user)
         dev_user.groups.add(Groups.SHOP_OWNER)
 
@@ -623,7 +635,7 @@ class TestShopProductsViewSet(BaseTestClass):
 
         url = reverse("shop-products-detail", kwargs={"pk": shop_product.id})
         custom_log_info = "restock"
-        
+
         # Aumentar la cantidad con extra_log_info
         payload = {
             "quantity": 120,
@@ -634,22 +646,28 @@ class TestShopProductsViewSet(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Obtener los logs del producto específico
-        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by("-created_timestamp")
+        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by(
+            "-created_timestamp"
+        )
         self.assertEqual(all_logs.count(), 2)  # Creación + actualización
-        
+
         # Obtener el log de actualización (el más reciente)
         update_log = all_logs.first()
-        
+
         # Serializar el log para obtener el campo 'info'
-        from apps.business_app.serializers.shop_products_logs import ShopProductsLogsSerializer
-        
+        from apps.business_app.serializers.shop_products_logs import (
+            ShopProductsLogsSerializer,
+        )
+
         # Agregar los atributos necesarios para el serializer
         update_log.shop_product_name = str(shop_product)
-        update_log.product_image = shop_product.product.image.name if shop_product.product.image else None
-        
+        update_log.product_image = (
+            shop_product.product.image.name if shop_product.product.image else None
+        )
+
         serializer = ShopProductsLogsSerializer(update_log)
         log_data = serializer.data
-        
+
         # Verificar que el info contiene el extra_log_info
         self.assertIn(custom_log_info, log_data["info"])
         self.assertIn("+20", log_data["info"])
@@ -669,7 +687,7 @@ class TestShopProductsViewSet(BaseTestClass):
             dev_user = SystemUser.objects.create_user(
                 username="dev", password="test_password"
             )
-        
+
         self.client.force_authenticate(user=dev_user)
         dev_user.groups.add(Groups.SHOP_OWNER)
 
@@ -682,7 +700,7 @@ class TestShopProductsViewSet(BaseTestClass):
         )
 
         url = reverse("shop-products-detail", kwargs={"pk": shop_product.id})
-        
+
         # Aumentar la cantidad sin extra_log_info
         payload = {
             "quantity": 115,
@@ -692,22 +710,28 @@ class TestShopProductsViewSet(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Obtener los logs del producto específico
-        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by("-created_timestamp")
+        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by(
+            "-created_timestamp"
+        )
         self.assertEqual(all_logs.count(), 2)  # Creación + actualización
-        
+
         # Obtener el log de actualización (el más reciente)
         update_log = all_logs.first()
-        
+
         # Serializar el log para obtener el campo 'info'
-        from apps.business_app.serializers.shop_products_logs import ShopProductsLogsSerializer
-        
+        from apps.business_app.serializers.shop_products_logs import (
+            ShopProductsLogsSerializer,
+        )
+
         # Agregar los atributos necesarios para el serializer
         update_log.shop_product_name = str(shop_product)
-        update_log.product_image = shop_product.product.image.name if shop_product.product.image else None
-        
+        update_log.product_image = (
+            shop_product.product.image.name if shop_product.product.image else None
+        )
+
         serializer = ShopProductsLogsSerializer(update_log)
         log_data = serializer.data
-        
+
         # Verificar que el info contiene "entrado" por defecto
         self.assertIn("entrado", log_data["info"])
         self.assertIn("+15", log_data["info"])

@@ -2,6 +2,7 @@ from django.db import models
 
 
 class Shop(models.Model):
+    WHOLESALE_SHOP_NAME = "Tienda al por mayor"
     name = models.CharField(verbose_name="Nombre", unique=True, max_length=200)
     logo = models.ImageField(verbose_name="logo")
     extra_info = models.TextField(
