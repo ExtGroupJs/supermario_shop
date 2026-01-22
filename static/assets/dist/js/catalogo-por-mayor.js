@@ -351,7 +351,7 @@ function selectBrandInit(brandId) {
 
 function populateShopsList() {
   axios
-    .get("/business-gestion/shops/catalog/")
+    .get("/business-gestion/shops/wholesale-catalog/")
     .then((response) => {
       const shops = response.data.results; // Obtener los datos de la respuesta
       // Asegurarte de que shops sea un array
