@@ -553,10 +553,6 @@ class Command(BaseCommand):
             },
         )
         for product_name, model, quantity, cost_price, sell_price, extra_info in data:
-            print(product_name)
-            print(model)
-            print("********************")
-
             brand = Brand.objects.get(
                 name=model.strip().split(" - ")[0]
             )  # Extract the brand name
