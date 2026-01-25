@@ -13,7 +13,6 @@ from rest_framework.permissions import AllowAny
 from django.db.models import Q
 
 
-
 class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     queryset = Shop.objects.filter(enabled=True)
     serializer_class = ShopSerializer
