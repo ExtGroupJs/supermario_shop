@@ -486,12 +486,9 @@ class TestShopProductsViewSet(BaseTestClass):
         from apps.users_app.models.system_user import SystemUser
 
         # Crear o obtener el usuario dev
-        dev_user = SystemUser.objects.filter(username="dev").first()
-        if not dev_user:
-            dev_user = SystemUser.objects.create_user(
-                username="dev", password="test_password"
-            )
-
+        dev_user = SystemUser.objects.get_or_create(
+            username="dev", defaults={"password": "test_password"}
+        )[0]
         self.client.force_authenticate(user=dev_user)
         dev_user.groups.add(Groups.SHOP_OWNER)
 
@@ -552,11 +549,9 @@ class TestShopProductsViewSet(BaseTestClass):
         from apps.users_app.models.system_user import SystemUser
 
         # Crear o obtener el usuario dev
-        dev_user = SystemUser.objects.filter(username="dev").first()
-        if not dev_user:
-            dev_user = SystemUser.objects.create_user(
-                username="dev", password="test_password"
-            )
+        dev_user = SystemUser.objects.get_or_create(
+            username="dev", defaults={"password": "test_password"}
+        )[0]
 
         self.client.force_authenticate(user=dev_user)
         dev_user.groups.add(Groups.SHOP_OWNER)
@@ -616,11 +611,9 @@ class TestShopProductsViewSet(BaseTestClass):
         from apps.users_app.models.system_user import SystemUser
 
         # Crear o obtener el usuario dev
-        dev_user = SystemUser.objects.filter(username="dev").first()
-        if not dev_user:
-            dev_user = SystemUser.objects.create_user(
-                username="dev", password="test_password"
-            )
+        dev_user = SystemUser.objects.get_or_create(
+            username="dev", defaults={"password": "test_password"}
+        )[0]
 
         self.client.force_authenticate(user=dev_user)
         dev_user.groups.add(Groups.SHOP_OWNER)
@@ -682,11 +675,9 @@ class TestShopProductsViewSet(BaseTestClass):
         from apps.users_app.models.system_user import SystemUser
 
         # Crear o obtener el usuario dev
-        dev_user = SystemUser.objects.filter(username="dev").first()
-        if not dev_user:
-            dev_user = SystemUser.objects.create_user(
-                username="dev", password="test_password"
-            )
+        dev_user = SystemUser.objects.get_or_create(
+            username="dev", defaults={"password": "test_password"}
+        )[0]
 
         self.client.force_authenticate(user=dev_user)
         dev_user.groups.add(Groups.SHOP_OWNER)

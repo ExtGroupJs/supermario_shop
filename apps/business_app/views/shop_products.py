@@ -106,8 +106,10 @@ class ShopProductsViewSet(
         )
         if self.action in ["wholesale_catalog"]:
             filter_by_shop &= Q(shop=Shop.objects.get(name=Shop.WHOLESALE_SHOP_NAME))
-        else:
-            filter_by_shop &= ~Q(shop=Shop.objects.get(name=Shop.WHOLESALE_SHOP_NAME))
+        elif self.action in ["catalog"]:
+            filter_by_shop &= ~Q(
+                shop=Shop.objects.filter(name=Shop.WHOLESALE_SHOP_NAME).first()
+            )
 
         return queryset.filter(filter_by_quantity, filter_by_shop)
 
