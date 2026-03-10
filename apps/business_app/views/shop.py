@@ -22,6 +22,9 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
         filters.SearchFilter,
         CommonOrderingFilter,
     ]
+    filterset_fields = [
+        "catalog_url",
+    ]
     search_fields = [
         "name",
         "extra_info",

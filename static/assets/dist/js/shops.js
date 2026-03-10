@@ -135,6 +135,8 @@ $("#modal-crear-shops").on("show.bs.modal", function (event) {
         form.elements.name.value = shops.name;
         form.elements.extra_info.value = shops.extra_info;
         form.elements.type.value = shops.type || "";
+        form.elements.catalog_url.value = shops.catalog_url || "";
+        form.elements.principal.checked = !!shops.principal;
       })
       .catch(function (error) {});
   } else {
@@ -193,6 +195,8 @@ form.addEventListener("submit", function (event) {
   }
   data.append("extra_info", document.getElementById("extra_info").value);
   data.append("type", document.getElementById("type").value || "");
+  data.append("catalog_url", document.getElementById("catalog_url").value || "");
+  data.append("principal", document.getElementById("principal").checked);
 
   if (edit_shops) {
     axios
