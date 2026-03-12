@@ -20,10 +20,19 @@ class BrandViewSet(viewsets.ModelViewSet, GenericAPIView):
         filters.SearchFilter,
         CommonOrderingFilter,
     ]
+    filterset_fields = [
+        "model__product__shopproducts__shop",
+    ]
 
     search_fields = [
         "name",
     ]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.query_params.get("model__product__shopproducts__shop"):
+            queryset = queryset.distinct()
+        return queryset
 
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):

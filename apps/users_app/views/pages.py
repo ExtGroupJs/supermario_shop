@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import user_passes_test
 
 from apps.users_app.models.groups import Groups
+from apps.business_app.models.shop import Shop
 
 
 # Create your views here.
@@ -60,6 +61,27 @@ def create_products(request):
 
 def catalog(request):
     return render(request, "catalogo/catalogo.html")
+
+
+def root_catalog(request):
+    principal_shop = (
+        Shop.objects.filter(principal=True, enabled=True)
+        .exclude(catalog_url__isnull=True)
+        .exclude(catalog_url__exact="")
+        .first()
+    )
+    context = {
+        "catalog_shop_url": principal_shop.catalog_url if principal_shop else "",
+    }
+    return render(request, "catalogo/catalogo.html", context)
+
+
+def catalog_by_shop(request, catalog_url):
+    return render(request, "catalogo/catalogo.html", {"catalog_shop_url": catalog_url})
+
+
+def wholesale_catalog(request):
+    return render(request, "catalogo_por_mayor/catalogo_por_mayor.html")
 
 
 @user_passes_test(is_owner)

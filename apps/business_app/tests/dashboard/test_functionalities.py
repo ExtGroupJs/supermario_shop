@@ -54,6 +54,36 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
                 shop_products_per_shop * random_equal_cost,
             )
 
+    def test_shop_product_filter_by_shop(self):
+        wholesale_shop = baker.make(Shop, name=Shop.WHOLESALE_SHOP_NAME)
+        shop_products_to_create = baker.random_gen.gen_integer(min_int=1, max_int=10)
+        baker.make(
+            ShopProducts,
+            shop=wholesale_shop,  # these are in the shop, and should be counted when filtering by it
+            cost_price=1,
+            sell_price=2,
+            quantity=1,
+            _quantity=shop_products_to_create,
+        )
+        baker.make(
+            ShopProducts,
+            cost_price=1,
+            sell_price=2,
+            quantity=1,
+            _quantity=shop_products_to_create,
+        )
+
+        url = reverse("shop-products-list")
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_content = response.json()
+        self.assertEqual(response_content.get("count"), shop_products_to_create * 2)
+
+        response = self.client.get(f"{url}?shop={wholesale_shop.id}", format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_content = response.json()
+        self.assertEqual(response_content.get("count"), shop_products_to_create)
+
     def test_shop_product_investment_with_previous_sells(self):
         shop = baker.make(Shop)
 

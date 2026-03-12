@@ -23,6 +23,7 @@ from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
 from django.db.models import F, Value, Q, Sum
 from django.db.models.functions import Concat
+from apps.business_app.models.shop import Shop
 
 
 class ShopProductsViewSet(
@@ -103,6 +104,13 @@ class ShopProductsViewSet(
             if request_user and not is_admin_or_owner
             else Q()
         )
+        if self.action in ["wholesale_catalog"]:
+            filter_by_shop &= Q(shop=Shop.objects.get(name=Shop.WHOLESALE_SHOP_NAME))
+        elif self.action in ["catalog"]:
+            filter_by_shop &= ~Q(
+                shop=Shop.objects.filter(name=Shop.WHOLESALE_SHOP_NAME).first()
+            )
+
         return queryset.filter(filter_by_quantity, filter_by_shop)
 
     @action(
@@ -112,6 +120,17 @@ class ShopProductsViewSet(
         serializer_class=CatalogShopProductSerializer,
     )
     def catalog(self, request):
+        return self.list(request)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[AllowAny],
+        serializer_class=CatalogShopProductSerializer,
+        url_name="wholesale-catalog",
+        url_path="wholesale-catalog",
+    )
+    def wholesale_catalog(self, request):
         return self.list(request)
 
     @action(

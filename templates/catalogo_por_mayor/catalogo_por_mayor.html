@@ -575,11 +575,8 @@ MM Auto Part
     <script src="{% static 'assets/catalogo/js/scrollUp.min.js' %}"></script>
     <!-- Main/Activator js -->
     <script src="{% static 'assets/catalogo/js/main.js' %}"></script>
-    <script>
-      window.CATALOG_SHOP_URL = "{{ catalog_shop_url|default:''|escapejs }}";
-    </script>
     <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
-    <script src="{% static 'assets/dist/js/catalogo.js' %}"></script>
+    <script src="{% static 'assets/dist/js/catalogo-por-mayor.js' %}"></script>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -590,7 +587,6 @@ MM Auto Part
     <script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
 
     {% comment %}
-    <script src="{% static 'assets/dist/js/catalogo.js' %}"></script>
     {% endcomment %} {% endblock %}
   </div>
 </body>
