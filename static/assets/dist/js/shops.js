@@ -82,10 +82,16 @@ $(document).ready(function () {
           data: "id",
           title: "Acciones",
           render: (data, type, row) => {
+            const actionTitle = row.enabled ? "Desactivar" : "Activar";
+            const actionIcon = row.enabled ? "fa-toggle-off" : "fa-toggle-on";
+            const actionClass = row.enabled ? "bg-olive" : "btn-success";
             return `<div class="btn-group">
                         <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shops" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}"  >
                           <i class="fas fa-edit"></i>
                         </button>  
+                        <button type="button" title="${actionTitle}" class="btn ${actionClass}" onclick="toggle_shop_status('${row.id}', ${row.enabled})" >
+                          <i class="fas ${actionIcon}"></i>
+                        </button>
                         <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}')" >
                           <i class="fas fa-trash"></i>
                         </button>                                          
@@ -128,6 +134,9 @@ $("#modal-crear-shops").on("show.bs.modal", function (event) {
         const shops = response.data;
         form.elements.name.value = shops.name;
         form.elements.extra_info.value = shops.extra_info;
+        form.elements.type.value = shops.type || "";
+        form.elements.catalog_url.value = shops.catalog_url || "";
+        form.elements.principal.checked = !!shops.principal;
       })
       .catch(function (error) {});
   } else {
@@ -185,6 +194,9 @@ form.addEventListener("submit", function (event) {
     data.append("logo", document.getElementById("logo").files[0]);
   }
   data.append("extra_info", document.getElementById("extra_info").value);
+  data.append("type", document.getElementById("type").value || "");
+  data.append("catalog_url", document.getElementById("catalog_url").value || "");
+  data.append("principal", document.getElementById("principal").checked);
 
   if (edit_shops) {
     axios
@@ -289,6 +301,49 @@ function function_delete(id, name) {
             text: error.response.data.detail,
             showConfirmButton: false,
             timer: 3000,
+          });
+        });
+    }
+  });
+}
+
+function toggle_shop_status(id, currentStatus) {
+  
+  const table = $("#tabla-de-Datos").DataTable();
+  const nextStatus = !currentStatus;
+  const actionLabel = nextStatus ? "activar" : "desactivar";
+
+  Swal.fire({
+    title: nextStatus ? "Activar tienda" : "Desactivar tienda",
+    text: `¿Está seguro que desea ${actionLabel} esta tienda?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Si, confirmar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
+      axios
+        .patch(`${url}${id}/`, { enabled: nextStatus })
+        .then((response) => {
+          if (response.status === 200) {
+            table.ajax.reload();
+            Swal.fire({
+              icon: "success",
+              title: nextStatus ? "Tienda activada" : "Tienda desactivada",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          }
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: "error",
+            title: "Error al actualizar estado",
+            text: error.response?.data?.detail || "No se pudo actualizar la tienda",
+            showConfirmButton: false,
+            timer: 2500,
           });
         });
     }

@@ -14,13 +14,16 @@ from django.db.models import Q
 
 
 class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
-    queryset = Shop.objects.filter(enabled=True)
+    queryset = Shop.objects.all()
     serializer_class = ShopSerializer
     permission_classes = [CommonRolePermission]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
         CommonOrderingFilter,
+    ]
+    filterset_fields = [
+        "catalog_url",
     ]
     search_fields = [
         "name",
@@ -37,9 +40,15 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         if self.action == "catalog":
-            queryset = queryset.filter(~Q(name=Shop.WHOLESALE_SHOP_NAME))
+            queryset = queryset.filter(
+                ~Q(name=Shop.WHOLESALE_SHOP_NAME),
+                enabled=True,
+            )
         elif self.action == "wholesale_catalog":
-            queryset = queryset.filter(Q(name=Shop.WHOLESALE_SHOP_NAME))
+            queryset = queryset.filter(
+                Q(name=Shop.WHOLESALE_SHOP_NAME),
+                enabled=True,
+            )
         return queryset
 
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])

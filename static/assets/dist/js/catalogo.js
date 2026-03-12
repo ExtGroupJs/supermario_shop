@@ -9,6 +9,49 @@ let shopValue = "";
 let orderingValue = "";
 let product__model__brand = "";
 let currentViewMode = 'grid';
+const catalogShopUrl = window.CATALOG_SHOP_URL || "";
+let lockedShopId = "";
+const shopsMetaById = {};
+const SHOP_TYPE_MECHANIC = "M";
+const SHOP_TYPE_TECHNOLOGY = "T";
+let currentShopType = SHOP_TYPE_MECHANIC;
+
+function getCatalogLabelsByShopType(shopType) {
+  if (shopType === SHOP_TYPE_TECHNOLOGY) {
+    return {
+      brandLabel: "Categoría",
+      brandLower: "categoría",
+      modelLabel: "Fabricante",
+      modelPlural: "Fabricantes",
+    };
+  }
+  return {
+    brandLabel: "Marca",
+    brandLower: "marca",
+    modelLabel: "Modelo",
+    modelPlural: "Modelos",
+  };
+}
+
+function applyCatalogLabelsByShopType(shopType) {
+  currentShopType = shopType || SHOP_TYPE_MECHANIC;
+  const labels = getCatalogLabelsByShopType(currentShopType);
+
+  const modelTitle = document.querySelector("#models-container .sidebar-title h2");
+  if (modelTitle) {
+    modelTitle.textContent = labels.modelPlural;
+  }
+
+  const modalBrandLabel = document.querySelector("#productDetailModal p.brand strong");
+  if (modalBrandLabel) {
+    modalBrandLabel.textContent = `${labels.brandLabel}:`;
+  }
+
+  const modalModelLabel = document.querySelector("#productDetailModal p.model strong");
+  if (modalModelLabel) {
+    modalModelLabel.textContent = `${labels.modelLabel}:`;
+  }
+}
 
 // Función para cargar productos
 function loadProducts(page) {
@@ -199,7 +242,13 @@ function viewProductDetails(productId) {
 }
 
 // Cargar productos al iniciar la página
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  if (catalogShopUrl) {
+    const resolvedShop = await resolveShopFromCatalogUrl();
+    if (!resolvedShop) {
+      return;
+    }
+  }
   loadProducts(currentPage);
   loadModels("");
   loadBrands();
@@ -225,9 +274,13 @@ function updateProductsPerPage() {
 }
 
 function loadModels(id) {
-  const params = {
-    brand: id,
-  };
+  const params = {};
+  if (id) {
+    params.brand = id;
+  }
+  if (lockedShopId) {
+    params["product__shopproducts__shop"] = lockedShopId;
+  }
   axios
     .get(`/business-gestion/models/catalog/`, { params })
     .then((res) => {
@@ -300,8 +353,14 @@ function searchProducts() {
 }
 
 function loadBrands() {
+  const params = {};
+  const shopFilter = lockedShopId || shopValue;
+  if (shopFilter) {
+    params["model__product__shopproducts__shop"] = shopFilter;
+  }
+
   axios
-    .get("/business-gestion/brands/catalog/")
+    .get("/business-gestion/brands/catalog/", { params })
     .then((res) => {
       const brands = res.data.results;
       populateBrandsSelect(brands);
@@ -319,7 +378,8 @@ function loadBrands() {
 
 function populateBrandsSelect(brands) {
   const brandsSelect = document.getElementById("brandsSelect");
-  brandsSelect.innerHTML = '<option value="">Seleccione una marca</option>'; // Limpiar opciones anteriores
+  const labels = getCatalogLabelsByShopType(currentShopType);
+  brandsSelect.innerHTML = `<option value="">Seleccione una ${labels.brandLower}</option>`; // Limpiar opciones anteriores
 
   brands.forEach((brand) => {
     const option = document.createElement("option");
@@ -332,11 +392,11 @@ function populateBrandsSelect(brands) {
   brandsSelect.classList.add("nice-select");
 
   // Agregar evento para cargar modelos al seleccionar una marca
-  brandsSelect.addEventListener("change", () => {
+  brandsSelect.onchange = () => {
     const selectedId = brandsSelect.value; // Obtener el ID seleccionado
     loadModels(selectedId); // Pasar el ID a la función loadModels
     selectBrandInit(selectedId);
-  });
+  };
 
 
 }
@@ -350,6 +410,33 @@ function selectBrandInit(brandId) {
 
 
 function populateShopsList() {
+  if (lockedShopId) {
+    axios
+      .get(`/business-gestion/shops/${lockedShopId}/`)
+      .then((response) => {
+        const shop = response.data;
+        shopsMetaById[String(shop.id)] = shop;
+        applyCatalogLabelsByShopType(shop.type);
+        const shopsList = document.getElementById("shopsList");
+        shopsList.innerHTML = `
+          <li>
+            <input type="checkbox" name="product-category" id="shop-${shop.id}" class="shop-checkbox" checked disabled>
+            <label for="shop-${shop.id}">${shop.name}</label>
+          </li>
+        `;
+      })
+      .catch((error) => {
+        Swal.fire({
+          icon: "error",
+          title: "Error al cargar la tienda",
+          text: error.message,
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      });
+    return;
+  }
+
   axios
     .get("/business-gestion/shops/catalog/")
     .then((response) => {
@@ -360,6 +447,7 @@ function populateShopsList() {
         shopsList.innerHTML = ""; // Limpiar la lista anterior
 
         shops.forEach((shop) => {
+          shopsMetaById[String(shop.id)] = shop;
           const listItem = document.createElement("li");
           listItem.innerHTML = `
                         <input type="checkbox" name="product-category" id="shop-${shop.id}" class="shop-checkbox">
@@ -416,9 +504,63 @@ function handleShopSelection(selectedCheckbox) {
 
 // Método selectShop para manejar la tienda seleccionada
 function selectShop(shopId) {
+  if (lockedShopId) {
+    shopValue = lockedShopId;
+    return;
+  }
+
+  const selectedShop = shopId ? shopsMetaById[String(shopId)] : null;
+  applyCatalogLabelsByShopType(selectedShop?.type);
+
   shopValue = shopId;
+  product__model__brand = "";
+  product__model = "";
+
+  const brandsSelect = document.getElementById("brandsSelect");
+  if (brandsSelect) {
+    brandsSelect.value = "";
+  }
+
+  loadBrands();
+  loadModels("");
   currentPage = 1;
   loadProducts(currentPage);
+}
+
+async function resolveShopFromCatalogUrl() {
+  try {
+    const response = await axios.get("/business-gestion/shops/catalog/", {
+      params: {
+        catalog_url: catalogShopUrl,
+        page_size: 1,
+      },
+    });
+    const shop = response.data?.results?.[0];
+    if (!shop) {
+      Swal.fire({
+        icon: "warning",
+        title: "Catálogo no disponible",
+        text: "No existe una tienda activa asociada a esta URL.",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+      return null;
+    }
+    shopsMetaById[String(shop.id)] = shop;
+    applyCatalogLabelsByShopType(shop.type);
+    lockedShopId = shop.id;
+    shopValue = shop.id;
+    return shop;
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error al abrir catálogo",
+      text: error.message,
+      showConfirmButton: false,
+      timer: 2000,
+    });
+    return null;
+  }
 }
 
 // Función para capturar el valor seleccionado
