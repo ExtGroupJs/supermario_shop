@@ -40,7 +40,11 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path("catalog/", pages.catalog, name="catalog"),
-    path("catalogo/tienda/<slug:catalog_url>/", pages.catalog_by_shop, name="catalog_by_shop"),
+    path(
+        "catalogo/tienda/<slug:catalog_url>/",
+        pages.catalog_by_shop,
+        name="catalog_by_shop",
+    ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("common/", include("apps.common.urls")),
     path("user-gestion/", include("apps.users_app.urls")),

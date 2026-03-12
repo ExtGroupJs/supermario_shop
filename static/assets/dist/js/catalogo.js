@@ -12,8 +12,8 @@ let currentViewMode = 'grid';
 const catalogShopUrl = window.CATALOG_SHOP_URL || "";
 let lockedShopId = "";
 const shopsMetaById = {};
-const SHOP_TYPE_MECHANIC = "mecanica";
-const SHOP_TYPE_TECHNOLOGY = "tecnologia";
+const SHOP_TYPE_MECHANIC = "M";
+const SHOP_TYPE_TECHNOLOGY = "T";
 let currentShopType = SHOP_TYPE_MECHANIC;
 
 function getCatalogLabelsByShopType(shopType) {

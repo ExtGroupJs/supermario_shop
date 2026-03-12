@@ -1,20 +1,17 @@
 from django.db import models
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 
 class Shop(models.Model):
     WHOLESALE_SHOP_NAME = "Tienda al por mayor"
-    TYPE_MECHANIC = "mecanica"
-    TYPE_TECHNOLOGY = "tecnologia"
-    TYPE_FOOD = "alimentos"
-    TYPE_OTHER = "otros"
-    TYPE_CHOICES = (
-        (TYPE_MECHANIC, "Mecanica"),
-        (TYPE_TECHNOLOGY, "Tecnologia"),
-        (TYPE_FOOD, "Alimentos"),
-        (TYPE_OTHER, "Otros"),
-    )
+
+    class TYPE_CHOICES(models.TextChoices):
+        MECANIC = "M", _("Mecánica")
+        TECH = "T", _("Tecnología")
+        FOOD = "F", _("Alimentos")
+        OTHERS = "O", _("Otros")
 
     name = models.CharField(verbose_name="Nombre", unique=True, max_length=200)
     catalog_url = models.SlugField(
@@ -30,11 +27,9 @@ class Shop(models.Model):
     )
     type = models.CharField(
         verbose_name="Tipo",
-        max_length=20,
+        max_length=1,
         choices=TYPE_CHOICES,
-        null=True,
-        blank=True,
-        default=None,
+        default=TYPE_CHOICES.MECANIC,
     )
     products = models.ManyToManyField(
         to="business_app.Product", through="business_app.ShopProducts"
