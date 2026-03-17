@@ -36,7 +36,7 @@ class GenericLog(models.Model):
     content_object = GenericForeignKey()
     details = models.JSONField(verbose_name=_("Detalles"), null=True)
     extra_log_info = models.CharField(
-        verbose_name=_("Información adicional"), null=True, blank=True
+        verbose_name=_("Información adicional"), max_length=500, null=True, blank=True
     )
 
     created_by = models.ForeignKey(
