@@ -15,6 +15,9 @@ class DashboardCountsSerializer(DashboardSerializer):
     frequency = serializers.ChoiceField(
         choices=AllowedFrequencies.choices, required=False
     )
+    shop_id = serializers.PrimaryKeyRelatedField(
+        source="shop_product__shop", queryset=Shop.objects.all(), required=False
+    )
     shop_product__shop = serializers.PrimaryKeyRelatedField(
         queryset=Shop.objects.all(), required=False
     )
@@ -24,6 +27,9 @@ class DashboardCountsSerializer(DashboardSerializer):
 
 
 class DashboardInvestmentSerializer(DashboardSerializer):
+    shop_id = serializers.PrimaryKeyRelatedField(
+        source="shop", queryset=Shop.objects.all(), required=False
+    )
     shop = serializers.PrimaryKeyRelatedField(
         queryset=Shop.objects.all(), required=False
     )
