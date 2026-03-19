@@ -54,6 +54,39 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
                 shop_products_per_shop * random_equal_cost,
             )
 
+    def test_shop_product_investment_filter_by_shop_id(self):
+        target_shop = baker.make(Shop)
+        other_shop = baker.make(Shop)
+
+        baker.make(
+            ShopProducts,
+            shop=target_shop,
+            cost_price=5,
+            sell_price=6,
+            quantity=2,
+        )
+        baker.make(
+            ShopProducts,
+            shop=target_shop,
+            cost_price=3,
+            sell_price=4,
+            quantity=4,
+        )
+        baker.make(
+            ShopProducts,
+            shop=other_shop,
+            cost_price=100,
+            sell_price=120,
+            quantity=1,
+        )
+
+        url = reverse("dashboard-shop-product-investment")
+        response = self.client.post(
+            url, data={"shop_id": target_shop.id}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("investments"), 22)
+
     def test_shop_product_filter_by_shop(self):
         wholesale_shop = baker.make(Shop, name=Shop.WHOLESALE_SHOP_NAME)
         shop_products_to_create = baker.random_gen.gen_integer(min_int=1, max_int=10)
@@ -179,4 +212,112 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
         self.assertEqual(
             response.data.get("sell_group_ids"),
             [sell_group.id],  # Esto solo viene si el discounts vino diferente de 0
+        )
+
+    def test_sell_profits_filter_by_shop_id(self):
+        target_shop = baker.make(Shop)
+        other_shop = baker.make(Shop)
+
+        target_shop_product = baker.make(
+            ShopProducts,
+            shop=target_shop,
+            cost_price=10,
+            sell_price=15,
+            quantity=10,
+        )
+        other_shop_product = baker.make(
+            ShopProducts,
+            shop=other_shop,
+            cost_price=1,
+            sell_price=10,
+            quantity=10,
+        )
+
+        baker.make(Sell, shop_product=target_shop_product, quantity=1)
+        baker.make(Sell, shop_product=target_shop_product, quantity=2)
+        baker.make(Sell, shop_product=other_shop_product, quantity=10)
+
+        url = reverse("dashboard-sell-profits")
+        response = self.client.post(
+            url, data={"shop_id": target_shop.id}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("result"),
+            {
+                "frequency": "None",
+                "total": 15,
+            },
+        )
+
+    def test_shop_product_sells_count_filter_by_shop_id(self):
+        target_shop = baker.make(Shop)
+        other_shop = baker.make(Shop)
+
+        target_shop_product = baker.make(
+            ShopProducts,
+            shop=target_shop,
+            cost_price=2,
+            sell_price=3,
+            quantity=20,
+        )
+        other_shop_product = baker.make(
+            ShopProducts,
+            shop=other_shop,
+            cost_price=2,
+            sell_price=3,
+            quantity=20,
+        )
+
+        baker.make(Sell, shop_product=target_shop_product, quantity=1)
+        baker.make(Sell, shop_product=target_shop_product, quantity=5)
+        baker.make(Sell, shop_product=other_shop_product, quantity=7)
+
+        url = reverse("dashboard-shop-product-sells-count")
+        response = self.client.post(
+            url, data={"shop_id": target_shop.id}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("result"),
+            {
+                "frequency": "None",
+                "total": 2,
+            },
+        )
+
+    def test_shop_product_sells_products_count_filter_by_shop_id(self):
+        target_shop = baker.make(Shop)
+        other_shop = baker.make(Shop)
+
+        target_shop_product = baker.make(
+            ShopProducts,
+            shop=target_shop,
+            cost_price=2,
+            sell_price=4,
+            quantity=20,
+        )
+        other_shop_product = baker.make(
+            ShopProducts,
+            shop=other_shop,
+            cost_price=2,
+            sell_price=4,
+            quantity=20,
+        )
+
+        baker.make(Sell, shop_product=target_shop_product, quantity=2)
+        baker.make(Sell, shop_product=target_shop_product, quantity=3)
+        baker.make(Sell, shop_product=other_shop_product, quantity=10)
+
+        url = reverse("dashboard-shop-product-sell-products-count")
+        response = self.client.post(
+            url, data={"shop_id": target_shop.id}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("result"),
+            {
+                "frequency": "None",
+                "total": 5,
+            },
         )
