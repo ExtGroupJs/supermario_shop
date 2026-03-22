@@ -112,7 +112,18 @@ $(document).ready(function () {
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
       { data: "updated_timestamp", title: "Fecha" },
-      { data: "extra_info", title: "Información Extra" },
+      {
+        data: "extra_info",
+        title: "Información Extra",
+        render: (data, type, row) => {
+          if (!data) return "-";
+          if (data.length > 30) {
+            const encodedInfo = encodeURIComponent(data);
+            return `<span class="extra-info-link" data-extra-info="${encodedInfo}" style="cursor: pointer; color: #007bff; text-decoration: underline;">${data.substring(0, 30)}...</span>`;
+          }
+          return data;
+        },
+      },
       {
         data: "id",
         title: "Acciones",
@@ -653,6 +664,21 @@ function marcarComoNew(shopProductId) {
 function esNegativo(num) {
   return num < 0;
 }
+
+function mostrarInformacionCompleta(informacion) {
+  Swal.fire({
+    title: "Información Extra",
+    text: informacion,
+    icon: "info",
+    confirmButtonText: "Cerrar",
+  });
+}
+
+$(document).on("click", ".extra-info-link", function () {
+  const encodedInfo = $(this).attr("data-extra-info") || "";
+  const informacion = decodeURIComponent(encodedInfo);
+  mostrarInformacionCompleta(informacion);
+});
 
 function verLogs(shopProductId, name) {
   // Función para formatear la fecha
