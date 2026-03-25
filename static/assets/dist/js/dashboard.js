@@ -30,6 +30,16 @@ function updateNoShopWarning() {
   }
 }
 
+function formatMetricNumber(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "0";
+
+    return number.toLocaleString("es-ES", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 3,
+    });
+}
+
 // url del endpoint principal
 // const url = "/business-gestion/dashboard/shop-product-investment/";
 $(document).ready(function () {
@@ -66,7 +76,7 @@ function smallboxdataInvestment() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('inversion');
             if (smallBox) {
-                smallBox.textContent = investmentValue+"$";
+                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
             }
         })
         .catch(error => {
@@ -109,7 +119,7 @@ function smallboxdataInvestmentLastMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('inversionxmes');
             if (smallBox) {
-                smallBox.textContent = investmentValue+"$";
+                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
             }
         })
         .catch(error => {
@@ -148,7 +158,7 @@ function smallboxdataInvestmentCurrentMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('inversioncurrentmes');
             if (smallBox) {
-                smallBox.textContent = investmentValue + "$";
+                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
             }
         })
         .catch(error => {
@@ -189,7 +199,7 @@ function smallboxdataSellCurrentWeek() {
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('sellweek');
             if (smallBox) {
-                smallBox.textContent = sellCount + " Ventas";
+                smallBox.textContent = formatMetricNumber(sellCount) + " Ventas";
             }
         })
         .catch(error => {
@@ -227,7 +237,7 @@ function smallboxdataSellCurrentMonth() {
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('sellmount');
             if (smallBox) {
-                smallBox.textContent = sellCount + " Ventas";
+                smallBox.textContent = formatMetricNumber(sellCount) + " Ventas";
             }
         })
         .catch(error => {
@@ -245,7 +255,7 @@ function smallboxdataSellProfits() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('sell-profits-total');
             if (smallBox) {
-                smallBox.textContent = sellProfitsValue+"$";
+                smallBox.textContent = formatMetricNumber(sellProfitsValue) + "$";
             }
         })
         .catch(error => {
@@ -287,7 +297,7 @@ function smallboxdataSellProfitsLastMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciaslastmes');
             if (smallBox) {
-                smallBox.textContent = investmentValue+"$";
+                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
             }
         })
         .catch(error => {
@@ -326,7 +336,7 @@ function smallboxdataSellProfitsCurrentMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciascurrentmes');
             if (smallBox) {
-                smallBox.textContent = SellProfitsValue + "$";
+                smallBox.textContent = formatMetricNumber(SellProfitsValue) + "$";
             }
         })
         .catch(error => {
@@ -366,7 +376,7 @@ function smallboxdataSellProfitsCurrentWeek() {
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('SellProfitscurrentweek');
             if (smallBox) {
-                smallBox.textContent = sellCount + " $";
+                smallBox.textContent = formatMetricNumber(sellCount) + " $";
             }
         })
         .catch(error => {
@@ -412,9 +422,9 @@ function daterangeSellProfits(startDate, endDate) {
              const dateRangeSales = document.getElementById('dateRangeSales');
              const dateRangeDiscounts = document.getElementById('dateRangeDiscounts');
              if (dateRangeProfits && dateRangeSales && dateRangeDiscounts) {
-                dateRangeProfits.textContent = sellCount-response.data.discounts + " $";
-                dateRangeSales.textContent =itemCount;
-                dateRangeDiscounts.textContent =response.data.discounts + " $";
+                     dateRangeProfits.textContent = formatMetricNumber(sellCount - response.data.discounts) + " $";
+                dateRangeSales.textContent = itemCount;
+                     dateRangeDiscounts.textContent = formatMetricNumber(response.data.discounts) + " $";
 
 
              }
