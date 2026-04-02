@@ -366,7 +366,8 @@ class TestShopProductsViewSet(BaseTestClass):
     def test_move_to_another_shop_logic(self):
         """ """
 
-        random_quantity = baker.random_gen.gen_integer(min_int=3, max_int=10)
+        # Asegurar que haya suficiente cantidad para dos transferencias
+        random_quantity = baker.random_gen.gen_integer(min_int=10, max_int=20)
         test_shop_product = baker.make(
             ShopProducts,
             cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
@@ -381,8 +382,9 @@ class TestShopProductsViewSet(BaseTestClass):
         self.client.force_authenticate(user=self.user)
         self.user.groups.add(Groups.SHOP_OWNER)
 
+        # Mover aproximadamente la mitad para asegurar que quede suficiente para la segunda transferencia
         random_quantity_to_move = baker.random_gen.gen_integer(
-            min_int=2, max_int=test_shop_product.quantity
+            min_int=2, max_int=test_shop_product.quantity // 2
         )
 
         payload = {
@@ -480,3 +482,254 @@ class TestShopProductsViewSet(BaseTestClass):
             ).count(),
             2,
         )
+
+    def test_shop_products_logs_action_with_dev_user_and_extra_log_info_on_decrease(
+        self,
+    ):
+        """
+        Prueba que cuando el usuario dev actualiza un producto disminuyendo
+        la cantidad, el campo action muestra el extra_log_info si está presente
+        """
+        from apps.users_app.models.system_user import SystemUser
+
+        # Crear o obtener el usuario dev
+        dev_user = SystemUser.objects.get_or_create(
+            username="dev", defaults={"password": "test_password"}
+        )[0]
+        self.client.force_authenticate(user=dev_user)
+        dev_user.groups.add(Groups.SHOP_OWNER)
+
+        # Crear un shop product con cantidad inicial
+        shop_product = baker.make(
+            ShopProducts,
+            cost_price=10.0,
+            sell_price=20.0,
+            quantity=100,
+        )
+
+        url = reverse("shop-products-detail", kwargs={"pk": shop_product.id})
+        custom_log_info = "ajuste de inventario"
+
+        # Disminuir la cantidad con extra_log_info
+        payload = {
+            "quantity": 90,
+            "extra_log_info": custom_log_info,
+        }
+
+        response = self.client.patch(url, data=payload)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Obtener los logs del producto específico
+        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by(
+            "-created_timestamp"
+        )
+        self.assertEqual(all_logs.count(), 2)  # Creación + actualización
+
+        # Obtener el log de actualización (el más reciente)
+        update_log = all_logs.first()
+
+        # Serializar el log para obtener el campo 'info'
+        from apps.business_app.serializers.shop_products_logs import (
+            ShopProductsLogsSerializer,
+        )
+
+        # Agregar los atributos necesarios para el serializer
+        update_log.shop_product_name = str(shop_product)
+        update_log.product_image = (
+            shop_product.product.image.name if shop_product.product.image else None
+        )
+
+        serializer = ShopProductsLogsSerializer(update_log)
+        log_data = serializer.data
+
+        # Verificar que el info contiene el extra_log_info
+        self.assertIn(custom_log_info, log_data["info"])
+        self.assertIn("-10", log_data["info"])
+
+    def test_shop_products_logs_action_with_dev_user_and_no_extra_log_info_on_decrease(
+        self,
+    ):
+        """
+        Prueba que cuando el usuario dev actualiza un producto disminuyendo
+        la cantidad sin extra_log_info, el campo action muestra "actualizado"
+        """
+        from apps.users_app.models.system_user import SystemUser
+
+        # Crear o obtener el usuario dev
+        dev_user = SystemUser.objects.get_or_create(
+            username="dev", defaults={"password": "test_password"}
+        )[0]
+
+        self.client.force_authenticate(user=dev_user)
+        dev_user.groups.add(Groups.SHOP_OWNER)
+
+        # Crear un shop product con cantidad inicial
+        shop_product = baker.make(
+            ShopProducts,
+            cost_price=10.0,
+            sell_price=20.0,
+            quantity=100,
+        )
+
+        url = reverse("shop-products-detail", kwargs={"pk": shop_product.id})
+
+        # Disminuir la cantidad sin extra_log_info
+        payload = {
+            "quantity": 85,
+        }
+
+        response = self.client.patch(url, data=payload)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Obtener los logs del producto específico
+        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by(
+            "-created_timestamp"
+        )
+        self.assertEqual(all_logs.count(), 2)  # Creación + actualización
+
+        # Obtener el log de actualización (el más reciente)
+        update_log = all_logs.first()
+
+        # Serializar el log para obtener el campo 'info'
+        from apps.business_app.serializers.shop_products_logs import (
+            ShopProductsLogsSerializer,
+        )
+
+        # Agregar los atributos necesarios para el serializer
+        update_log.shop_product_name = str(shop_product)
+        update_log.product_image = (
+            shop_product.product.image.name if shop_product.product.image else None
+        )
+
+        serializer = ShopProductsLogsSerializer(update_log)
+        log_data = serializer.data
+
+        # Verificar que el info contiene "actualizado" por defecto
+        self.assertIn("actualizado", log_data["info"])
+        self.assertIn("-15", log_data["info"])
+
+    def test_shop_products_logs_action_with_dev_user_and_extra_log_info_on_increase(
+        self,
+    ):
+        """
+        Prueba que cuando el usuario dev actualiza un producto aumentando
+        la cantidad, el campo action muestra el extra_log_info si está presente
+        """
+        from apps.users_app.models.system_user import SystemUser
+
+        # Crear o obtener el usuario dev
+        dev_user = SystemUser.objects.get_or_create(
+            username="dev", defaults={"password": "test_password"}
+        )[0]
+
+        self.client.force_authenticate(user=dev_user)
+        dev_user.groups.add(Groups.SHOP_OWNER)
+
+        # Crear un shop product con cantidad inicial
+        shop_product = baker.make(
+            ShopProducts,
+            cost_price=10.0,
+            sell_price=20.0,
+            quantity=100,
+        )
+
+        url = reverse("shop-products-detail", kwargs={"pk": shop_product.id})
+        custom_log_info = "restock"
+
+        # Aumentar la cantidad con extra_log_info
+        payload = {
+            "quantity": 120,
+            "extra_log_info": custom_log_info,
+        }
+
+        response = self.client.patch(url, data=payload)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Obtener los logs del producto específico
+        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by(
+            "-created_timestamp"
+        )
+        self.assertEqual(all_logs.count(), 2)  # Creación + actualización
+
+        # Obtener el log de actualización (el más reciente)
+        update_log = all_logs.first()
+
+        # Serializar el log para obtener el campo 'info'
+        from apps.business_app.serializers.shop_products_logs import (
+            ShopProductsLogsSerializer,
+        )
+
+        # Agregar los atributos necesarios para el serializer
+        update_log.shop_product_name = str(shop_product)
+        update_log.product_image = (
+            shop_product.product.image.name if shop_product.product.image else None
+        )
+
+        serializer = ShopProductsLogsSerializer(update_log)
+        log_data = serializer.data
+
+        # Verificar que el info contiene el extra_log_info
+        self.assertIn(custom_log_info, log_data["info"])
+        self.assertIn("+20", log_data["info"])
+
+    def test_shop_products_logs_action_with_dev_user_and_no_extra_log_info_on_increase(
+        self,
+    ):
+        """
+        Prueba que cuando el usuario dev actualiza un producto aumentando
+        la cantidad sin extra_log_info, el campo action muestra "entrado"
+        """
+        from apps.users_app.models.system_user import SystemUser
+
+        # Crear o obtener el usuario dev
+        dev_user = SystemUser.objects.get_or_create(
+            username="dev", defaults={"password": "test_password"}
+        )[0]
+
+        self.client.force_authenticate(user=dev_user)
+        dev_user.groups.add(Groups.SHOP_OWNER)
+
+        # Crear un shop product con cantidad inicial
+        shop_product = baker.make(
+            ShopProducts,
+            cost_price=10.0,
+            sell_price=20.0,
+            quantity=100,
+        )
+
+        url = reverse("shop-products-detail", kwargs={"pk": shop_product.id})
+
+        # Aumentar la cantidad sin extra_log_info
+        payload = {
+            "quantity": 115,
+        }
+
+        response = self.client.patch(url, data=payload)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Obtener los logs del producto específico
+        all_logs = GenericLog.objects.filter(object_id=shop_product.id).order_by(
+            "-created_timestamp"
+        )
+        self.assertEqual(all_logs.count(), 2)  # Creación + actualización
+
+        # Obtener el log de actualización (el más reciente)
+        update_log = all_logs.first()
+
+        # Serializar el log para obtener el campo 'info'
+        from apps.business_app.serializers.shop_products_logs import (
+            ShopProductsLogsSerializer,
+        )
+
+        # Agregar los atributos necesarios para el serializer
+        update_log.shop_product_name = str(shop_product)
+        update_log.product_image = (
+            shop_product.product.image.name if shop_product.product.image else None
+        )
+
+        serializer = ShopProductsLogsSerializer(update_log)
+        log_data = serializer.data
+
+        # Verificar que el info contiene "entrado" por defecto
+        self.assertIn("entrado", log_data["info"])
+        self.assertIn("+15", log_data["info"])

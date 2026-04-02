@@ -4,10 +4,40 @@ const csrfToken = document.cookie
   ?.split("=")[1];
   axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
+/**
+ * Retorna un objeto con {shop_id: <id>} si hay una tienda seleccionada
+ * en localStorage, o un objeto vacío si no hay ninguna.
+ */
+function getShopIdFilter() {
+  const shopId = localStorage.getItem("selectedShopId");
+  return shopId ? { shop_id: parseInt(shopId, 10) } : {};
+}
+
+/**
+ * Muestra u oculta el banner de aviso cuando no hay tienda seleccionada.
+ */
+function updateNoShopWarning() {
+  const shopId = localStorage.getItem("selectedShopId");
+  const banner = document.getElementById("no-shop-warning");
+  const content = document.getElementById("dashboard-metrics-content");
+  if (!banner || !content) return;
+  if (!shopId) {
+    banner.style.display = "block";
+    content.style.display = "none";
+  } else {
+    banner.style.display = "none";
+    content.style.display = "";
+  }
+}
+
 // url del endpoint principal
 // const url = "/business-gestion/dashboard/shop-product-investment/";
 $(document).ready(function () {
-  
+  updateNoShopWarning();
+
+  const shopId = localStorage.getItem("selectedShopId");
+  if (!shopId) return; // No cargar métricas si no hay tienda seleccionada
+
 smallboxdataInvestment();
 smallboxdataInvestmentLastMonth();
 smallboxdataInvestmentCurrentMonth();
@@ -28,7 +58,7 @@ const today = new Date();
 
 function smallboxdataInvestment() {
     axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-    axios.post("/business-gestion/dashboard/shop-product-investment/")
+    axios.post("/business-gestion/dashboard/shop-product-investment/", { ...getShopIdFilter() })
         .then(response => {
             // Obtener el valor de inversiones de la respuesta
             const investmentValue = response.data.investments;
@@ -67,7 +97,8 @@ function smallboxdataInvestmentLastMonth() {
     // Parámetros para la solicitud
     const params = {
         "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate
+        "updated_timestamp__lte": endDate,
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-investment/', params)
@@ -105,7 +136,8 @@ function smallboxdataInvestmentCurrentMonth() {
     // Parámetros para la solicitud
     const params = {
         "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate
+        "updated_timestamp__lte": endDate,
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-investment/', params)
@@ -146,8 +178,8 @@ function smallboxdataSellCurrentWeek() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        "frequency": "week"
-        
+        "frequency": "week",
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-sells-count/', params)
@@ -183,7 +215,8 @@ function smallboxdataSellCurrentMonth() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        "frequency": "month",        
+        "frequency": "month",
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-sells-count/', params)
@@ -204,7 +237,7 @@ function smallboxdataSellCurrentMonth() {
 
 function smallboxdataSellProfits() {
     axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-    axios.post('/business-gestion/dashboard/sell-profits/')
+    axios.post('/business-gestion/dashboard/sell-profits/', { ...getShopIdFilter() })
         .then(response => {
             // Obtener el valor de inversiones de la respuesta
             const sellProfitsValue = response.data.result.total-response.data.discounts;
@@ -242,7 +275,8 @@ function smallboxdataSellProfitsLastMonth() {
     // Parámetros para la solicitud
     const params = {
         "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate
+        "updated_timestamp__lte": endDate,
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -280,7 +314,8 @@ function smallboxdataSellProfitsCurrentMonth() {
     // Parámetros para la solicitud
     const params = {
         "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate
+        "updated_timestamp__lte": endDate,
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -321,8 +356,7 @@ function smallboxdataSellProfitsCurrentWeek() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        // "frequency": "week"
-        
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -355,7 +389,8 @@ function daterangeSellProfits(startDate, endDate) {
     const params = {
         "updated_timestamp__gte": start,
         "updated_timestamp__lte": end,
-        "frequency": "day"
+        "frequency": "day",
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -409,7 +444,8 @@ function chartSellProfitsLastWeek() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        "frequency": "day"  // Cambiamos a "day" para obtener datos diarios
+        "frequency": "day",  // Cambiamos a "day" para obtener datos diarios
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -457,7 +493,8 @@ function chartSellProfitsThisWeek() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        "frequency": "day"  // Cambiamos a "day" para obtener datos diarios
+        "frequency": "day",  // Cambiamos a "day" para obtener datos diarios
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)

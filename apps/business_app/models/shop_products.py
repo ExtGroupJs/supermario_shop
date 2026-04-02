@@ -46,7 +46,7 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
         return f"{self.product} ({self.shop})"
 
     def __repr__(self):
-        if not self.extra_info:
+        if not self.extra_info or self.shop.type != Shop.TYPE_CHOICES.MECANIC:
             return self.product.__str__()
         return f"{self.product} ({self.extra_info})"
 
