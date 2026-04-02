@@ -48,11 +48,19 @@ class ShopProductsSerializer(serializers.ModelSerializer):
         extra_log_info = validated_data.pop("extra_log_info", None)
 
         if self.instance is not None:
+            # En update: si no se envía sell_price_for_catalog, adopta el sell_price
+            if "sell_price_for_catalog" not in validated_data:
+                validated_data["sell_price_for_catalog"] = validated_data.get(
+                    "sell_price", self.instance.sell_price
+                )
             for attr, value in validated_data.items():
                 setattr(self.instance, attr, value)
             self.instance.save(extra_log_info=extra_log_info)
 
         else:
+            # En create: si no se envía sell_price_for_catalog, adopta el sell_price
+            if "sell_price_for_catalog" not in validated_data:
+                validated_data["sell_price_for_catalog"] = validated_data.get("sell_price")
             self.instance = ShopProducts.objects.create(**validated_data)
             if extra_log_info:
                 log_created = GenericLog.objects.get(object_id=self.instance.id)
