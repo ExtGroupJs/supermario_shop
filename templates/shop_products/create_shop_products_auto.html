@@ -1,0 +1,132 @@
+{% extends "index.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block head-extra %}
+<link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/dist/css/tablalog.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">{% endblock %}
+
+{% block content %}
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Entrada Automatica por Mensaje</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+            <li class="breadcrumb-item active">Procesar Mensaje de Entradas</li>
+          </ol>
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+
+  <section class="content">
+    <div class="overlay" id="load" hidden>
+      <i class="fas fa-2x fa-sync fa-spin"></i>
+    </div>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Pegar mensaje y convertir a entradas</h3>
+            </div>
+            <div class="card-body">
+              <form id="form-parse-message">
+                <div class="row">
+                  <div class="form-group col-md-6 col-sm-12">
+                    <label for="shop">Tienda</label>
+                    <select class="form-control select2" id="shop" name="shop" required></select>
+                  </div>
+                  <div class="form-group col-md-6 col-sm-12">
+                    <label for="similarityThreshold">Sensibilidad de coincidencia</label>
+                    <input type="range" class="form-control-range" id="similarityThreshold" min="40" max="90" value="55">
+                    <small id="similarityValue" class="form-text text-muted">55%</small>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="messageInput">Mensaje de entrada</label>
+                  <textarea class="form-control" id="messageInput" rows="8" placeholder="Pega aqui el mensaje completo" required></textarea>
+                  <small class="form-text text-muted">
+                    Formato esperado por linea: cantidad - producto. La primera linea se usa como nota global de la entrada.
+                  </small>
+                </div>
+                <div class="d-flex justify-content-between flex-wrap">
+                  <button type="submit" class="btn btn-primary mb-2">Analizar Mensaje</button>
+                  <button type="button" class="btn btn-success mb-2" id="btn-create-entries" disabled>Crear Entradas Encontradas</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Resultado del analisis</h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+              <table class="table table-bordered table-striped" id="parsed-results-table">
+                <thead>
+                  <tr>
+                    <th style="width: 60px;">Crear</th>
+                    <th style="width: 80px;">Cantidad</th>
+                    <th>Producto del mensaje</th>
+                    <th>Coincidencias</th>
+                    <th style="width: 220px;">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="parsed-results-body">
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">Sin resultados todavia</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<!-- DataTables & Plugins -->
+<script src="{% static 'assets/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jszip/jszip.min.js' %}"></script>
+<script src="{% static 'assets/plugins/pdfmake/pdfmake.min.js' %}"></script>
+<script src="{% static 'assets/plugins/pdfmake/vfs_fonts.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+<script src="{% static 'assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jquery-validation/jquery.validate.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jquery-validation/additional-methods.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
+
+<script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
+
+<script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+<script src="{% static 'assets/dist/js/create_shop_products_auto.js' %}"></script>
+<script>
+  $('.select2').select2({ theme: 'bootstrap4' })
+  
+</script>
+{% endblock %}
