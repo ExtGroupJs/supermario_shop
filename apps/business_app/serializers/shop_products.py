@@ -32,6 +32,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "product_name",
             "model_brand",
             "extra_info",
+            "sell_price_for_catalog",
             "created_timestamp",
             "updated_timestamp",
             "extra_log_info",
@@ -90,6 +91,7 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
         fields = (
             "id",
             "sell_price",
+            "sell_price_for_catalog",
             "product",
             "shop_name",
             "sales_count",
@@ -151,6 +153,7 @@ class MoveToAnotherShopSerializer(serializers.ModelSerializer):
                 quantity=quantity_to_move,
                 cost_price=self.instance.cost_price,
                 sell_price=self.instance.sell_price,
+                sell_price_for_catalog=self.instance.sell_price_for_catalog,
                 extra_info=self.instance.extra_info,
             )
             created_shopproduct.save(
