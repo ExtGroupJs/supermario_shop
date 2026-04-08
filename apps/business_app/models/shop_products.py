@@ -30,6 +30,12 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
         verbose_name="Precio de venta",
         validators=[validators.MinValueValidator(limit_value=0.3)],
     )
+    sell_price_for_catalog = models.FloatField(
+        verbose_name="Precio de venta para catálogo",
+        validators=[validators.MinValueValidator(limit_value=0.3)],
+        null=True,
+        blank=True,
+    )
 
     def clean(self):
         super().clean()

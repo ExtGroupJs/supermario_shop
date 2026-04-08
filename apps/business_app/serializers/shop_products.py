@@ -32,6 +32,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "product_name",
             "model_brand",
             "extra_info",
+            "sell_price_for_catalog",
             "created_timestamp",
             "updated_timestamp",
             "extra_log_info",
@@ -47,11 +48,19 @@ class ShopProductsSerializer(serializers.ModelSerializer):
         extra_log_info = validated_data.pop("extra_log_info", None)
 
         if self.instance is not None:
+            # En update: si no se envía sell_price_for_catalog, adopta el sell_price
+            if "sell_price_for_catalog" not in validated_data:
+                validated_data["sell_price_for_catalog"] = validated_data.get(
+                    "sell_price", self.instance.sell_price
+                )
             for attr, value in validated_data.items():
                 setattr(self.instance, attr, value)
             self.instance.save(extra_log_info=extra_log_info)
 
         else:
+            # En create: si no se envía sell_price_for_catalog, adopta el sell_price
+            if "sell_price_for_catalog" not in validated_data:
+                validated_data["sell_price_for_catalog"] = validated_data.get("sell_price")
             self.instance = ShopProducts.objects.create(**validated_data)
             if extra_log_info:
                 log_created = GenericLog.objects.get(object_id=self.instance.id)
@@ -90,6 +99,7 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
         fields = (
             "id",
             "sell_price",
+            "sell_price_for_catalog",
             "product",
             "shop_name",
             "sales_count",
@@ -151,6 +161,7 @@ class MoveToAnotherShopSerializer(serializers.ModelSerializer):
                 quantity=quantity_to_move,
                 cost_price=self.instance.cost_price,
                 sell_price=self.instance.sell_price,
+                sell_price_for_catalog=self.instance.sell_price_for_catalog,
                 extra_info=self.instance.extra_info,
             )
             created_shopproduct.save(

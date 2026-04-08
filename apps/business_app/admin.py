@@ -98,6 +98,7 @@ class ShopProductsAdmin(SafeDeleteAdmin):
         "quantity",
         "cost_price",
         "sell_price",
+        "sell_price_for_catalog",
         "extra_info",
         "updated_timestamp",
     ) + SafeDeleteAdmin.list_display
@@ -108,6 +109,7 @@ class ShopProductsAdmin(SafeDeleteAdmin):
         "quantity",
         "cost_price",
         "sell_price",
+        "sell_price_for_catalog",
     ]
     field_to_highlight = "id"
 
