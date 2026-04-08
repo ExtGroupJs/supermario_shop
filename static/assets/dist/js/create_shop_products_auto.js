@@ -14,6 +14,8 @@ const thresholdValue = document.getElementById("similarityValue");
 let parsedEntries = [];
 let globalExtraInfo = "";
 let selectedShopProducts = [];
+let allProducts = [];
+let pendingProductCreation = null;
 
 $(function () {
   poblarTiendas();
@@ -37,20 +39,27 @@ function bindEvents() {
   $(document).on("change", ".manual-match-select", function () {
     const index = Number(this.dataset.index);
     const selectedValue = this.value;
-    const selectedMatchIndex = selectedValue === "" ? null : Number(selectedValue);
     const entry = parsedEntries[index];
 
     if (!entry) {
       return;
     }
 
-    const candidateSource = getManualSelectionCandidates(entry);
     entry.originalStatus = entry.originalStatus || entry.status;
 
-    if (selectedMatchIndex === null || Number.isNaN(selectedMatchIndex)) {
+    if (selectedValue === "") {
       entry.chosenMatch = null;
       entry.status = entry.originalStatus;
+    } else if (selectedValue.startsWith("existing_")) {
+      const productId = Number(selectedValue.replace("existing_", ""));
+      const product = allProducts.find(p => p.id === productId);
+      if (product) {
+        abrirModalCrearShopProduct(index, productId, product.displayName);
+        return;
+      }
     } else {
+      const selectedMatchIndex = Number(selectedValue);
+      const candidateSource = getManualSelectionCandidates(entry);
       entry.chosenMatch = candidateSource[selectedMatchIndex] || null;
       entry.status = entry.chosenMatch ? "seleccionado_manualmente" : entry.originalStatus;
     }
@@ -71,6 +80,10 @@ function bindEvents() {
 
   $(document).on("change", ".entry-check", function () {
     updateCreateButtonState();
+  });
+
+  $(document).on("click", "#btn-use-existing-product", function () {
+    usarProductoExistenteDesdeModal();
   });
 }
 
@@ -108,7 +121,10 @@ async function analizarMensaje() {
   parsedEntries = [];
 
   try {
-    selectedShopProducts = await cargarShopProducts(shopId);
+    selectedShopProducts = (await cargarShopProducts(shopId)).sort((a, b) =>
+      a.displayName.localeCompare(b.displayName)
+    );
+    allProducts = await cargarTodosProductos();
 
     const lines = message
       .split(/\r?\n/)
@@ -230,10 +246,25 @@ async function cargarShopProducts(shopId) {
       modelBrand: item.model_brand || "",
       sellPrice: item.sell_price,
       costPrice: item.cost_price,
+      productId: item.product.id,
       candidateText,
       normalizedCandidate: normalizeText(candidateText),
     };
   });
+}
+
+async function cargarTodosProductos() {
+  const response = await axios.get("/business-gestion/products/");
+  return (response.data.results || []).map((item) => ({
+    id: item.id,
+    name: item.__str__ || item.name,
+    displayName: item.name,
+  }));
+}
+
+function getProductosNoEnTienda() {
+  const shopProductIds = new Set(selectedShopProducts.map(p => p.productId));
+  return allProducts.filter(p => !shopProductIds.has(p.id));
 }
 
 function findMatches(inputText, candidates, threshold) {
@@ -362,27 +393,29 @@ function renderParsedResults() {
 
 function renderMatches(entry) {
   if (entry.status === "no_encontrado") {
+    const entryIndex = parsedEntries.indexOf(entry);
+
     const options = [
-      '<option value="">Selecciona manualmente un producto</option>',
-      ...selectedShopProducts
-        .slice()
-        .sort((a, b) => a.displayName.localeCompare(b.displayName))
-        .map(
-          (match, index) =>
-            `<option value="${index}">${escapeHtml(match.displayName)} (${escapeHtml(
-              match.modelBrand
-            )})</option>`
-        ),
+      '<option value="">Selecciona un shop-product manualmente</option>',
+      ...selectedShopProducts.map(
+        (match, index) =>
+          `<option value="${index}">${escapeHtml(match.displayName)} (${escapeHtml(
+            match.modelBrand
+          )}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`
+      ),
     ].join("");
 
     return `
       <div>
-        <div class="text-danger small mb-1">Sin coincidencias automaticas</div>
-        <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(
-          entry
-        )}">
-          ${options}
-        </select>
+        <div class="text-danger small mb-1">Sin coincidencias automáticas</div>
+        <div style="display: flex; gap: 6px; align-items: flex-start;">
+          <select class="form-control form-control-sm manual-match-select" data-index="${entryIndex}" style="flex: 1;">
+            ${options}
+          </select>
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick="abrirModalCrearProducto(${entryIndex})">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
       </div>
     `;
   }
@@ -422,6 +455,9 @@ function renderMatches(entry) {
 function renderStatus(entry) {
   if (entry.status === "encontrado") {
     return '<span class="badge badge-success">Encontrado</span>';
+  }
+  if (entry.manuallyCreated) {
+    return '<span class="badge badge-primary">Agregado automaticamente al sistema</span>';
   }
   if (entry.status === "seleccionado_manualmente") {
     return '<span class="badge badge-info">Seleccionado manualmente</span>';
@@ -516,7 +552,6 @@ async function crearEntradas() {
       const nextQuantity = Number(entry.chosenMatch.currentQuantity) + Number(entry.quantity);
       await axios.patch(`${shopProductsUrl}${entry.chosenMatch.id}/`, {
         quantity: nextQuantity,
-        extra_log_info: globalExtraInfo,
       });
       successCount += 1;
     } catch (error) {
@@ -545,4 +580,250 @@ function escapeHtml(text) {
   const div = document.createElement("div");
   div.innerText = text;
   return div.innerHTML;
+}
+
+function abrirModalCrearProducto(entryIndex) {
+  pendingProductCreation = { entryIndex };
+  document.getElementById("form-create-product").reset();
+  poblarProductosExistentesEnModal();
+  $("#modal-create-product").modal("show");
+}
+
+function poblarProductosExistentesEnModal() {
+  const select = document.getElementById("existing-product-select");
+  if (!select) {
+    return;
+  }
+
+  const productosNoEnTienda = getProductosNoEnTienda();
+  const options = [
+    '<option value="">Selecciona un producto existente</option>',
+    ...productosNoEnTienda.map(
+      (product) => `<option value="${product.id}">${escapeHtml(product.displayName)}</option>`
+    ),
+  ];
+
+  select.innerHTML = options.join("");
+  $(select).val("").trigger("change");
+}
+
+function usarProductoExistenteDesdeModal() {
+  if (!pendingProductCreation) {
+    return;
+  }
+
+  const selectedValue = document.getElementById("existing-product-select")?.value;
+  if (!selectedValue) {
+    Swal.fire({
+      icon: "warning",
+      title: "Selecciona un producto",
+      text: "Debes seleccionar un producto existente para continuar.",
+    });
+    return;
+  }
+
+  const productId = Number(selectedValue);
+  const product = allProducts.find((p) => p.id === productId);
+  if (!product) {
+    Swal.fire({
+      icon: "error",
+      title: "Producto no encontrado",
+      text: "No se pudo identificar el producto seleccionado.",
+    });
+    return;
+  }
+
+  $("#modal-create-product").modal("hide");
+  abrirModalCrearShopProduct(pendingProductCreation.entryIndex, product.id, product.displayName);
+}
+
+function abrirModalCrearShopProduct(entryIndex, productId, productName) {
+  pendingProductCreation = { entryIndex, productId, productName };
+  document.getElementById("form-create-shop-product").reset();
+  document.getElementById("sp-product-name").textContent = productName;
+  
+  const entry = parsedEntries[entryIndex];
+  if (entry) {
+    document.getElementById("sp-quantity").value = entry.quantity || 1;
+  }
+  
+  $("#modal-create-shop-product").modal("show");
+}
+
+$(document).ready(function () {
+  poblarModelos();
+  
+  $("#form-create-product").validate({
+    rules: {
+      name: { required: true },
+      model: { required: true },
+    },
+    submitHandler: function (form) {
+      crearProducto(form);
+    },
+    errorElement: "span",
+    errorPlacement: function (error, element) {
+      error.addClass("invalid-feedback");
+      element.closest(".form-group").append(error);
+    },
+    highlight: function (element, errorClass, validClass) {
+      $(element).addClass("is-invalid");
+    },
+    unhighlight: function (element, errorClass, validClass) {
+      $(element).removeClass("is-invalid");
+    },
+  });
+
+  $("#form-create-shop-product").validate({
+    rules: {
+      quantity: { required: true, digits: true, min: 1 },
+      cost_price: { required: true, number: true, min: 0 },
+      sell_price: { required: true, number: true, min: 0 },
+      sell_price_for_catalog: { number: true, min: 0 },
+    },
+    submitHandler: function (form) {
+      crearShopProduct(form);
+    },
+    errorElement: "span",
+    errorPlacement: function (error, element) {
+      error.addClass("invalid-feedback");
+      element.closest(".form-group").append(error);
+    },
+    highlight: function (element, errorClass, validClass) {
+      $(element).addClass("is-invalid");
+    },
+    unhighlight: function (element, errorClass, validClass) {
+      $(element).removeClass("is-invalid");
+    },
+  });
+});
+
+function poblarModelos() {
+  const $model = document.getElementById("product-model");
+  axios.get("/business-gestion/models/").then(function (response) {
+    response.data.results.forEach(function (model) {
+      const option = new Option(model.name, model.id);
+      $model.add(option);
+    });
+    if ($model.options.length > 1) {
+      $model.value = $model.options[1].value;
+    }
+  });
+}
+
+async function crearProducto(form) {
+  const formData = new FormData(form);
+  load.hidden = false;
+
+  try {
+    const response = await axios.post("/business-gestion/products/", formData);
+    if (response.status === 201) {
+      const newProduct = response.data;
+      allProducts.push({
+        id: newProduct.id,
+        name: newProduct.__str__ || newProduct.name,
+        displayName: newProduct.name,
+      });
+
+      $("#modal-create-product").modal("hide");
+      abrirModalCrearShopProduct(
+        pendingProductCreation.entryIndex,
+        newProduct.id,
+        newProduct.name
+      );
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error creando producto",
+      text: "No se pudo crear el producto. Intente nuevamente.",
+      showConfirmButton: true,
+    });
+  } finally {
+    load.hidden = true;
+  }
+}
+
+async function crearShopProduct(form) {
+  const { entryIndex, productId, productName } = pendingProductCreation;
+  const entry = parsedEntries[entryIndex];
+  
+  if (!entry) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo identificar la entrada.",
+    });
+    return;
+  }
+
+  const shopId = document.getElementById("shop").value;
+  const data = {
+    shop: shopId,
+    product: productId,
+    quantity: document.getElementById("sp-quantity").value,
+    cost_price: document.getElementById("sp-cost-price").value,
+    sell_price: document.getElementById("sp-sell-price").value,
+    sell_price_for_catalog: document.getElementById("sp-catalog-price").value || null,
+    extra_info: document.getElementById("sp-extra-info").value || "",
+  };
+
+  load.hidden = false;
+
+  try {
+    const response = await axios.post(shopProductsUrl, data);
+    if (response.status === 201) {
+      const newShopProduct = response.data;
+      
+      const shopProductObj = {
+        id: newShopProduct.id,
+        currentQuantity: Number(newShopProduct.quantity),
+        displayName: productName,
+        modelBrand: newShopProduct.model_brand || "",
+        sellPrice: newShopProduct.sell_price,
+        costPrice: newShopProduct.cost_price,
+        productId: productId,
+        candidateText: productName,
+        normalizedCandidate: normalizeText(productName),
+      };
+      
+      selectedShopProducts.push(shopProductObj);
+      selectedShopProducts.sort((a, b) => a.displayName.localeCompare(b.displayName));
+      
+      entry.chosenMatch = shopProductObj;
+      entry.status = "seleccionado_manualmente";
+      entry.manuallyCreated = true;
+      
+      const checkbox = document.querySelector(`.entry-check[data-index="${entryIndex}"]`);
+      if (checkbox) {
+        checkbox.disabled = true;
+        checkbox.checked = false;
+      }
+      
+      const statusCell = document.querySelector(`.entry-status[data-index="${entryIndex}"]`);
+      if (statusCell) {
+        statusCell.innerHTML = renderStatus(entry);
+      }
+      
+      updateCreateButtonState();
+      $("#modal-create-shop-product").modal("hide");
+      
+      Swal.fire({
+        icon: "success",
+        title: "Producto agregado a tienda",
+        text: `${productName} ha sido agregado correctamente.`,
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error creando shop-product",
+      text: "No se pudo agregar el producto a la tienda.",
+      showConfirmButton: true,
+    });
+  } finally {
+    load.hidden = true;
+  }
 }
