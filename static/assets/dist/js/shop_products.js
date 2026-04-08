@@ -111,6 +111,7 @@ $(document).ready(function () {
       { data: "quantity", title: "Cantidad" },
       { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
+      { data: "sell_price_for_catalog", title: "Precio Catálogo", defaultContent: "-" },
       { data: "updated_timestamp", title: "Fecha" },
       {
         data: "extra_info",
@@ -245,6 +246,7 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         form.elements.quantity.value = shopProduct.quantity;
         form.elements.cost_price.value = shopProduct.cost_price;
         form.elements.sell_price.value = shopProduct.sell_price;
+        form.elements.sell_price_for_catalog.value = shopProduct.sell_price_for_catalog || "";
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
         form.elements.product.value = shopProduct.product.id;
@@ -285,6 +287,10 @@ $(function () {
         number: true, // Solo números
         greaterThan: "#cost_price", // El precio de venta debe ser mayor que el precio de costo
       },
+      sell_price_for_catalog: {
+        required: false,
+        number: true,
+      },
       extra_info: {
         required: false, // Campo no obligatorio
       },
@@ -323,6 +329,8 @@ $(function () {
       data.append("quantity", document.getElementById("quantity").value);
       data.append("cost_price", document.getElementById("cost_price").value);
       data.append("sell_price", document.getElementById("sell_price").value);
+      const spfcVal = document.getElementById("sell_price_for_catalog").value;
+      if (spfcVal !== "") data.append("sell_price_for_catalog", spfcVal);
       data.append("extra_info", document.getElementById("extra_info").value);
       data.append(
         "extra_log_info",
