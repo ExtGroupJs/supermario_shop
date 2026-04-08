@@ -11,6 +11,239 @@ let url = "/business-gestion/shop-products/";
 
 let load = document.getElementById("load");
 
+function getProductImageUrl(row) {
+  return row?.product?.image || "";
+}
+
+function renderProductImage(data, type, row) {
+  const imageUrl = getProductImageUrl(row);
+
+  if (type === "display") {
+    if (imageUrl) {
+      return `<div style="text-align: center;"><img src="${imageUrl}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${imageUrl}"></div>`;
+    }
+
+    return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+  }
+
+  if (type === "print") {
+    if (imageUrl) {
+      return `<img src="${imageUrl}" alt="image" style="width: 60px; height: auto;">`;
+    }
+
+    return "Sin imagen";
+  }
+
+  if (type === "export" || type === "filter" || type === "sort") {
+    return imageUrl || "Sin imagen";
+  }
+
+  return imageUrl || "";
+}
+
+function resolveValueByPath(object, path) {
+  if (!path || typeof path !== "string") {
+    return null;
+  }
+
+  return path.split(".").reduce((currentValue, key) => {
+    if (currentValue == null) {
+      return null;
+    }
+
+    return currentValue[key];
+  }, object);
+}
+
+function getColumnTitle(dt, columnIndex) {
+  return $(dt.column(columnIndex).header()).text().trim();
+}
+
+function getVisibleExportColumns(dt) {
+  return dt
+    .columns(":visible")
+    .indexes()
+    .toArray()
+    .map((columnIndex) => ({
+      index: columnIndex,
+      title: getColumnTitle(dt, columnIndex),
+      data: dt.column(columnIndex).dataSrc(),
+    }))
+    .filter((column) => column.title !== "Acciones");
+}
+
+function getCurrentTableRowsForExcelExport(dt) {
+  return dt.rows({ page: "current" }).data().toArray();
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function getImageExtension(contentType, imageUrl) {
+  const normalizedType = (contentType || "").toLowerCase();
+
+  if (normalizedType.includes("png")) {
+    return "png";
+  }
+
+  if (normalizedType.includes("jpeg") || normalizedType.includes("jpg")) {
+    return "jpeg";
+  }
+
+  if (normalizedType.includes("gif")) {
+    return "gif";
+  }
+
+  const cleanUrl = (imageUrl || "").split("?")[0].toLowerCase();
+
+  if (cleanUrl.endsWith(".png")) {
+    return "png";
+  }
+
+  if (cleanUrl.endsWith(".gif")) {
+    return "gif";
+  }
+
+  return "jpeg";
+}
+
+async function fetchImageForExcel(imageUrl) {
+  if (!imageUrl) {
+    return null;
+  }
+
+  const response = await axios.get(imageUrl, {
+    responseType: "blob",
+  });
+
+  return {
+    base64: await blobToDataUrl(response.data),
+    extension: getImageExtension(response.data.type, imageUrl),
+  };
+}
+
+function getExcelColumnWidth(columnTitle) {
+  if (columnTitle === "Foto") {
+    return 14;
+  }
+
+  if (columnTitle === "Información Extra") {
+    return 35;
+  }
+
+  if (columnTitle === "Marca - Modelo") {
+    return 24;
+  }
+
+  return 20;
+}
+
+function getCellExportValue(row, column) {
+  if (column.title === "Foto") {
+    return getProductImageUrl(row) ? "" : "Sin imagen";
+  }
+
+  const rawValue = resolveValueByPath(row, column.data);
+
+  if (rawValue === null || rawValue === undefined || rawValue === "") {
+    return "-";
+  }
+
+  return rawValue;
+}
+
+function downloadExcelBuffer(buffer, fileName) {
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = downloadUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(downloadUrl);
+}
+
+async function exportShopProductsToExcel(dt) {
+  if (!window.ExcelJS) {
+    throw new Error("ExcelJS no está disponible en la página.");
+  }
+
+  const visibleColumns = getVisibleExportColumns(dt);
+  const rows = getCurrentTableRowsForExcelExport(dt);
+
+  if (!rows.length) {
+    Swal.fire({
+      icon: "info",
+      title: "Sin datos para exportar",
+      text: "No hay registros visibles en la tabla para exportar.",
+      showConfirmButton: true,
+    });
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Entradas de Producto");
+  const imageColumnIndex = visibleColumns.findIndex(
+    (column) => column.title === "Foto"
+  );
+
+  worksheet.columns = visibleColumns.map((column, index) => ({
+    header: column.title,
+    key: `column_${index}`,
+    width: getExcelColumnWidth(column.title),
+  }));
+
+  worksheet.views = [{ state: "frozen", ySplit: 1 }];
+  worksheet.getRow(1).font = { bold: true };
+  worksheet.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
+
+  for (const row of rows) {
+    const rowPayload = {};
+
+    visibleColumns.forEach((column, index) => {
+      rowPayload[`column_${index}`] = getCellExportValue(row, column);
+    });
+
+    const worksheetRow = worksheet.addRow(rowPayload);
+    worksheetRow.height = imageColumnIndex >= 0 ? 42 : undefined;
+    worksheetRow.alignment = { vertical: "middle", wrapText: true };
+
+    if (imageColumnIndex >= 0) {
+      const imageUrl = getProductImageUrl(row);
+
+      if (imageUrl) {
+        try {
+          const image = await fetchImageForExcel(imageUrl);
+          const imageId = workbook.addImage(image);
+
+          worksheetRow.getCell(imageColumnIndex + 1).value = "";
+          worksheet.addImage(imageId, {
+            tl: { col: imageColumnIndex + 0.15, row: worksheetRow.number - 0.85 },
+            ext: { width: 48, height: 48 },
+            editAs: "oneCell",
+          });
+        } catch (error) {
+          worksheetRow.getCell(imageColumnIndex + 1).value = imageUrl;
+        }
+      }
+    }
+  }
+
+  const excelBuffer = await workbook.xlsx.writeBuffer();
+  const timeStamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-");
+  downloadExcelBuffer(excelBuffer, `shop-products-${timeStamp}.xlsx`);
+}
+
 $(function () {
   // bsCustomFileInput.init();
   $("#filter-form")[0].reset();
@@ -35,18 +268,48 @@ $(document).ready(function () {
         action: function (e, dt, node, config) {
           $("#modal-crear-shop-products").modal("show");
         },
-      },
+      },     
       {
-        extend: "excel",
         text: "Excel",
-      },
-      {
-        extend: "pdf",
-        text: "PDF",
+        action: async function (e, dt, node, config) {
+          load.hidden = false;
+
+          try {
+            await exportShopProductsToExcel(dt);
+          } catch (error) {
+            Swal.fire({
+              icon: "error",
+              title: "Error exportando a Excel",
+              text: "No se pudo generar el archivo de Excel con imágenes.",
+              showConfirmButton: true,
+            });
+          } finally {
+            load.hidden = true;
+          }
+        },
       },
       {
         extend: "print",
         text: "Print",
+        exportOptions: {
+          columns: ":visible",
+          orthogonal: "print",
+          stripHtml: false,
+        },
+        customize: function (win) {
+          $(win.document.body).find("table img").css({
+            width: "60px",
+            height: "auto",
+          });
+        },
+      },
+       {
+        extend: "colvis",
+        text: "Ver",
+        columns: ":not(:last-child)",
+        columnText: function (dt, idx, title) {
+          return title || `Columna ${idx + 1}`;
+        },
       },
     ],
     serverSide: true,
@@ -65,7 +328,7 @@ $(document).ready(function () {
         }
       });
 
-      if (myDateStart !== null && myDateStart !== null) {
+      if (myDateStart !== null && myDateEnd !== null) {
         params["updated_timestamp__gte"] = myDateStart;
         params["updated_timestamp__lte"] = myDateEnd;
       }
@@ -97,14 +360,7 @@ $(document).ready(function () {
       {
         data: "id",
         title: "Foto",
-
-        render: (data, type, row) => {
-          if (data) {
-            return `<div style="text-align: center;"><img src="${row.product.image}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${row.product.image}"></div>`;
-          } else {
-            return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
-          }
-        },
+        render: renderProductImage,
       },
       { data: "product_name", title: "Producto" },
       { data: "model_brand", title: "Marca - Modelo" },
