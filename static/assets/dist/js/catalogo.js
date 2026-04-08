@@ -124,13 +124,13 @@ function renderProducts(products) {
                 </div>
                 <h4><a class="product_name" href="#">${product.product.name}</a></h4>
                 <div class="price-box">
-                  <span class="new-price">$${product.sell_price}</span>
+                  <span class="new-price">$${product.sell_price_for_catalog}</span>
                 </div>
               </div>
               <div class="add-actions">
                 <ul class="add-actions-link" style="display: flex; gap: 5px; justify-content: center;">
                   <li class="li-btn"><a href="#" title="ver detalles" class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter" onclick="viewProductDetails(${product.id})"><i class="fa fa-eye"></i></a></li>
-                  <li class="li-btn"><a href="#" title="contactar por WhatsApp" class="quick-view-btn" onclick="contactWhatsApp('${product.product.name}', ${product.sell_price})"><i class="fa fa-whatsapp"></i></a></li>
+                  <li class="li-btn"><a href="#" title="contactar por WhatsApp" class="quick-view-btn" onclick="contactWhatsApp('${product.product.name}', ${product.sell_price_for_catalog})"><i class="fa fa-whatsapp"></i></a></li>
                 </ul>
               </div>
             </div>
@@ -163,13 +163,13 @@ function renderProducts(products) {
                 </div>
                 <h4><a class="product_name" href="#">${product.product.name}</a></h4>
                 <div class="price-box">
-                  <span class="new-price">$${product.sell_price}</span>
+                  <span class="new-price">$${product.sell_price_for_catalog}</span>
                 </div>
               </div>
               <div class="add-actions">
                 <ul class="add-actions-link" style="display: flex; gap: 5px; justify-content: center;">
                   <li class="li-btn"><a href="#" title="ver detalles" class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter" onclick="viewProductDetails(${product.id})"><i class="fa fa-eye"></i></a></li>
-                  <li class="li-btn" style="color: red"><a href="#" title="contactar por WhatsApp" class="quick-view-btn" onclick="contactWhatsApp('${product.product.name}', ${product.sell_price})"><i class="fa fa-whatsapp"></i></a></li>
+                  <li class="li-btn" style="color: red"><a href="#" title="contactar por WhatsApp" class="quick-view-btn" onclick="contactWhatsApp('${product.product.name}', ${product.sell_price_for_catalog})"><i class="fa fa-whatsapp"></i></a></li>
                 </ul>
               </div>
             </div>
@@ -612,7 +612,7 @@ console.log("product",product);
       product.product.model.__str__;
     document.getElementById(
       "modalPrice"
-    ).textContent = `$${product.sell_price}`;
+    ).textContent = `$${product.sell_price_for_catalog}`;
     document.getElementById("modalShopName").textContent = product.shop_name;
     document.getElementById("modalDescription").textContent =
       product.extra_info || "Sin descripción";
@@ -621,7 +621,7 @@ console.log("product",product);
     const whatsappButton = document.createElement('button');
     whatsappButton.className = 'btn btn-success mt-3';
     whatsappButton.innerHTML = '<i class="fa fa-whatsapp"></i> Contactar por WhatsApp';
-    whatsappButton.onclick = () => contactWhatsApp(product.product.name, product.sell_price);
+    whatsappButton.onclick = () => contactWhatsApp(product.product.name, product.sell_price_for_catalog);
     
     const modalFooter = document.querySelector('#productDetailModal .modal-footer');
     // Limpiar footer anterior
