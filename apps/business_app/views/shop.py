@@ -10,16 +10,20 @@ from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.permissions import CommonRolePermission, SellViewSetPermission
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
+from django.db.models import Q
 
 
 class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
-    queryset = Shop.objects.filter(enabled=True)
+    queryset = Shop.objects.all()
     serializer_class = ShopSerializer
     permission_classes = [CommonRolePermission]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
         CommonOrderingFilter,
+    ]
+    filterset_fields = [
+        "catalog_url",
     ]
     search_fields = [
         "name",
@@ -33,6 +37,30 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
             permission_classes = self.permission_classes
         return [permission() for permission in permission_classes]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == "catalog":
+            queryset = queryset.filter(
+                ~Q(name=Shop.WHOLESALE_SHOP_NAME),
+                enabled=True,
+            )
+        elif self.action == "wholesale_catalog":
+            queryset = queryset.filter(
+                Q(name=Shop.WHOLESALE_SHOP_NAME),
+                enabled=True,
+            )
+        return queryset
+
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):
+        return self.list(request)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[AllowAny],
+        url_name="wholesale-catalog",
+        url_path="wholesale-catalog",
+    )
+    def wholesale_catalog(self, request):
         return self.list(request)

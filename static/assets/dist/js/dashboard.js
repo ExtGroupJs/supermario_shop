@@ -4,10 +4,50 @@ const csrfToken = document.cookie
   ?.split("=")[1];
   axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
+/**
+ * Retorna un objeto con {shop_id: <id>} si hay una tienda seleccionada
+ * en localStorage, o un objeto vacío si no hay ninguna.
+ */
+function getShopIdFilter() {
+  const shopId = localStorage.getItem("selectedShopId");
+  return shopId ? { shop_id: parseInt(shopId, 10) } : {};
+}
+
+/**
+ * Muestra u oculta el banner de aviso cuando no hay tienda seleccionada.
+ */
+function updateNoShopWarning() {
+  const shopId = localStorage.getItem("selectedShopId");
+  const banner = document.getElementById("no-shop-warning");
+  const content = document.getElementById("dashboard-metrics-content");
+  if (!banner || !content) return;
+  if (!shopId) {
+    banner.style.display = "block";
+    content.style.display = "none";
+  } else {
+    banner.style.display = "none";
+    content.style.display = "";
+  }
+}
+
+function formatMetricNumber(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "0";
+
+    return number.toLocaleString("es-ES", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 3,
+    });
+}
+
 // url del endpoint principal
 // const url = "/business-gestion/dashboard/shop-product-investment/";
 $(document).ready(function () {
-  
+  updateNoShopWarning();
+
+  const shopId = localStorage.getItem("selectedShopId");
+  if (!shopId) return; // No cargar métricas si no hay tienda seleccionada
+
 smallboxdataInvestment();
 smallboxdataInvestmentLastMonth();
 smallboxdataInvestmentCurrentMonth();
@@ -28,7 +68,7 @@ const today = new Date();
 
 function smallboxdataInvestment() {
     axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-    axios.post("/business-gestion/dashboard/shop-product-investment/")
+    axios.post("/business-gestion/dashboard/shop-product-investment/", { ...getShopIdFilter() })
         .then(response => {
             // Obtener el valor de inversiones de la respuesta
             const investmentValue = response.data.investments;
@@ -36,7 +76,7 @@ function smallboxdataInvestment() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('inversion');
             if (smallBox) {
-                smallBox.textContent = investmentValue+"$";
+                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
             }
         })
         .catch(error => {
@@ -67,7 +107,8 @@ function smallboxdataInvestmentLastMonth() {
     // Parámetros para la solicitud
     const params = {
         "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate
+        "updated_timestamp__lte": endDate,
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-investment/', params)
@@ -78,7 +119,7 @@ function smallboxdataInvestmentLastMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('inversionxmes');
             if (smallBox) {
-                smallBox.textContent = investmentValue+"$";
+                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
             }
         })
         .catch(error => {
@@ -105,7 +146,8 @@ function smallboxdataInvestmentCurrentMonth() {
     // Parámetros para la solicitud
     const params = {
         "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate
+        "updated_timestamp__lte": endDate,
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-investment/', params)
@@ -116,7 +158,7 @@ function smallboxdataInvestmentCurrentMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('inversioncurrentmes');
             if (smallBox) {
-                smallBox.textContent = investmentValue + "$";
+                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
             }
         })
         .catch(error => {
@@ -146,8 +188,8 @@ function smallboxdataSellCurrentWeek() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        "frequency": "week"
-        
+        "frequency": "week",
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-sells-count/', params)
@@ -157,7 +199,7 @@ function smallboxdataSellCurrentWeek() {
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('sellweek');
             if (smallBox) {
-                smallBox.textContent = sellCount + " Ventas";
+                smallBox.textContent = formatMetricNumber(sellCount) + " Ventas";
             }
         })
         .catch(error => {
@@ -183,7 +225,8 @@ function smallboxdataSellCurrentMonth() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        "frequency": "month",        
+        "frequency": "month",
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-sells-count/', params)
@@ -194,7 +237,7 @@ function smallboxdataSellCurrentMonth() {
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('sellmount');
             if (smallBox) {
-                smallBox.textContent = sellCount + " Ventas";
+                smallBox.textContent = formatMetricNumber(sellCount) + " Ventas";
             }
         })
         .catch(error => {
@@ -204,7 +247,7 @@ function smallboxdataSellCurrentMonth() {
 
 function smallboxdataSellProfits() {
     axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-    axios.post('/business-gestion/dashboard/sell-profits/')
+    axios.post('/business-gestion/dashboard/sell-profits/', { ...getShopIdFilter() })
         .then(response => {
             // Obtener el valor de inversiones de la respuesta
             const sellProfitsValue = response.data.result.total-response.data.discounts;
@@ -212,7 +255,7 @@ function smallboxdataSellProfits() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('sell-profits-total');
             if (smallBox) {
-                smallBox.textContent = sellProfitsValue+"$";
+                smallBox.textContent = formatMetricNumber(sellProfitsValue) + "$";
             }
         })
         .catch(error => {
@@ -242,7 +285,8 @@ function smallboxdataSellProfitsLastMonth() {
     // Parámetros para la solicitud
     const params = {
         "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate
+        "updated_timestamp__lte": endDate,
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -253,7 +297,7 @@ function smallboxdataSellProfitsLastMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciaslastmes');
             if (smallBox) {
-                smallBox.textContent = investmentValue+"$";
+                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
             }
         })
         .catch(error => {
@@ -280,7 +324,8 @@ function smallboxdataSellProfitsCurrentMonth() {
     // Parámetros para la solicitud
     const params = {
         "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate
+        "updated_timestamp__lte": endDate,
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -291,7 +336,7 @@ function smallboxdataSellProfitsCurrentMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciascurrentmes');
             if (smallBox) {
-                smallBox.textContent = SellProfitsValue + "$";
+                smallBox.textContent = formatMetricNumber(SellProfitsValue) + "$";
             }
         })
         .catch(error => {
@@ -321,8 +366,7 @@ function smallboxdataSellProfitsCurrentWeek() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        // "frequency": "week"
-        
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -332,7 +376,7 @@ function smallboxdataSellProfitsCurrentWeek() {
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('SellProfitscurrentweek');
             if (smallBox) {
-                smallBox.textContent = sellCount + " $";
+                smallBox.textContent = formatMetricNumber(sellCount) + " $";
             }
         })
         .catch(error => {
@@ -355,7 +399,8 @@ function daterangeSellProfits(startDate, endDate) {
     const params = {
         "updated_timestamp__gte": start,
         "updated_timestamp__lte": end,
-        "frequency": "day"
+        "frequency": "day",
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -377,9 +422,9 @@ function daterangeSellProfits(startDate, endDate) {
              const dateRangeSales = document.getElementById('dateRangeSales');
              const dateRangeDiscounts = document.getElementById('dateRangeDiscounts');
              if (dateRangeProfits && dateRangeSales && dateRangeDiscounts) {
-                dateRangeProfits.textContent = sellCount-response.data.discounts + " $";
-                dateRangeSales.textContent =itemCount;
-                dateRangeDiscounts.textContent =response.data.discounts + " $";
+                     dateRangeProfits.textContent = formatMetricNumber(sellCount - response.data.discounts) + " $";
+                dateRangeSales.textContent = itemCount;
+                     dateRangeDiscounts.textContent = formatMetricNumber(response.data.discounts) + " $";
 
 
              }
@@ -409,7 +454,8 @@ function chartSellProfitsLastWeek() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        "frequency": "day"  // Cambiamos a "day" para obtener datos diarios
+        "frequency": "day",  // Cambiamos a "day" para obtener datos diarios
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)
@@ -457,7 +503,8 @@ function chartSellProfitsThisWeek() {
     const params = {
         "updated_timestamp__gte": startDate,
         "updated_timestamp__lte": endDate,
-        "frequency": "day"  // Cambiamos a "day" para obtener datos diarios
+        "frequency": "day",  // Cambiamos a "day" para obtener datos diarios
+        ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/sell-profits/', params)

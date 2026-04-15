@@ -13,7 +13,10 @@ class Migration(migrations.Migration):
             model_name="genericlog",
             name="extra_log_info",
             field=models.CharField(
-                blank=True, null=True, verbose_name="Información adicional"
+                blank=True,
+                max_length=500,
+                null=True,
+                verbose_name="Información adicional",
             ),
         ),
     ]

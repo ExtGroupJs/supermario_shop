@@ -8,55 +8,12 @@ let searchValue = "";
 let shopValue = "";
 let orderingValue = "";
 let product__model__brand = "";
-let currentViewMode = 'grid';
-const catalogShopUrl = window.CATALOG_SHOP_URL || "";
-let lockedShopId = "";
-const shopsMetaById = {};
-const SHOP_TYPE_MECHANIC = "M";
-const SHOP_TYPE_TECHNOLOGY = "T";
-let currentShopType = SHOP_TYPE_MECHANIC;
-
-function getCatalogLabelsByShopType(shopType) {
-  if (shopType === SHOP_TYPE_TECHNOLOGY) {
-    return {
-      brandLabel: "Categoría",
-      brandLower: "categoría",
-      modelLabel: "Fabricante",
-      modelPlural: "Fabricantes",
-    };
-  }
-  return {
-    brandLabel: "Marca",
-    brandLower: "marca",
-    modelLabel: "Modelo",
-    modelPlural: "Modelos",
-  };
-}
-
-function applyCatalogLabelsByShopType(shopType) {
-  currentShopType = shopType || SHOP_TYPE_MECHANIC;
-  const labels = getCatalogLabelsByShopType(currentShopType);
-
-  const modelTitle = document.querySelector("#models-container .sidebar-title h2");
-  if (modelTitle) {
-    modelTitle.textContent = labels.modelPlural;
-  }
-
-  const modalBrandLabel = document.querySelector("#productDetailModal p.brand strong");
-  if (modalBrandLabel) {
-    modalBrandLabel.textContent = `${labels.brandLabel}:`;
-  }
-
-  const modalModelLabel = document.querySelector("#productDetailModal p.model strong");
-  if (modalModelLabel) {
-    modalModelLabel.textContent = `${labels.modelLabel}:`;
-  }
-}
+let currentViewMode = "grid";
 
 // Función para cargar productos
 function loadProducts(page) {
   currentPage = page;
-  const url = "/business-gestion/shop-products/catalog/"; // Asegúrate de que esta URL sea correcta
+  const url = "/business-gestion/shop-products/wholesale-catalog/"; // Asegúrate de que esta URL sea correcta
   const params = {
     page_size: productsPerPage === "all" ? Infinity : productsPerPage, // Ajustar según la selección
     page: page,
@@ -76,7 +33,7 @@ function loadProducts(page) {
 
       // Calcular el número total de páginas
       totalPages = Math.ceil(
-        totalProducts / (productsPerPage === "all" ? 1 : productsPerPage)
+        totalProducts / (productsPerPage === "all" ? 1 : productsPerPage),
       );
 
       // Actualizar el conteo de productos mostrados
@@ -84,9 +41,8 @@ function loadProducts(page) {
       const end = Math.min(start + results.length - 1, count);
       updatePagination(); // Actualiza la paginación
 
-      document.getElementById(
-        "product-count"
-      ).innerText = `mostrando ${start}-${end} de ${count} productos`;
+      document.getElementById("product-count").innerText =
+        `mostrando ${start}-${end} de ${count} productos`;
     })
     .catch((error) => {
       alert("Error al cargar los productos: " + error.message);
@@ -97,18 +53,18 @@ function renderProducts(products) {
   const productArea = document.querySelector(".shop-products-wrapper .row");
   productArea.innerHTML = ""; // Limpiar productos existentes
 
-  products.forEach((product) => {  
-    if (currentViewMode === 'grid') {
+  products.forEach((product) => {
+    if (currentViewMode === "grid") {
       const productHTML = `
         <div class="col-lg-4 col-md-4 col-sm-6 mt-40">
           <div class="single-product-wrap">
             <div class="product-image">
               <a>
-                <img src="${product.product.image || '/static_output/assets/dist/img/producto-sin-imagen.jpg'}" 
+                <img src="${product.product.image || "/static_output/assets/dist/img/producto-sin-imagen.jpg"}" 
                      alt="${product.product.name}"
                      onerror="this.src='/static_output/assets/dist/img/producto-sin-imagen.jpg'">
               </a>
-              ${product.is_new ? '<span class="sticker">New</span>' : ''}
+              ${product.is_new ? '<span class="sticker">New</span>' : ""}
             </div>
             <div class="product_desc">
               <div class="product_desc_info">
@@ -124,13 +80,13 @@ function renderProducts(products) {
                 </div>
                 <h4><a class="product_name" href="#">${product.product.name}</a></h4>
                 <div class="price-box">
-                  <span class="new-price">$${product.sell_price_for_catalog}</span>
+                  <span class="new-price">$${product.sell_price}</span>
                 </div>
               </div>
               <div class="add-actions">
                 <ul class="add-actions-link" style="display: flex; gap: 5px; justify-content: center;">
                   <li class="li-btn"><a href="#" title="ver detalles" class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter" onclick="viewProductDetails(${product.id})"><i class="fa fa-eye"></i></a></li>
-                  <li class="li-btn"><a href="#" title="contactar por WhatsApp" class="quick-view-btn" onclick="contactWhatsApp('${product.product.name}', ${product.sell_price_for_catalog})"><i class="fa fa-whatsapp"></i></a></li>
+                  <li class="li-btn"><a href="#" title="contactar por WhatsApp" class="quick-view-btn" onclick="contactWhatsApp('${product.product.name}', ${product.sell_price})"><i class="fa fa-whatsapp"></i></a></li>
                 </ul>
               </div>
             </div>
@@ -143,11 +99,11 @@ function renderProducts(products) {
           <div class="single-product-wrap d-flex">
             <div class="product-image">
               <a>
-                <img src="${product.product.image || '/static_output/assets/dist/img/producto-sin-imagen.jpg'}" 
+                <img src="${product.product.image || "/static_output/assets/dist/img/producto-sin-imagen.jpg"}" 
                      alt="${product.product.name}"
                      onerror="this.src='/static_output/assets/dist/img/producto-sin-imagen.jpg'">
               </a>
-              ${product.is_new ? '<span class="sticker">New</span>' : ''}
+              ${product.is_new ? '<span class="sticker">New</span>' : ""}
             </div>
             <div class="product_desc flex-grow-1 ml-4">
               <div class="product_desc_info">
@@ -163,13 +119,13 @@ function renderProducts(products) {
                 </div>
                 <h4><a class="product_name" href="#">${product.product.name}</a></h4>
                 <div class="price-box">
-                  <span class="new-price">$${product.sell_price_for_catalog}</span>
+                  <span class="new-price">$${product.sell_price}</span>
                 </div>
               </div>
               <div class="add-actions">
                 <ul class="add-actions-link" style="display: flex; gap: 5px; justify-content: center;">
                   <li class="li-btn"><a href="#" title="ver detalles" class="quick-view-btn" data-toggle="modal" data-target="#exampleModalCenter" onclick="viewProductDetails(${product.id})"><i class="fa fa-eye"></i></a></li>
-                  <li class="li-btn" style="color: red"><a href="#" title="contactar por WhatsApp" class="quick-view-btn" onclick="contactWhatsApp('${product.product.name}', ${product.sell_price_for_catalog})"><i class="fa fa-whatsapp"></i></a></li>
+                  <li class="li-btn" style="color: red"><a href="#" title="contactar por WhatsApp" class="quick-view-btn" onclick="contactWhatsApp('${product.product.name}', ${product.sell_price})"><i class="fa fa-whatsapp"></i></a></li>
                 </ul>
               </div>
             </div>
@@ -187,8 +143,8 @@ function generateStarsHTML(sales) {
   // Calculamos estrellas adicionales basadas en ventas (máximo 3 estrellas adicionales)
   const additionalStars = Math.min(Math.floor(sales / 5), 3);
   const totalStars = Math.max(minStars, additionalStars);
-  
-  let starsHTML = '';
+
+  let starsHTML = "";
   for (let i = 0; i < 5; i++) {
     if (i < totalStars) {
       starsHTML += '<li><i class="fa fa-star"></i></li>';
@@ -210,16 +166,20 @@ function updatePagination() {
       "beforeend",
       `<li><a href="#" class="Previous" onclick="loadProducts(${
         currentPage - 1
-      })"><i class="fa fa-chevron-left"></i> Anterior</a></li>`
+      })"><i class="fa fa-chevron-left"></i> Anterior</a></li>`,
     );
   }
 
   // Mostrar tres botones de página
-  for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages, Math.max(3, currentPage + 1)); i++) {
-    const isActive = i === currentPage ? 'class="active"' : '';
+  for (
+    let i = Math.max(1, currentPage - 1);
+    i <= Math.min(totalPages, Math.max(3, currentPage + 1));
+    i++
+  ) {
+    const isActive = i === currentPage ? 'class="active"' : "";
     paginationArea.insertAdjacentHTML(
       "beforeend",
-      `<li ${isActive}><a href="#" onclick="loadProducts(${i})">${i}</a></li>`
+      `<li ${isActive}><a href="#" onclick="loadProducts(${i})">${i}</a></li>`,
     );
   }
 
@@ -229,7 +189,7 @@ function updatePagination() {
       "beforeend",
       `<li><a href="#" class="Next" onclick="loadProducts(${
         currentPage + 1
-      })"> Siguiente <i class="fa fa-chevron-right"></i></a></li>`
+      })"> Siguiente <i class="fa fa-chevron-right"></i></a></li>`,
     );
   }
 }
@@ -242,13 +202,7 @@ function viewProductDetails(productId) {
 }
 
 // Cargar productos al iniciar la página
-document.addEventListener("DOMContentLoaded", async () => {
-  if (catalogShopUrl) {
-    const resolvedShop = await resolveShopFromCatalogUrl();
-    if (!resolvedShop) {
-      return;
-    }
-  }
+document.addEventListener("DOMContentLoaded", () => {
   loadProducts(currentPage);
   loadModels("");
   loadBrands();
@@ -274,13 +228,9 @@ function updateProductsPerPage() {
 }
 
 function loadModels(id) {
-  const params = {};
-  if (id) {
-    params.brand = id;
-  }
-  if (lockedShopId) {
-    params["product__shopproducts__shop"] = lockedShopId;
-  }
+  const params = {
+    brand: id,
+  };
   axios
     .get(`/business-gestion/models/catalog/`, { params })
     .then((res) => {
@@ -353,14 +303,8 @@ function searchProducts() {
 }
 
 function loadBrands() {
-  const params = {};
-  const shopFilter = lockedShopId || shopValue;
-  if (shopFilter) {
-    params["model__product__shopproducts__shop"] = shopFilter;
-  }
-
   axios
-    .get("/business-gestion/brands/catalog/", { params })
+    .get("/business-gestion/brands/catalog/")
     .then((res) => {
       const brands = res.data.results;
       populateBrandsSelect(brands);
@@ -378,8 +322,7 @@ function loadBrands() {
 
 function populateBrandsSelect(brands) {
   const brandsSelect = document.getElementById("brandsSelect");
-  const labels = getCatalogLabelsByShopType(currentShopType);
-  brandsSelect.innerHTML = `<option value="">Seleccione una ${labels.brandLower}</option>`; // Limpiar opciones anteriores
+  brandsSelect.innerHTML = '<option value="">Seleccione una marca</option>'; // Limpiar opciones anteriores
 
   brands.forEach((brand) => {
     const option = document.createElement("option");
@@ -392,53 +335,23 @@ function populateBrandsSelect(brands) {
   brandsSelect.classList.add("nice-select");
 
   // Agregar evento para cargar modelos al seleccionar una marca
-  brandsSelect.onchange = () => {
+  brandsSelect.addEventListener("change", () => {
     const selectedId = brandsSelect.value; // Obtener el ID seleccionado
     loadModels(selectedId); // Pasar el ID a la función loadModels
     selectBrandInit(selectedId);
-  };
-
-
+  });
 }
 
 function selectBrandInit(brandId) {
   product__model__brand = brandId;
-  product__model='';
+  product__model = "";
   currentPage = 1;
   loadProducts(currentPage);
 }
 
-
 function populateShopsList() {
-  if (lockedShopId) {
-    axios
-      .get(`/business-gestion/shops/${lockedShopId}/`)
-      .then((response) => {
-        const shop = response.data;
-        shopsMetaById[String(shop.id)] = shop;
-        applyCatalogLabelsByShopType(shop.type);
-        const shopsList = document.getElementById("shopsList");
-        shopsList.innerHTML = `
-          <li>
-            <input type="checkbox" name="product-category" id="shop-${shop.id}" class="shop-checkbox" checked disabled>
-            <label for="shop-${shop.id}">${shop.name}</label>
-          </li>
-        `;
-      })
-      .catch((error) => {
-        Swal.fire({
-          icon: "error",
-          title: "Error al cargar la tienda",
-          text: error.message,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      });
-    return;
-  }
-
   axios
-    .get("/business-gestion/shops/catalog/")
+    .get("/business-gestion/shops/wholesale-catalog/")
     .then((response) => {
       const shops = response.data.results; // Obtener los datos de la respuesta
       // Asegurarte de que shops sea un array
@@ -447,7 +360,6 @@ function populateShopsList() {
         shopsList.innerHTML = ""; // Limpiar la lista anterior
 
         shops.forEach((shop) => {
-          shopsMetaById[String(shop.id)] = shop;
           const listItem = document.createElement("li");
           listItem.innerHTML = `
                         <input type="checkbox" name="product-category" id="shop-${shop.id}" class="shop-checkbox">
@@ -504,63 +416,9 @@ function handleShopSelection(selectedCheckbox) {
 
 // Método selectShop para manejar la tienda seleccionada
 function selectShop(shopId) {
-  if (lockedShopId) {
-    shopValue = lockedShopId;
-    return;
-  }
-
-  const selectedShop = shopId ? shopsMetaById[String(shopId)] : null;
-  applyCatalogLabelsByShopType(selectedShop?.type);
-
   shopValue = shopId;
-  product__model__brand = "";
-  product__model = "";
-
-  const brandsSelect = document.getElementById("brandsSelect");
-  if (brandsSelect) {
-    brandsSelect.value = "";
-  }
-
-  loadBrands();
-  loadModels("");
   currentPage = 1;
   loadProducts(currentPage);
-}
-
-async function resolveShopFromCatalogUrl() {
-  try {
-    const response = await axios.get("/business-gestion/shops/catalog/", {
-      params: {
-        catalog_url: catalogShopUrl,
-        page_size: 1,
-      },
-    });
-    const shop = response.data?.results?.[0];
-    if (!shop) {
-      Swal.fire({
-        icon: "warning",
-        title: "Catálogo no disponible",
-        text: "No existe una tienda activa asociada a esta URL.",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-      return null;
-    }
-    shopsMetaById[String(shop.id)] = shop;
-    applyCatalogLabelsByShopType(shop.type);
-    lockedShopId = shop.id;
-    shopValue = shop.id;
-    return shop;
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Error al abrir catálogo",
-      text: error.message,
-      showConfirmButton: false,
-      timer: 2000,
-    });
-    return null;
-  }
 }
 
 // Función para capturar el valor seleccionado
@@ -574,20 +432,20 @@ function captureOrderingValue() {
 
 function toggleViewMode(event, element) {
   event.preventDefault();
-  const viewMode = element.getAttribute('data-view');
-  const icon = document.getElementById('view-mode-icon');
-  
+  const viewMode = element.getAttribute("data-view");
+  const icon = document.getElementById("view-mode-icon");
+
   // Cambiar el modo de vista
-  if (viewMode === 'grid') {
-    element.setAttribute('data-view', 'list');
-    icon.classList.remove('fa-th');
-    icon.classList.add('fa-list');
+  if (viewMode === "grid") {
+    element.setAttribute("data-view", "list");
+    icon.classList.remove("fa-th");
+    icon.classList.add("fa-list");
   } else {
-    element.setAttribute('data-view', 'grid');
-    icon.classList.remove('fa-list');
-    icon.classList.add('fa-th');
+    element.setAttribute("data-view", "grid");
+    icon.classList.remove("fa-list");
+    icon.classList.add("fa-th");
   }
-  
+
   // Actualizar modo de vista y volver a renderizar
   currentViewMode = viewMode;
   loadProducts(currentPage);
@@ -598,10 +456,10 @@ async function showProductDetails(productId) {
   try {
     // Realizar la petición al endpoint
     const response = await axios.get(
-      `/business-gestion/shop-products/${productId}/catalog-shop-product-detail/`
+      `/business-gestion/shop-products/${productId}/catalog-shop-product-detail/`,
     );
     const product = response.data;
-console.log("product",product);
+    console.log("product", product);
     // Actualizar los elementos de la modal con los datos del producto
     document.getElementById("modalProductImage").src = product.product.image;
     document.getElementById("modalProductName").textContent =
@@ -610,27 +468,30 @@ console.log("product",product);
       product.product.model.brand.name;
     document.getElementById("modalModelName").textContent =
       product.product.model.__str__;
-    document.getElementById(
-      "modalPrice"
-    ).textContent = `$${product.sell_price_for_catalog}`;
+    document.getElementById("modalPrice").textContent =
+      `$${product.sell_price}`;
     document.getElementById("modalShopName").textContent = product.shop_name;
     document.getElementById("modalDescription").textContent =
       product.extra_info || "Sin descripción";
 
     // Agregar botón de WhatsApp en el modal
-    const whatsappButton = document.createElement('button');
-    whatsappButton.className = 'btn btn-success mt-3';
-    whatsappButton.innerHTML = '<i class="fa fa-whatsapp"></i> Contactar por WhatsApp';
-    whatsappButton.onclick = () => contactWhatsApp(product.product.name, product.sell_price_for_catalog);
-    
-    const modalFooter = document.querySelector('#productDetailModal .modal-footer');
+    const whatsappButton = document.createElement("button");
+    whatsappButton.className = "btn btn-success mt-3";
+    whatsappButton.innerHTML =
+      '<i class="fa fa-whatsapp"></i> Contactar por WhatsApp';
+    whatsappButton.onclick = () =>
+      contactWhatsApp(product.product.name, product.sell_price);
+
+    const modalFooter = document.querySelector(
+      "#productDetailModal .modal-footer",
+    );
     // Limpiar footer anterior
-    modalFooter.innerHTML = '';
+    modalFooter.innerHTML = "";
     modalFooter.appendChild(whatsappButton);
 
     // Mostrar la modal
     const productModal = new bootstrap.Modal(
-      document.getElementById("productDetailModal")
+      document.getElementById("productDetailModal"),
     );
     productModal.show();
   } catch (error) {
@@ -646,20 +507,20 @@ console.log("product",product);
 
 // Función para contactar por WhatsApp
 function contactWhatsApp(productName, price) {
-  const STORE_PHONE = '+13058770178'; // Número fijo de la tienda
-  
+  const STORE_PHONE = "+13058770178"; // Número fijo de la tienda
+
   // Formatear el mensaje
   const message = `Hola, estoy interesado en el producto: ${productName} - Precio: $${price}`;
   const encodedMessage = encodeURIComponent(message);
-  
+
   // Detectar si es dispositivo móvil
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  
+
   // Crear el enlace de WhatsApp según el dispositivo
   const whatsappUrl = isMobile
     ? `whatsapp://send?phone=${STORE_PHONE}&text=${encodedMessage}` // Enlace para app móvil
     : `https://wa.me/${STORE_PHONE}?text=${encodedMessage}`; // Enlace para web
-  
+
   // Abrir WhatsApp
   window.location.href = whatsappUrl;
 }

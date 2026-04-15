@@ -70,8 +70,25 @@ ProductAdmin.highlight_deleted_field.name = ProductAdmin.field_to_highlight
 @admin.register(Shop)
 class ShopAdmin(admin.ModelAdmin):
     empty_value_display = "-empty-"
-    list_display = ["id", "name", "logo", "extra_info", "enabled"]
-    fields = ["name", "logo", "extra_info", "enabled"]
+    list_display = [
+        "id",
+        "name",
+        "logo",
+        "extra_info",
+        "enabled",
+        "type",
+        "catalog_url",
+        "principal",
+    ]
+    fields = [
+        "name",
+        "logo",
+        "extra_info",
+        "enabled",
+        "type",
+        "catalog_url",
+        "principal",
+    ]
 
 
 @admin.register(ShopProducts)
@@ -82,10 +99,11 @@ class ShopProductsAdmin(SafeDeleteAdmin):
         "id",
         "shop",
         "product",
-        "extra_info",
         "quantity",
         "cost_price",
         "sell_price",
+        "sell_price_for_catalog",
+        "extra_info",
         "updated_timestamp",
     ) + SafeDeleteAdmin.list_display
     fields = [
@@ -95,6 +113,7 @@ class ShopProductsAdmin(SafeDeleteAdmin):
         "quantity",
         "cost_price",
         "sell_price",
+        "sell_price_for_catalog",
     ]
     field_to_highlight = "id"
 

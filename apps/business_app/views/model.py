@@ -26,6 +26,7 @@ class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     ]
     filterset_fields = [
         "brand",
+        "product__shopproducts__shop",
     ]
     search_fields = [
         "name",
@@ -43,6 +44,12 @@ class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
         else:
             permission_classes = self.permission_classes
         return [permission() for permission in permission_classes]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.query_params.get("product__shopproducts__shop"):
+            queryset = queryset.distinct()
+        return queryset
 
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):
