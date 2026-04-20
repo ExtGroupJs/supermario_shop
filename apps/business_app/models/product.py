@@ -55,5 +55,6 @@ class Product(SafeDeleteModel, BaseModel):
             )
             squared_img.paste(resized_img, offset)
 
-            # Guardar la imagen final
-            squared_img.save(self.image.path)
+            # Guardar la imagen final (JFIF es variante de JPEG)
+            save_format = "JPEG"
+            squared_img.save(self.image.path, format=save_format)
