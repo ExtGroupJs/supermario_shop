@@ -104,10 +104,12 @@ def populate_data(apps, schema_editor):
 
     # Crear ShopProducts en destiny_shop basados en datos_modificados
     for product_name, model_name, brand_name, quantity, extra_info in datos_modificados:
-        # Obtener o crear el Brand
+        # Brand.name max_length=25; truncar si es necesario
         brand = None
         if brand_name:
-            brand, _ = Brand.objects.get_or_create(name=brand_name)
+            normalized_brand_name = brand_name.strip()[:25]
+            if normalized_brand_name:
+                brand, _ = Brand.objects.get_or_create(name=normalized_brand_name)
 
         # Model.name es único globalmente; no se puede buscar por (name, brand).
         model = None
@@ -118,13 +120,17 @@ def populate_data(apps, schema_editor):
             )
 
         # Obtener o crear el Product
-        product, _ = Product.objects.get_or_create(
-            name=product_name, defaults={"model": model}
-        )
+        # Note: Product.name no es unique, así que get_or_create sin model puede fallar.
+        # Usamos filter().first() para obtener el primero existente o crear uno nuevo.
+        product = Product.objects.filter(name=product_name).first()
+        if not product:
+            product, _ = Product.objects.get_or_create(
+                name=product_name, defaults={"model": model}
+            )
 
         # Buscar ShopProducts en "Tecnología Ciego" con el mismo nombre de producto para obtener precios
-        cost_price = 0.0
-        sell_price = 0.0
+        cost_price = 1.0
+        sell_price = 2.0
         sell_price_for_catalog = None
 
         if source_shop:
@@ -240,7 +246,7 @@ def reverse_populate_data(apps, schema_editor):
     ShopProducts.objects.filter(
         shop=destiny_shop,
         product__name__in=product_names,
-    ).delete()
+    ).hard_delete()
 
 
 class Migration(migrations.Migration):

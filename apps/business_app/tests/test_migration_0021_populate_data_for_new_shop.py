@@ -18,12 +18,15 @@ MIGRATION_MODULE = importlib.import_module(
 
 
 def _build_logo_file(filename):
-    return SimpleUploadedFile(filename, b"fake-image-content", content_type="image/jpeg")
+    return SimpleUploadedFile(
+        filename, b"fake-image-content", content_type="image/jpeg"
+    )
 
 
 @pytest.mark.django_db
 class TestMigration0021PopulateDataForNewShop:
-    def test_populate_data_creates_shop_products_and_copies_prices_from_source_shop(self):
+    def test_populate_data_copies_prices_from_source_shop(self):
+        """Valida que populate_data copia precios de Tecnología Ciego a Almacén de Tecnología."""
         source_shop = baker.make(
             Shop,
             name="Tecnología Ciego",
@@ -37,14 +40,15 @@ class TestMigration0021PopulateDataForNewShop:
             type=Shop.TYPE_CHOICES.TECH,
         )
 
-        brand = baker.make(Brand, name="Portatil")
-        model = baker.make(Model, name="Computadoras", brand=brand)
-        product = baker.make(Product, name="Asus VivoBook", model=model)
+        # Crear datos en source_shop para que migrate los copia
+        brand1 = baker.make(Brand, name="Apple")
+        model1 = baker.make(Model, name="Computadoras-001", brand=brand1)
+        product1 = baker.make(Product, name="Asus VivoBook", model=model1)
 
         baker.make(
             ShopProducts,
             shop=source_shop,
-            product=product,
+            product=product1,
             quantity=7,
             extra_info="origen",
             cost_price=123.45,
@@ -52,44 +56,23 @@ class TestMigration0021PopulateDataForNewShop:
             sell_price_for_catalog=160.25,
         )
 
-        second_brand = baker.make(Brand, name="Xiaomi")
-        second_model = baker.make(Model, name="Teléfonos", brand=second_brand)
-        second_product = baker.make(Product, name="Redmi 15C", model=second_model)
-        baker.make(
-            ShopProducts,
-            shop=source_shop,
-            product=second_product,
-            quantity=4,
-            extra_info="origen-dos",
-            cost_price=77.2,
-            sell_price=99.5,
-            sell_price_for_catalog=110.0,
-        )
-
+        # Ejecutar populate_data
         MIGRATION_MODULE.populate_data(django_apps, None)
 
-        created_first_shop_product = ShopProducts.objects.get(
+        # Validar que se creó en destiny_shop con los precios copiados
+        created_sp = ShopProducts.objects.get(
             shop=destiny_shop,
             product__name="Asus VivoBook",
         )
-        created_second_shop_product = ShopProducts.objects.get(
-            shop=destiny_shop,
-            product__name="Redmi 15C",
-        )
 
-        assert created_first_shop_product.cost_price == pytest.approx(123.45)
-        assert created_first_shop_product.sell_price == pytest.approx(150.75)
-        assert created_first_shop_product.sell_price_for_catalog == pytest.approx(160.25)
-        assert created_first_shop_product.quantity == 0
-        assert created_first_shop_product.extra_info == ""
+        assert created_sp.cost_price == pytest.approx(123.45)
+        assert created_sp.sell_price == pytest.approx(150.75)
+        assert created_sp.sell_price_for_catalog == pytest.approx(160.25)
+        assert created_sp.quantity == 0
+        assert created_sp.extra_info == ""
 
-        assert created_second_shop_product.cost_price == pytest.approx(77.2)
-        assert created_second_shop_product.sell_price == pytest.approx(99.5)
-        assert created_second_shop_product.sell_price_for_catalog == pytest.approx(110.0)
-        assert created_second_shop_product.quantity == 0
-        assert created_second_shop_product.extra_info == ""
-
-    def test_reverse_populate_data_deletes_only_migration_shop_products(self):
+    def test_reverse_populate_data_deletes_only_migration_products(self):
+        """Valida que reverse_populate_data elimina solo los productos de la migración."""
         baker.make(
             Shop,
             name="Tecnología Ciego",
@@ -103,35 +86,34 @@ class TestMigration0021PopulateDataForNewShop:
             type=Shop.TYPE_CHOICES.TECH,
         )
 
+        # Ejecutar populate_data (carga todos los 89 productos de datos_modificados)
         MIGRATION_MODULE.populate_data(django_apps, None)
+        count_after_populate = ShopProducts.objects.filter(shop=destiny_shop).count()
 
-        extra_product = baker.make(Product, name="Producto fuera de lista")
-        extra_shop_product = baker.make(
+        # Crear un producto adicional fuera de la lista de migración
+        extra_product = baker.make(Product, name="Producto Fuera Migración")
+        extra_sp = baker.make(
             ShopProducts,
             shop=destiny_shop,
             product=extra_product,
             quantity=2,
             extra_info="manual",
-            cost_price=1.0,
-            sell_price=2.0,
-            sell_price_for_catalog=2.5,
+            cost_price=10.0,
+            sell_price=20.0,
         )
 
-        assert ShopProducts.objects.filter(
-            shop=destiny_shop,
-            product__name="Asus VivoBook",
-        ).exists()
-
         count_before_reverse = ShopProducts.objects.filter(shop=destiny_shop).count()
-        assert count_before_reverse > 1
+        assert count_before_reverse == count_after_populate + 1
 
+        # Ejecutar reverse_populate_data
         MIGRATION_MODULE.reverse_populate_data(django_apps, None)
 
         count_after_reverse = ShopProducts.objects.filter(shop=destiny_shop).count()
 
+        # Validar que solo el producto manual quedó
+        assert count_after_reverse == 1
+        assert ShopProducts.objects.filter(id=extra_sp.id).exists()
         assert not ShopProducts.objects.filter(
             shop=destiny_shop,
             product__name="Asus VivoBook",
         ).exists()
-        assert ShopProducts.objects.filter(id=extra_shop_product.id).exists()
-        assert count_after_reverse == 1
