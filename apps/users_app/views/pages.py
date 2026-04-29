@@ -88,6 +88,12 @@ def wholesale_catalog(request):
 def shop_products(request):
     return render(request, "shop_products/shop_products.html")
 
+
+@user_passes_test(is_owner)
+def shop_products_auto(request):
+    return render(request, "shop_products/create_shop_products_auto.html")
+
+
 @user_passes_test(is_owner)
 def shop_products_auto(request):
     return render(request, "shop_products/create_shop_products_auto.html")

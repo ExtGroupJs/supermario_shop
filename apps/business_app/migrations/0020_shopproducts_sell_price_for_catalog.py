@@ -10,7 +10,6 @@ def populate_sell_price_for_catalog(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("business_app", "0019_shop_catalog_url_shop_principal_shop_type_and_more"),
     ]
