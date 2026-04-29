@@ -77,7 +77,11 @@ urlpatterns = [
         name="create_shop_products",
     ),
     path("shop_products/", login_required(pages.shop_products), name="shop_products"),
-    path("shop_products_auto/", login_required(pages.shop_products_auto), name="shop_products_auto"),
+    path(
+        "shop_products_auto/",
+        login_required(pages.shop_products_auto),
+        name="shop_products_auto",
+    ),
     path("inventario/", login_required(pages.inventario), name="inventario"),
     path(
         "inventario_entrada_log/",
