@@ -2,6 +2,8 @@
 
 from django.db import migrations
 
+destiny_shop_name = "Tecnología Ciego (Onel)"
+source_shop_name = "Tecnología Ciego"
 HARD_DELETE = 0
 
 
@@ -12,8 +14,8 @@ def populate_data(apps, schema_editor):
     Brand = apps.get_model("business_app", "Brand")
     ShopProducts = apps.get_model("business_app", "ShopProducts")
 
-    destiny_shop = Shop.objects.filter(name="Almacén de Tecnología").first()
-    source_shop = Shop.objects.filter(name="Tecnología Ciego").first()
+    destiny_shop, _ = Shop.objects.get_or_create(name=destiny_shop_name)
+    source_shop = Shop.objects.filter(name=source_shop_name).first()
 
     datos_modificados = [
         ("Asus VivoBook", "Computadoras", "Portatil", 0, ""),
@@ -25,83 +27,83 @@ def populate_data(apps, schema_editor):
         ("Galaxy F17", "Teléfonos", "Samsung", 0, ""),
         ("Galaxy A16", "Teléfonos", "Samsung", 0, ""),
         ("Redmi 15C", "Teléfonos", "Xiaomi", 0, ""),
-        ("Poco C71 8/128", "Teléfonos", "Xiaomi", 3, ""),
-        ("Redmi A7PRO", "Teléfonos", "Xiaomi", 1, ""),
+        ("Poco C71 8/128", "Teléfonos", "Xiaomi", 0, ""),
+        ("Redmi A7PRO", "Teléfonos", "Xiaomi", 0, ""),
         ("Redmi 14C", "Teléfonos", "Xiaomi", 0, ""),
-        ("Galaxy F07", "Teléfonos", "Samsung", 51, "19 sin cargador"),
-        ("GO 3", "Teléfonos", "TECNO Spark", 5, ""),
+        ("Galaxy F07", "Teléfonos", "Samsung", 0, "19 sin cargador"),
+        ("GO 3", "Teléfonos", "TECNO Spark", 0, ""),
         ("Galaxy a06", "Teléfonos", "Samsung", 0, "5 sin cargador"),
         ("Redmi A5", "Teléfonos", "Xiaomi", 0, ""),
         ("Redmi 9A de 4/64", "Teléfonos", "Xiaomi", 0, ""),
         ("Oppo A3x", "Teléfonos", "Xiaomi", 0, ""),
         ("A90", "Teléfonos", "Itel", 0, ""),
-        ("Fire7", "Tables", "Tablet", 5, ""),
+        ("Fire7", "Tables", "Tablet", 0, ""),
         ("C5L", "Teléfonos", "Blu", 0, ""),
-        ("Philco p8", "Teléfonos", "Philco", 17, ""),
-        ("Ventilador recargable F6", "Accesorios", "Electrodomésticos", 4, ""),
-        ("w-2027", "Genérico", "Otros", 1, ""),
-        ("Cargador portátil de 30000mah", "Accesorios", "Cargador portátil", 59, ""),
-        ("Bocinas WS-570 Truck 🚚", "Accesorios", "Bocina", 1, ""),
-        ("Bocina  DV 880", "Accesorios", "Bocina", 2, ""),
+        ("Philco p8", "Teléfonos", "Philco", 0, ""),
+        ("Ventilador recargable F6", "Accesorios", "Electrodomésticos", 0, ""),
+        ("w-2027", "Genérico", "Otros", 0, ""),
+        ("Cargador portátil de 30000mah", "Accesorios", "Cargador portátil", 0, ""),
+        ("Bocinas WS-570 Truck 🚚", "Accesorios", "Bocina", 0, ""),
+        ("Bocina  DV 880", "Accesorios", "Bocina", 0, ""),
         ("Bocina zqs.6142", "Accesorios", "Bocina", 0, ""),
-        ("Bocinas WS-1934 🚙", "Accesorios", "Bocina", 2, ""),
-        ("Bocina DV 600", "Accesorios", "Bocina", 1, ""),
+        ("Bocinas WS-1934 🚙", "Accesorios", "Bocina", 0, ""),
+        ("Bocina DV 600", "Accesorios", "Bocina", 0, ""),
         ("Bocinas zqs 6165", "Accesorios", "Bocina", 0, ""),
         ("Bocina zqs 6166", "Accesorios", "Bocina", 0, ""),
-        ("Bocina carro ws-590", "Accesorios", "Bocina", 2, ""),
-        ("Bocina carro ws-591", "Accesorios", "Bocina", 2, ""),
+        ("Bocina carro ws-590", "Accesorios", "Bocina", 0, ""),
+        ("Bocina carro ws-591", "Accesorios", "Bocina", 0, ""),
         ("Bocinas WS-1968", "Accesorios", "Bocina", 0, ""),
         ("Lámpara recargable Solar Grande ☀", "Accesorios", "Electrodomésticos", 0, ""),
-        ("Bocinas WS-580", "Accesorios", "Bocina", 2, ""),
-        ("VBESTLIFE", "Genérico", "Otros", 1, ""),
+        ("Bocinas WS-580", "Accesorios", "Bocina", 0, ""),
+        ("VBESTLIFE", "Genérico", "Otros", 0, ""),
         ("zqs-4271", "Accesorios", "Bocina", 0, ""),
-        ("Cargador portátil de 20000mah", "Accesorios", "Cargador portátil", 16, ""),
-        ("Lámpara recargable Solar pequeña", "Accesorios", "Electrodomésticos", 29, ""),
+        ("Cargador portátil de 20000mah", "Accesorios", "Cargador portátil", 0, ""),
+        ("Lámpara recargable Solar pequeña", "Accesorios", "Electrodomésticos", 0, ""),
         ("MKtel dorado (3 cámaras)", "Teléfonos", "MKtel", 0, ""),
         (
             "Reloj Inteligente H33ProMax",
             "Accesorios",
             "SmartWatch Relojes inteligentes",
-            3,
+            0,
             "",
         ),
-        ("Bocinas BT 1301", "Accesorios", "Bocina", 2, ""),
-        ("Bocina  zqs1361", "Accesorios", "Bocina", 1, ""),
-        ("Teléfono MKtel de teclas📱", "Teléfonos", "MKtel", 5, ""),
+        ("Bocinas BT 1301", "Accesorios", "Bocina", 0, ""),
+        ("Bocina  zqs1361", "Accesorios", "Bocina", 0, ""),
+        ("Teléfono MKtel de teclas📱", "Teléfonos", "MKtel", 0, ""),
         (
             "Reloj Inteligente 🕒",
             "Accesorios",
             "SmartWatch Relojes inteligentes",
-            19,
+            0,
             "",
         ),
-        ("Audífonos Casco inalámbricos  P9", "Accesorios", "Audífonos", 1, ""),
-        ("Audífonos de chófer  Robóticos", "Accesorios", "Audífonos", 4, ""),
-        ("Audífonos inalámbricos para Chofer", "Accesorios", "Audífonos", 5, ""),
-        ("Cover con Perlas", "Accesorios", "Cover", 93, ""),
-        ("Cover antichoque", "Accesorios", "Cover", 11, ""),
+        ("Audífonos Casco inalámbricos  P9", "Accesorios", "Audífonos", 0, ""),
+        ("Audífonos de chófer  Robóticos", "Accesorios", "Audífonos", 0, ""),
+        ("Audífonos inalámbricos para Chofer", "Accesorios", "Audífonos", 0, ""),
+        ("Cover con Perlas", "Accesorios", "Cover", 0, ""),
+        ("Cover antichoque", "Accesorios", "Cover", 0, ""),
         ("Ventilador de mano 🤝", "Accesorios", "Electrodomésticos", 0, ""),
-        ("Audífonos inalámbricos", "Accesorios", "Audífonos", 54, ""),
-        ("Audífonos inalámbricos de cuello", "Lada", "1600", 2, ""),
-        ("Micro SD de 64gb", "Almacenamiento", "Micro SD", 6, ""),
-        ("reproductor MP3", "Accesorios", "Bocina", 3, ""),
+        ("Audífonos inalámbricos", "Accesorios", "Audífonos", 0, ""),
+        ("Audífonos inalámbricos de cuello", "Lada", "1600", 0, ""),
+        ("Micro SD de 64gb", "Almacenamiento", "Micro SD", 0, ""),
+        ("reproductor MP3", "Accesorios", "Bocina", 0, ""),
         ("Memorias USB de 32 gb", "Almacenamiento", "Memorias USB", 0, ""),
-        ("Soporte de teléfonos para carro HDS-098", "Genérico", "Otros", 4, ""),
+        ("Soporte de teléfonos para carro HDS-098", "Genérico", "Otros", 0, ""),
         ("Memorias ADATA de 64 gb", "Almacenamiento", "Memorias USB", 0, ""),
-        ("Micro SD de 32gb", "Almacenamiento", "Micro SD", 1, ""),
+        ("Micro SD de 32gb", "Almacenamiento", "Micro SD", 0, ""),
         ("Mouse 🖱", "Accesorios", "Mouse 🖱", 0, ""),
-        ("Soporte para móviles", "Accesorios", "Soportes", 2, ""),
+        ("Soporte para móviles", "Accesorios", "Soportes", 0, ""),
         ("Cargador para autos ABS Material", "Accesorios", "Cargadores", 0, ""),
         ("HDMI", "Accesorios", "Cables", 0, ""),
-        ("Llaveros Stitch", "Genérico", "Otros", 13, ""),
+        ("Llaveros Stitch", "Genérico", "Otros", 0, ""),
         ("Cargador de Carga Rápida", "Accesorios", "Cargadores", 0, ""),
         ("Cargador 65w Carga Rapida", "Accesorios", "Cargadores", 0, ""),
-        ("Cover convencional", "Accesorios", "Cover", 59, ""),
+        ("Cover convencional", "Accesorios", "Cover", 0, ""),
         ("Arañitas de cargar", "Accesorios", "Cargadores", 0, ""),
         ("Maquinilla de afeitar", "Genérico", "Otras partes y piezas", 0, ""),
-        ("Cargador estándar tipo USB2 - tipo C", "Accesorios", "Cargadores", 69, ""),
-        ("Cable largo usb-tipoc", "Accesorios", "Cables", 74, ""),
-        ("Adaptadores micro SD", "Almacenamiento", "Micro SD", 3, ""),
+        ("Cargador estándar tipo USB2 - tipo C", "Accesorios", "Cargadores", 0, ""),
+        ("Cable largo usb-tipoc", "Accesorios", "Cables", 0, ""),
+        ("Adaptadores micro SD", "Almacenamiento", "Micro SD", 0, ""),
     ]
 
     # Crear ShopProducts en destiny_shop basados en datos_modificados
@@ -164,7 +166,7 @@ def reverse_populate_data(apps, schema_editor):
     Shop = apps.get_model("business_app", "Shop")
     ShopProducts = apps.get_model("business_app", "ShopProducts")
 
-    destiny_shop = Shop.objects.filter(name="Almacén de Tecnología").first()
+    destiny_shop = Shop.objects.filter(name=destiny_shop_name).first()
     if not destiny_shop:
         return
 
@@ -253,7 +255,7 @@ def reverse_populate_data(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("business_app", "0020_shopproducts_sell_price_for_catalog"),
+        ("business_app", "0021_populate_data_for_new_shop"),
     ]
 
     operations = [migrations.RunPython(populate_data, reverse_populate_data)]
