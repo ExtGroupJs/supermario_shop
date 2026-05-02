@@ -2,6 +2,9 @@
 
 from django.db import migrations
 
+destiny_shop_name = "Tecnología Ciego (Onel)"
+source_shop_name = "Tecnología Ciego"
+
 
 def populate_data(apps, schema_editor):
     Shop = apps.get_model("business_app", "Shop")
@@ -10,10 +13,10 @@ def populate_data(apps, schema_editor):
     Brand = apps.get_model("business_app", "Brand")
     ShopProducts = apps.get_model("business_app", "ShopProducts")
 
-    destiny_shop = Shop.objects.filter(name="Almacén de Tecnología").first()
-    source_shop = Shop.objects.filter(name="Tecnología Ciego").first()
+    destiny_shop, _ = Shop.objects.get_or_create(name=destiny_shop_name)
+    source_shop = Shop.objects.filter(name=source_shop_name).first()
 
-    datos_modificados = datos_cero = [
+    datos_modificados = [
         ("Asus VivoBook", "Computadoras", "Portatil", 0, ""),
         ("Laptop Lenovo", "Computadoras", "Portatil", 0, ""),
         ("Laptop hp", "Computadoras", "Portatil", 0, ""),
@@ -166,7 +169,7 @@ def reverse_populate_data(apps, schema_editor):
     Shop = apps.get_model("business_app", "Shop")
     ShopProducts = apps.get_model("business_app", "ShopProducts")
 
-    destiny_shop = Shop.objects.filter(name="Almacén de Tecnología").first()
+    destiny_shop = Shop.objects.filter(name=destiny_shop_name).first()
     if not destiny_shop:
         return
 
