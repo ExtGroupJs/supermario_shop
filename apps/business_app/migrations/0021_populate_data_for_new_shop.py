@@ -2,6 +2,8 @@
 
 from django.db import migrations
 
+HARD_DELETE = 0
+
 
 def populate_data(apps, schema_editor):
     Shop = apps.get_model("business_app", "Shop")
@@ -246,7 +248,7 @@ def reverse_populate_data(apps, schema_editor):
     ShopProducts.objects.filter(
         shop=destiny_shop,
         product__name__in=product_names,
-    ).hard_delete()
+    ).delete(force_policy=HARD_DELETE)
 
 
 class Migration(migrations.Migration):

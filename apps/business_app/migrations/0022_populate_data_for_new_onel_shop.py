@@ -4,6 +4,7 @@ from django.db import migrations
 
 destiny_shop_name = "Tecnología Ciego (Onel)"
 source_shop_name = "Tecnología Ciego"
+HARD_DELETE = 0
 
 
 def populate_data(apps, schema_editor):
@@ -103,10 +104,6 @@ def populate_data(apps, schema_editor):
         ("Cargador estándar tipo USB2 - tipo C", "Accesorios", "Cargadores", 0, ""),
         ("Cable largo usb-tipoc", "Accesorios", "Cables", 0, ""),
         ("Adaptadores micro SD", "Almacenamiento", "Micro SD", 0, ""),
-        ("ndr-1742", "bosina", "", 0, ""),
-        ("cargador de 2500", "", "", 0, ""),
-        ("cargador portable p8", "", "", 0, ""),
-        ("forro para audifono", "", "", 0, ""),
     ]
 
     # Crear ShopProducts en destiny_shop basados en datos_modificados
@@ -253,7 +250,7 @@ def reverse_populate_data(apps, schema_editor):
     ShopProducts.objects.filter(
         shop=destiny_shop,
         product__name__in=product_names,
-    ).hard_delete()
+    ).delete(force_policy=HARD_DELETE)
 
 
 class Migration(migrations.Migration):
