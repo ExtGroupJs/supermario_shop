@@ -15,43 +15,8 @@ from apps.business_app.views.sell import SellViewSet
 from apps.business_app.views.shop_products_logs import ShopProductsLogsViewSet
 
 
-# from django.urls import path
-
-# from apps.business_app.views import (
-# AllowedExtensionsViewSet,
-# SiteConfigurationViewSet,
-# UploadedFilesViewSet,
-# InitialFileDataViewSet,
-# NewCoordinatesProcessorViewSet,
-# )
-# from apps.business_app.views.allele_nodes import AlleleNodeViewSet
-# from apps.business_app.views.event_markers import (
-# edit_event,
-# list_events,
-# get_event_data_by_id,
-# create_event,
-# delete_event,
-# list_markers,
-# get_marker_by_description,
-# create_marker,
-# edit_marker,
-# delete_marker,
-# )
-# from apps.business_app.views.layers import list_layers
-
-# from apps.business_app.views.initial_xyz_expansion_data import (
-# InitialXyzExpansionDataViewSet,
-# )
-# from apps.business_app.views.working_copy_of_original_file import (
-# WorkingCopyOfOriginalFileViewSet,
-# )
-
 router = ExtendedSimpleRouter()
-# router.register(
-# "allowed-extensions",
-# AllowedExtensionsViewSet,
-# basename="allowed-extensions",
-# )
+
 router.register(
     "brands",
     BrandViewSet,
