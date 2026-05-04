@@ -95,6 +95,11 @@ def shop_products_auto(request):
 
 
 @user_passes_test(is_owner)
+def shop_products_auto(request):
+    return render(request, "shop_products/create_shop_products_auto.html")
+
+
+@user_passes_test(is_owner)
 def create_shop_products(request):
     return render(request, "shop_products/create_shop_products.html")
 
