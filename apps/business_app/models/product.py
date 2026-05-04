@@ -29,10 +29,19 @@ class Product(SafeDeleteModel, BaseModel):
 
         if self.image:
             img = Image.open(self.image.path)
-            if img.mode in ("RGBA", "LA", "P"):
-                img = img.convert("RGBA")
-                background = Image.new("RGBA", img.size, (255, 255, 255, 255))
-                img = Image.alpha_composite(background, img).convert("RGB")
+            ext = self.image.name.rsplit(".", 1)[-1].lower()
+            is_webp = ext == "webp"
+
+            if is_webp:
+                # WebP soporta transparencia: convertir a RGBA para preservarla
+                if img.mode not in ("RGBA", "RGB"):
+                    img = img.convert("RGBA")
+            else:
+                # Para JPEG/JFIF y otros sin canal alfa, aplanar sobre fondo blanco
+                if img.mode in ("RGBA", "LA", "P"):
+                    img = img.convert("RGBA")
+                    background = Image.new("RGBA", img.size, (255, 255, 255, 255))
+                    img = Image.alpha_composite(background, img).convert("RGB")
 
             width, height = img.size
             target_size = (768, 768)
@@ -46,7 +55,13 @@ class Product(SafeDeleteModel, BaseModel):
 
             resized_img = img.resize((new_width, new_height), reducing_gap=3.0)
 
-            squared_img = Image.new("RGB", target_size, (255, 255, 255))  # Fondo blanco
+            if is_webp:
+                # Fondo transparente para WebP
+                squared_img = Image.new("RGBA", target_size, (255, 255, 255, 0))
+            else:
+                squared_img = Image.new(
+                    "RGB", target_size, (255, 255, 255)
+                )  # Fondo blanco
 
             # Pegar la imagen redimensionada centrada
             offset = (
@@ -56,4 +71,10 @@ class Product(SafeDeleteModel, BaseModel):
             squared_img.paste(resized_img, offset)
 
             # Guardar la imagen final
-            squared_img.save(self.image.path)
+            if is_webp:
+                squared_img.save(
+                    self.image.path, format="WEBP", quality=90, lossless=False
+                )
+            else:
+                # JPEG y variantes (JFIF)
+                squared_img.save(self.image.path, format="JPEG")

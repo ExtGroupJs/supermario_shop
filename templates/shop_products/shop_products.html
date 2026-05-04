@@ -181,21 +181,28 @@
           </div>
           <div class="row">
 
-          <div class="form-group col-md-4 col-sm-4 col-12">
+          <div class="form-group col-md-3 col-sm-3 col-12">
             <label>Cantidad</label>
             <input type="number" class="form-control" id="quantity" name="quantity" required>
           </div>
 
-          <div class="form-group col-md-4 col-sm-4 col-12">
+          <div class="form-group col-md-3 col-sm-3 col-12">
             <label>Precio de Costo</label>
             <input type="text" class="form-control" id="cost_price" name="cost_price" required>
           </div>
 
-          <div class="form-group col-md-4 col-sm-4 col-12">
+          <div class="form-group col-md-3 col-sm-3 col-12">
             <label>Precio de Venta</label>
             <input type="text" class="form-control" id="sell_price" name="sell_price" required>
           </div>
+<div class="form-group col-md-3 col-sm-3 col-12">
+            <label>Precio Catálogo</label>
+            <input type="text" class="form-control" id="sell_price_for_catalog" name="sell_price_for_catalog" placeholder="Opcional">
           </div>
+
+          </div>
+
+          
 
           <div class="form-group">
             <label>Extra</label>
@@ -267,8 +274,6 @@
 <script src="{% static 'assets/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
 <script src="{% static 'assets/plugins/jszip/jszip.min.js' %}"></script>
-<script src="{% static 'assets/plugins/pdfmake/pdfmake.min.js' %}"></script>
-<script src="{% static 'assets/plugins/pdfmake/vfs_fonts.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
 <script src="{% static 'assets/plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
@@ -280,6 +285,7 @@
 <script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
 
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+<script src="{% static 'assets/plugins/exceljs/exceljs.min.js' %}"></script>
 <script src="{% static 'assets/dist/js/shop_products.js' %}"></script>
 <script src="{% static 'assets/plugins/moment/moment.min.js' %}"></script>
 <script src="{% static 'assets/plugins/inputmask/jquery.inputmask.min.js' %}"></script>
