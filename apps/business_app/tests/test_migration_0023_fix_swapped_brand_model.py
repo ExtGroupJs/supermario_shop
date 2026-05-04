@@ -235,6 +235,7 @@ class TestMigration0023FixSwappedBrandModel:
         # "Samsung6" no debe borrarse porque aún tiene "Tablets6".
         samsung_brand = baker.make(Brand, name="Samsung6")
         teléfonos_model = baker.make(Model, name="Teléfonos6", brand=samsung_brand)
+        baker.make(Model, name="Tablets6", brand=samsung_brand)
 
         # Par invertido: Brand "Teléfonos6" con Model "Samsung6"
         teléfonos_brand = baker.make(Brand, name="Teléfonos6")
