@@ -54,10 +54,12 @@ class InputGroupViewSet(
         serializer.is_valid(raise_exception=True)
         shop_products_input = serializer.validated_data.pop("shop_products_input")
         created_shop_product_input_group = self.perform_create(serializer)
-        for input in shop_products_input:
-            input["shop_product_input_group"] = created_shop_product_input_group
-            input["author"] = created_shop_product_input_group.author
-            Input.objects.create(**input)
+        for input_data in shop_products_input:
+            if "shop_product" in input_data:
+                input_data["shop_product_id"] = input_data.pop("shop_product")
+            input_data["input_group"] = created_shop_product_input_group
+            input_data["author"] = created_shop_product_input_group.author
+            Input.objects.create(**input_data)
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers

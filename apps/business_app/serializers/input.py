@@ -24,4 +24,4 @@ class InputSerializer(serializers.ModelSerializer):
         return object.created_timestamp.strftime("%d-%h-%Y a las %I:%M %p")
 
     def get_for_date(self, object):
-        return object.shop_product_input_group.for_date.strftime("%d-%h-%Y")
+        return object.input_group.for_date.strftime("%d-%h-%Y")

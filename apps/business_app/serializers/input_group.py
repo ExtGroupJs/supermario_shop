@@ -6,14 +6,11 @@ from rest_framework import serializers
 from apps.business_app.models.input_group import (
     InputGroup,
 )
-from apps.business_app.serializers.input import (
-    InputSerializer,
-)
 
 
 class InputGroupSerializer(serializers.ModelSerializer):
     updated_timestamp = serializers.SerializerMethodField()
-    input = InputSerializer(many=True, write_only=True)
+    shop_products_input = serializers.ListField(write_only=True)
 
     class Meta:
         model = InputGroup
@@ -24,7 +21,7 @@ class InputGroupSerializer(serializers.ModelSerializer):
             "shop_products",
             "extra_info",
             "author",
-            "input",
+            "shop_products_input",
         )
         read_only_fields = ("id",)
 

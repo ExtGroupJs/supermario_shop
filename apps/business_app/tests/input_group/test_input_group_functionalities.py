@@ -94,8 +94,8 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
 
         self.assertEqual(
             shop_product_input_query.filter(
-                shop_product_input_group=shop_product_input_group_query.first(),
-                shop_product_input_group__author=self.user,
+                input_group=shop_product_input_group_query.first(),
+                input_group__author=self.user,
             ).count(),
             random_qty,
         )
@@ -133,7 +133,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
             )
 
         # testing the deletion of a shop product input group
-        url = reverse("shop-product-input-group-detail", args=[input_created.id])
+        url = reverse("input-groups-detail", args=[input_created.id])
 
         response = self.client.delete(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
