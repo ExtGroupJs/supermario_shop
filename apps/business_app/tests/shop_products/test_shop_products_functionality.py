@@ -680,7 +680,7 @@ class TestShopProductsViewSet(BaseTestClass):
     ):
         """
         Prueba que cuando el usuario dev actualiza un producto aumentando
-        la cantidad sin extra_log_info, el campo action muestra "entrado"
+        la cantidad sin extra_log_info, el campo action muestra "actualizado"
         """
         from apps.users_app.models.system_user import SystemUser
 
@@ -733,6 +733,6 @@ class TestShopProductsViewSet(BaseTestClass):
         serializer = ShopProductsLogsSerializer(update_log)
         log_data = serializer.data
 
-        # Verificar que el info contiene "entrado" por defecto
-        self.assertIn("entrado", log_data["info"])
+        # Verificar que el info contiene "actualizado" por defecto
+        self.assertIn("actualizado", log_data["info"])
         self.assertIn("+15", log_data["info"])
