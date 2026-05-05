@@ -26,6 +26,9 @@ class TestShopProductsViewSet(BaseTestClass):
         """
         Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
         """
+        ShopProducts.objects.all().delete(
+            force_policy=0
+        )  # this is because in migrations 0021 and 0022 we create ShopProducts
         with freeze_time(datetime.now() - timedelta(days=40)):
             baker.make(
                 ShopProducts,

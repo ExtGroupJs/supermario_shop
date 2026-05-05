@@ -41,6 +41,9 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         """Prueba que en una venta con varios productos individuales se crea un solo
         grupo de ventas y varias ventas asociadas a él, todos con mismo vendedor."""
         self.user.groups.add(Groups.SHOP_SELLER)
+        ShopProducts.objects.all().delete(
+            force_policy=0
+        )  # this is because in migrations 0021 and 0022 we create ShopProducts
         random_qty = baker.random_gen.gen_integer(min_int=1, max_int=5)
         random_shop_product_qty = baker.random_gen.gen_integer(min_int=2, max_int=5)
         random_shop_product_selled_qty = baker.random_gen.gen_integer(

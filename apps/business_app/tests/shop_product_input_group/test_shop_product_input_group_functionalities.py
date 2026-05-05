@@ -47,6 +47,9 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         random_shop_product_input_qty = baker.random_gen.gen_integer(
             min_int=1, max_int=10
         )
+        ShopProducts.objects.all().delete(
+            force_policy=0
+        )  # this is because in migrations 0021 and 0022 we create ShopProducts
         shop_products = [
             {
                 "shop_product": baker.make(
