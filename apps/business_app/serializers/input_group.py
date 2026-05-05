@@ -3,35 +3,36 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 
-from apps.business_app.models.sell_group import SellGroup
-from apps.business_app.serializers.sell import SellSerializer
+from apps.business_app.models.input_group import (
+    InputGroup,
+)
 
 
-class SellGroupSerializer(serializers.ModelSerializer):
+class InputGroupSerializer(serializers.ModelSerializer):
     updated_timestamp = serializers.SerializerMethodField()
-    sells = SellSerializer(many=True)
+    shop_products_input = serializers.ListField(write_only=True)
 
     class Meta:
-        model = SellGroup
+        model = InputGroup
         fields = (
             "id",
-            "discount",
-            "extra_info",
-            "payment_method",
-            "seller",
-            "updated_timestamp",
             "for_date",
-            "sells",
-            "client",
+            "updated_timestamp",
+            "shop_products",
+            "extra_info",
+            "author",
+            "shop_products_input",
         )
         read_only_fields = ("id",)
 
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p")
 
-    def validate_sells(self, value: list):
+    def validate_shop_products_input(self, value: list):
         if len(value) < 1:
-            raise ValidationError("La venta debe contener al menos un elemento")
+            raise ValidationError(
+                "El grupo de entrada de productos debe contener al menos un producto"
+            )
         return value
 
     def validate_for_date(self, value):

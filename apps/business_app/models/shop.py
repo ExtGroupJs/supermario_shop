@@ -21,7 +21,7 @@ class Shop(models.Model):
         null=True,
         blank=True,
     )
-    logo = models.ImageField(verbose_name="logo")
+    logo = models.ImageField(verbose_name="logo", null=True, blank=True)
     extra_info = models.TextField(
         verbose_name="Información Extra", null=True, blank=True
     )
