@@ -523,13 +523,13 @@ async function crearEntradas() {
     return;
   }
 
-  const confirmText = `Se crearan ${selectedIndexes.length} entradas de inventario.`;
+  const confirmText = `Se crearán ${selectedIndexes.length} entradas de inventario.`;
   const confirm = await Swal.fire({
     icon: "question",
-    title: "Confirmar creacion",
+    title: "Confirmar creación",
     text: confirmText,
     showCancelButton: true,
-    confirmButtonText: "Si, crear",
+    confirmButtonText: "Sí, crear",
     cancelButtonText: "Cancelar",
   });
 
@@ -571,7 +571,7 @@ async function crearEntradas() {
     Swal.fire({
       icon: "warning",
       title: "Proceso completado con incidencias",
-      text: `Exitos: ${successCount}. Fallos: ${errorCount}.`,
+      text: `Éxitos: ${successCount}. Fallos: ${errorCount}.`,
     });
   }
 }

@@ -3,10 +3,10 @@ from django.urls import reverse
 from datetime import datetime, timedelta
 
 
-from apps.business_app.models.shop_product_input_group_model import (
-    ShopProductInputGroup,
+from apps.business_app.models.input_group import (
+    InputGroup,
 )
-from apps.business_app.models.shop_product_input_model import ShopProductInput
+from apps.business_app.models.input import Input
 from apps.business_app.models.shop_products import ShopProducts
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.common.models.generic_log import GenericLog
@@ -18,15 +18,15 @@ from freezegun import freeze_time
 
 
 @pytest.mark.django_db
-class TestSellGroupsViewSetFunctionalities(BaseTestClass):
+class TestInputGroupViewSetFunctionalities(BaseTestClass):
     fixtures = ["auth.group.json"]
 
     def setUp(self):
         super().setUp()
 
-    def test_shop_product_input_group_create_without_any_sell_should_fail(self):
+    def test_input_group_create_without_any_sell_should_fail(self):
         """ """
-        url = reverse("shop-product-input-group-list")
+        url = reverse("input-groups-list")
         self.user.groups.add(Groups.SHOP_SELLER)
         payload = {
             "shop_products_input": [],
@@ -38,7 +38,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_shop_product_input_group_create_happy_path(self):
+    def test_input_group_create_happy_path(self):
         """Prueba que en una entrada de productos se crea un solo
         grupo de entradas y varias entradas asociadas a él, todos con mismo autor."""
         self.user.groups.add(Groups.SHOP_SELLER)
@@ -74,16 +74,16 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             "extra_info": "",
         }
         self.client.force_login(self.user)
-        shop_product_input_group_query = ShopProductInputGroup.objects.filter(
+        shop_product_input_group_query = InputGroup.objects.filter(
             author=self.user
         )
-        shop_product_input_query = ShopProductInput.objects.filter(author=self.user)
+        shop_product_input_query = Input.objects.filter(author=self.user)
 
         # Checking initially all was in 0
         self.assertEqual(shop_product_input_group_query.count(), 0)
         self.assertEqual(shop_product_input_query.count(), 0)
 
-        url = reverse("shop-product-input-group-list")
+        url = reverse("input-groups-list")
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -185,16 +185,16 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             "for_date": datetime.now() + timedelta(days=1),  # This is set to fail
         }
         self.client.force_login(self.user)
-        shop_product_input_group_query = ShopProductInputGroup.objects.filter(
+        shop_product_input_group_query = InputGroup.objects.filter(
             author=self.user
         )
-        shop_product_input_query = ShopProductInput.objects.filter(author=self.user)
+        shop_product_input_query = Input.objects.filter(author=self.user)
 
         # Checking initially all was in 0
         self.assertEqual(shop_product_input_group_query.count(), 0)
         self.assertEqual(shop_product_input_query.count(), 0)
 
-        url = reverse("shop-product-input-group-list")
+        url = reverse("input-groups-list")
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -233,16 +233,16 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             "extra_info": "",
         }
         self.client.force_login(self.user)
-        shop_product_input_group_query = ShopProductInputGroup.objects.filter(
+        shop_product_input_group_query = InputGroup.objects.filter(
             author=self.user
         )
-        shop_product_input_query = ShopProductInput.objects.filter(author=self.user)
+        shop_product_input_query = Input.objects.filter(author=self.user)
 
         # Checking initially all was in 0
         self.assertEqual(shop_product_input_group_query.count(), 0)
         self.assertEqual(shop_product_input_query.count(), 0)
 
-        url = reverse("shop-product-input-group-list")
+        url = reverse("input-groups-list")
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -282,16 +282,16 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             - timedelta(days=baker.random_gen.gen_integer(1, 10)),
         }
         self.client.force_login(self.user)
-        shop_product_input_group_query = ShopProductInputGroup.objects.filter(
+        shop_product_input_group_query = InputGroup.objects.filter(
             author=self.user
         )
-        shop_product_input_query = ShopProductInput.objects.filter(author=self.user)
+        shop_product_input_query = Input.objects.filter(author=self.user)
 
         # Checking initially all was in 0
         self.assertEqual(shop_product_input_group_query.count(), 0)
         self.assertEqual(shop_product_input_query.count(), 0)
 
-        url = reverse("shop-product-input-group-list")
+        url = reverse("input-groups-list")
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

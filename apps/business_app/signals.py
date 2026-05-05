@@ -2,7 +2,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from apps.business_app.models.sell import Sell
-from apps.business_app.models.shop_product_input_model import ShopProductInput
+from apps.business_app.models.input import Input
 from apps.business_app.models.shop_products import ShopProducts
 
 
@@ -15,7 +15,7 @@ def update_inventory(inc_pos_dec_neg, instance):
         shop_product.quantity += inc_pos_dec_neg * instance.quantity
         extra_log_info = None
         extra = ""
-        if isinstance(instance, ShopProductInput) and instance.shop_product_input_group:
+        if isinstance(instance, Input) and instance.shop_product_input_group:
             if inc_pos_dec_neg == -1:
                 extra = " cancelada"
             extra_log_info = f"Entrada del {instance.shop_product_input_group.for_date.strftime('%d-%h-%Y')}{extra}"
@@ -38,11 +38,11 @@ def restored_inventory(sender, instance, **kwargs):
     update_inventory(inc_pos_dec_neg=1, instance=instance)
 
 
-@receiver(post_save, sender=ShopProductInput)
+@receiver(post_save, sender=Input)
 def add_to_inventory(sender, instance, **kwargs):
     update_inventory(inc_pos_dec_neg=1, instance=instance)
 
 
-@receiver(post_delete, sender=ShopProductInput)
+@receiver(post_delete, sender=Input)
 def cancel_input(sender, instance, **kwargs):
     update_inventory(inc_pos_dec_neg=-1, instance=instance)

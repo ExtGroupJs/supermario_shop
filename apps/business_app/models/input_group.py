@@ -8,14 +8,14 @@ from django.utils.translation import gettext_lazy as _
 from apps.users_app.models.system_user import SystemUser
 
 
-class ShopProductInputGroup(BaseModel):
+class InputGroup(BaseModel):
     """ """
 
     for_date = models.DateTimeField(
         verbose_name=_("For date timestamp"), default=timezone.now
     )
     shop_products = models.ManyToManyField(
-        ShopProducts, through="ShopProductInput", related_name="input_groups"
+        ShopProducts, through="Input", related_name="input_groups"
     )
     extra_info = models.TextField(
         verbose_name="Información Extra", null=True, blank=True

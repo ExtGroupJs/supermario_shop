@@ -16,7 +16,7 @@ class TestSellGroupsViewSetPermissions(BaseTestClass):
         """
         Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
         """
-        url = reverse("shop-product-input-group-list")
+        url = reverse("input-groups-list")
         allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
 
         self._test_permissions(
@@ -44,7 +44,7 @@ class TestSellGroupsViewSetPermissions(BaseTestClass):
         """
         Solo el SUPER_ADMIN y el SHOP_OWNER pueden introducir datos
         """
-        url = reverse("shop-product-input-group-list")
+        url = reverse("input-groups-list")
         allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
 
         self._test_permissions(

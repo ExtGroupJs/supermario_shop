@@ -88,7 +88,7 @@ class SellViewSetPermission(CommonRolePermission):
     ]
 
 
-class ShopProductInputGroupViewSetPermission(CommonRolePermission):
+class InputGroupViewSetPermission(CommonRolePermission):
     roles = CommonRolePermission.roles + [
         Groups.SHOP_SELLER.value,
     ]

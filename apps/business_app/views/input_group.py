@@ -2,18 +2,18 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
 
-from apps.business_app.models.shop_product_input_group_model import (
-    ShopProductInputGroup,
+from apps.business_app.models.input_group import (
+    InputGroup,
 )
-from apps.business_app.models.shop_product_input_model import ShopProductInput
+from apps.business_app.models.input import Input
 
-from apps.business_app.serializers.shop_product_input_group_serializer import (
-    ShopProductInputGroupSerializer,
+from apps.business_app.serializers.input_group import (
+    InputGroupSerializer,
 )
 from apps.common.common_ordering_filter import CommonOrderingFilter
 
 from apps.common.permissions import (
-    ShopProductInputGroupViewSetPermission,
+    InputGroupViewSetPermission,
 )
 from apps.users_app.models.system_user import SystemUser
 from rest_framework import mixins
@@ -22,21 +22,21 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-class ShopProductInputGroupViewSet(
+class InputGroupViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = ShopProductInputGroup.objects.all()
-    serializer_class = ShopProductInputGroupSerializer
+    queryset = InputGroup.objects.all()
+    serializer_class = InputGroupSerializer
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
         CommonOrderingFilter,
     ]
-    permission_classes = [ShopProductInputGroupViewSetPermission]
+    permission_classes = [InputGroupViewSetPermission]
 
     filterset_fields = {
         # "shop_product__sell_price": ["gte", "lte", "exact"],
@@ -47,7 +47,7 @@ class ShopProductInputGroupViewSet(
         # "extra_info",
     ]
 
-    ordering_fields = ShopProductInputGroupSerializer.Meta.fields
+    ordering_fields = InputGroupSerializer.Meta.fields
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -57,7 +57,7 @@ class ShopProductInputGroupViewSet(
         for input in shop_products_input:
             input["shop_product_input_group"] = created_shop_product_input_group
             input["author"] = created_shop_product_input_group.author
-            ShopProductInput.objects.create(**input)
+            Input.objects.create(**input)
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers

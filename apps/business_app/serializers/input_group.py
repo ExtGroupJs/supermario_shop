@@ -3,20 +3,20 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 
-from apps.business_app.models.shop_product_input_group_model import (
-    ShopProductInputGroup,
+from apps.business_app.models.input_group import (
+    InputGroup,
 )
-from apps.business_app.serializers.shop_product_input_serializer import (
-    ShopProductInputSerializer,
+from apps.business_app.serializers.input import (
+    InputSerializer,
 )
 
 
-class ShopProductInputGroupSerializer(serializers.ModelSerializer):
+class InputGroupSerializer(serializers.ModelSerializer):
     updated_timestamp = serializers.SerializerMethodField()
-    shop_products_input = ShopProductInputSerializer(many=True, write_only=True)
+    input = InputSerializer(many=True, write_only=True)
 
     class Meta:
-        model = ShopProductInputGroup
+        model = InputGroup
         fields = (
             "id",
             "for_date",
@@ -24,7 +24,7 @@ class ShopProductInputGroupSerializer(serializers.ModelSerializer):
             "shop_products",
             "extra_info",
             "author",
-            "shop_products_input",
+            "input",
         )
         read_only_fields = ("id",)
 

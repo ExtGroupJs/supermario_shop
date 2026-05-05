@@ -6,10 +6,10 @@ from apps.business_app.models.product import Product
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop import Shop
-from apps.business_app.models.shop_product_input_group_model import (
-    ShopProductInputGroup,
+from apps.business_app.models.input_group import (
+    InputGroup,
 )
-from apps.business_app.models.shop_product_input_model import ShopProductInput
+from apps.business_app.models.input import Input
 from apps.business_app.models.shop_products import ShopProducts
 from safedelete.admin import SafeDeleteAdmin, highlight_deleted
 
@@ -164,8 +164,8 @@ class SellGroupAdmin(admin.ModelAdmin):
     ]
 
 
-@admin.register(ShopProductInputGroup)
-class ShopProductInputGroupAdmin(admin.ModelAdmin):
+@admin.register(InputGroup)
+class InputGroupAdmin(admin.ModelAdmin):
     empty_value_display = "-empty-"
     list_display = [
         "id",
@@ -178,17 +178,17 @@ class ShopProductInputGroupAdmin(admin.ModelAdmin):
     ]
 
 
-@admin.register(ShopProductInput)
-class ShopProductInputAdmin(admin.ModelAdmin):
+@admin.register(Input)
+class InputAdmin(admin.ModelAdmin):
     empty_value_display = "-empty-"
     list_display = [
         "id",
-        "shop_product_input_group",
+        "input_group",
         "shop_product",
         "quantity",
     ]
     fields = [
-        "shop_product_input_group",
+        "input_group",
         "shop_product",
         "quantity",
     ]

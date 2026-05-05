@@ -5,9 +5,9 @@ from apps.common.models.base_model import BaseModel
 from apps.users_app.models.system_user import SystemUser
 
 
-class ShopProductInput(BaseModel):
-    shop_product_input_group = models.ForeignKey(
-        "ShopProductInputGroup", on_delete=models.CASCADE, related_name="inputs"
+class Input(BaseModel):
+    input_group = models.ForeignKey(
+        "InputGroup", on_delete=models.CASCADE, related_name="inputs"
     )
     shop_product = models.ForeignKey(
         ShopProducts, on_delete=models.CASCADE, related_name="shop_product_inputs"
@@ -26,4 +26,4 @@ class ShopProductInput(BaseModel):
         verbose_name_plural = "Entradas de Productos"
 
     def __str__(self):
-        return f"Adicionados {self.quantity} {self.shop_product} en {self.shop_product_input_group}"
+        return f"Adicionados {self.quantity} {self.shop_product} en {self.input_group}"

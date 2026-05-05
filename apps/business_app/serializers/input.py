@@ -1,15 +1,15 @@
 from rest_framework import serializers
 
-from apps.business_app.models.shop_product_input_model import ShopProductInput
+from apps.business_app.models.input import Input
 
 
-class ShopProductInputSerializer(serializers.ModelSerializer):
+class InputSerializer(serializers.ModelSerializer):
     # product_name = serializers.CharField(read_only=True)
     created_timestamp = serializers.SerializerMethodField()
     for_date = serializers.SerializerMethodField()
 
     class Meta:
-        model = ShopProductInput
+        model = Input
         fields = (
             "id",
             "shop_product",
