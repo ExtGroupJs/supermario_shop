@@ -74,9 +74,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
             "extra_info": "",
         }
         self.client.force_login(self.user)
-        shop_product_input_group_query = InputGroup.objects.filter(
-            author=self.user
-        )
+        shop_product_input_group_query = InputGroup.objects.filter(author=self.user)
         shop_product_input_query = Input.objects.filter(author=self.user)
 
         # Checking initially all was in 0
@@ -185,9 +183,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
             "for_date": datetime.now() + timedelta(days=1),  # This is set to fail
         }
         self.client.force_login(self.user)
-        shop_product_input_group_query = InputGroup.objects.filter(
-            author=self.user
-        )
+        shop_product_input_group_query = InputGroup.objects.filter(author=self.user)
         shop_product_input_query = Input.objects.filter(author=self.user)
 
         # Checking initially all was in 0
@@ -233,9 +229,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
             "extra_info": "",
         }
         self.client.force_login(self.user)
-        shop_product_input_group_query = InputGroup.objects.filter(
-            author=self.user
-        )
+        shop_product_input_group_query = InputGroup.objects.filter(author=self.user)
         shop_product_input_query = Input.objects.filter(author=self.user)
 
         # Checking initially all was in 0
@@ -282,9 +276,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
             - timedelta(days=baker.random_gen.gen_integer(1, 10)),
         }
         self.client.force_login(self.user)
-        shop_product_input_group_query = InputGroup.objects.filter(
-            author=self.user
-        )
+        shop_product_input_group_query = InputGroup.objects.filter(author=self.user)
         shop_product_input_query = Input.objects.filter(author=self.user)
 
         # Checking initially all was in 0

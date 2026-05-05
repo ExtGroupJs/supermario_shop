@@ -6,61 +6,146 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('business_app', '0025_alter_shop_logo'),
-        ('users_app', '0003_systemuser_shop'),
+        ("business_app", "0025_alter_shop_logo"),
+        ("users_app", "0003_systemuser_shop"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='shopproductinputgroup',
-            name='shop_products',
+            model_name="shopproductinputgroup",
+            name="shop_products",
         ),
         migrations.RemoveField(
-            model_name='shopproductinputgroup',
-            name='author',
+            model_name="shopproductinputgroup",
+            name="author",
         ),
         migrations.CreateModel(
-            name='Input',
+            name="Input",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_timestamp', models.DateTimeField(auto_now_add=True, verbose_name='Created timestamp')),
-                ('updated_timestamp', models.DateTimeField(auto_now=True, null=True, verbose_name='Updated timestamp')),
-                ('quantity', models.PositiveIntegerField(default=1, verbose_name='Cantidad')),
-                ('author', models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='inputs', to='users_app.systemuser', verbose_name='Autor de la entrada')),
-                ('shop_product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='shop_product_inputs', to='business_app.shopproducts')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_timestamp",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Created timestamp"
+                    ),
+                ),
+                (
+                    "updated_timestamp",
+                    models.DateTimeField(
+                        auto_now=True, null=True, verbose_name="Updated timestamp"
+                    ),
+                ),
+                (
+                    "quantity",
+                    models.PositiveIntegerField(default=1, verbose_name="Cantidad"),
+                ),
+                (
+                    "author",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="inputs",
+                        to="users_app.systemuser",
+                        verbose_name="Autor de la entrada",
+                    ),
+                ),
+                (
+                    "shop_product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="shop_product_inputs",
+                        to="business_app.shopproducts",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Entrada de Producto',
-                'verbose_name_plural': 'Entradas de Productos',
+                "verbose_name": "Entrada de Producto",
+                "verbose_name_plural": "Entradas de Productos",
             },
         ),
         migrations.CreateModel(
-            name='InputGroup',
+            name="InputGroup",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_timestamp', models.DateTimeField(auto_now_add=True, verbose_name='Created timestamp')),
-                ('updated_timestamp', models.DateTimeField(auto_now=True, null=True, verbose_name='Updated timestamp')),
-                ('for_date', models.DateTimeField(default=django.utils.timezone.now, verbose_name='For date timestamp')),
-                ('extra_info', models.TextField(blank=True, null=True, verbose_name='Información Extra')),
-                ('author', models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='input_groups', to='users_app.systemuser', verbose_name='Autor de la entrada')),
-                ('shop_products', models.ManyToManyField(related_name='input_groups', through='business_app.Input', to='business_app.shopproducts')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_timestamp",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Created timestamp"
+                    ),
+                ),
+                (
+                    "updated_timestamp",
+                    models.DateTimeField(
+                        auto_now=True, null=True, verbose_name="Updated timestamp"
+                    ),
+                ),
+                (
+                    "for_date",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now,
+                        verbose_name="For date timestamp",
+                    ),
+                ),
+                (
+                    "extra_info",
+                    models.TextField(
+                        blank=True, null=True, verbose_name="Información Extra"
+                    ),
+                ),
+                (
+                    "author",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="input_groups",
+                        to="users_app.systemuser",
+                        verbose_name="Autor de la entrada",
+                    ),
+                ),
+                (
+                    "shop_products",
+                    models.ManyToManyField(
+                        related_name="input_groups",
+                        through="business_app.Input",
+                        to="business_app.shopproducts",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Grupo de Entrada de Productos',
-                'verbose_name_plural': 'Grupos de Entrada de Productos',
+                "verbose_name": "Grupo de Entrada de Productos",
+                "verbose_name_plural": "Grupos de Entrada de Productos",
             },
         ),
         migrations.AddField(
-            model_name='input',
-            name='input_group',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='inputs', to='business_app.inputgroup'),
+            model_name="input",
+            name="input_group",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="inputs",
+                to="business_app.inputgroup",
+            ),
         ),
         migrations.DeleteModel(
-            name='ShopProductInput',
+            name="ShopProductInput",
         ),
         migrations.DeleteModel(
-            name='ShopProductInputGroup',
+            name="ShopProductInputGroup",
         ),
     ]
