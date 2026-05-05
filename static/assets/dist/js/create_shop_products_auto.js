@@ -5,6 +5,7 @@ const csrfToken = document.cookie
 axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 const shopProductsUrl = "/business-gestion/shop-products/";
+const inputGroupsUrl = "/business-gestion/input-groups/";
 const load = document.getElementById("load");
 const parsedResultsBody = document.getElementById("parsed-results-body");
 const createButton = document.getElementById("btn-create-entries");
@@ -539,40 +540,52 @@ async function crearEntradas() {
 
   load.hidden = false;
 
-  let successCount = 0;
-  let errorCount = 0;
+  const shopProductsInput = selectedIndexes
+    .map((index) => parsedEntries[index])
+    .filter((entry) => entry && entry.chosenMatch)
+    .map((entry) => ({
+      shop_product: entry.chosenMatch.id,
+      quantity: Number(entry.quantity),
+    }));
 
-  for (const index of selectedIndexes) {
-    const entry = parsedEntries[index];
-    if (!entry || !entry.chosenMatch) {
-      continue;
-    }
-
-    try {
-      const nextQuantity = Number(entry.chosenMatch.currentQuantity) + Number(entry.quantity);
-      await axios.patch(`${shopProductsUrl}${entry.chosenMatch.id}/`, {
-        quantity: nextQuantity,
-      });
-      successCount += 1;
-    } catch (error) {
-      errorCount += 1;
-    }
+  if (!shopProductsInput.length) {
+    load.hidden = true;
+    Swal.fire({
+      icon: "warning",
+      title: "Sin filas válidas",
+      text: "No hay entradas válidas para enviar.",
+    });
+    return;
   }
 
-  load.hidden = true;
+  try {
+    await axios.post(inputGroupsUrl, {
+      shop_products_input: shopProductsInput,
+      extra_info: globalExtraInfo,
+    });
 
-  if (errorCount === 0) {
+    shopProductsInput.forEach((inputEntry) => {
+      const matchedShopProduct = selectedShopProducts.find(
+        (shopProduct) => shopProduct.id === inputEntry.shop_product
+      );
+      if (matchedShopProduct) {
+        matchedShopProduct.currentQuantity += inputEntry.quantity;
+      }
+    });
+
     Swal.fire({
       icon: "success",
       title: "Entradas creadas",
-      text: `Se actualizaron ${successCount} productos correctamente.`,
+      text: `Se creó un grupo de entrada con ${shopProductsInput.length} productos correctamente.`,
     });
-  } else {
+  } catch (error) {
     Swal.fire({
-      icon: "warning",
-      title: "Proceso completado con incidencias",
-      text: `Éxitos: ${successCount}. Fallos: ${errorCount}.`,
+      icon: "error",
+      title: "Error creando entradas",
+      text: "No se pudo crear el grupo de entrada.",
     });
+  } finally {
+    load.hidden = true;
   }
 }
 
