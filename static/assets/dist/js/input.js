@@ -9,6 +9,7 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 // url del endpoint principal
 let selectedShopId = localStorage.getItem("selectedShopId");
 let urlSell = "/business-gestion/input-groups/";
+let urlInput = "/business-gestion/input-products/";
 
 $(function () {
   bsCustomFileInput.init();
@@ -78,9 +79,9 @@ $(document).ready(function () {
             const groupInputs = group.inputs || [];
             groupInputs.forEach((input) => {
               mappedRows.push({
-                id: group.id,
+                id: input.id,
                 input_group: group.id,
-                product_name:input.shop_product_name,
+                product_name: input.shop_product_name,
                 quantity: input.quantity,
                 created_timestamp: input.created_timestamp || group.for_date,
                 seller__first_name: input.author_name,
@@ -162,7 +163,7 @@ function function_delete(id, date, author) {
     if (result.isConfirmed) {
       axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
       axios
-        .delete(`${urlSell}${id}/`)
+        .delete(`${urlInput}${id}/`)
         .then((response) => {
           if (response.status === 204) {
             table.ajax.reload();
