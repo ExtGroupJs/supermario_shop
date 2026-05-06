@@ -80,7 +80,7 @@ $(document).ready(function () {
               mappedRows.push({
                 id: group.id,
                 input_group: group.id,
-                product_name: `SP #${input.shop_product}`,
+                product_name:input.shop_product_name,
                 quantity: input.quantity,
                 created_timestamp: input.created_timestamp || group.for_date,
                 seller__first_name: input.author ?? group.author,
