@@ -5,6 +5,7 @@ from rest_framework.generics import GenericAPIView
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.shop_products import (
     CatalogShopProductSerializer,
+    MoveToAnotherShopBatchSerializer,
     MoveToAnotherShopSerializer,
     ReadShopProductsSerializer,
     ShopProductsSerializer,
@@ -163,4 +164,28 @@ class ShopProductsViewSet(
         output_serializer = ReadShopProductsSerializer
         return Response(
             output_serializer(instance=instance, context={"request": request}).data
+        )
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        permission_classes=[CommonRolePermission],
+        serializer_class=MoveToAnotherShopBatchSerializer,
+        url_name="move-to-another-shop-batch",
+        url_path="move-to-another-shop-batch",
+    )
+    def move_to_another_shop_batch(self, request, *args, **kwargs):
+        """
+        Move many shop products to another shop in one request.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated_instances = serializer.save()
+        output_serializer = ReadShopProductsSerializer
+        return Response(
+            output_serializer(
+                instance=updated_instances,
+                many=True,
+                context={"request": request},
+            ).data
         )
