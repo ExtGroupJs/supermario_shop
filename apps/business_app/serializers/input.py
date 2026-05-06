@@ -10,6 +10,7 @@ class InputSerializer(serializers.ModelSerializer):
     shop_product_name = serializers.StringRelatedField(
         source="shop_product", read_only=True
     )
+    author_name=serializers.StringRelatedField(source="author", read_only=True)
 
     class Meta:
         model = Input
@@ -21,6 +22,7 @@ class InputSerializer(serializers.ModelSerializer):
             "created_timestamp",
             "for_date",
             "author",
+            "author_name",
         )
         read_only_fields = ("id",)
 

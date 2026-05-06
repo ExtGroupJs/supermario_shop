@@ -83,7 +83,7 @@ $(document).ready(function () {
                 product_name:input.shop_product_name,
                 quantity: input.quantity,
                 created_timestamp: input.created_timestamp || group.for_date,
-                seller__first_name: input.author ?? group.author,
+                seller__first_name: input.author_name,
                 extra_info: group.extra_info || "",
               });
             });
