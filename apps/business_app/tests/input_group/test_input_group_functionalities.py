@@ -127,7 +127,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         for log in logs_when_input:
             self.assertEqual(
                 log.extra_log_info,
-                f"Entrada del {input_created.for_date.strftime('%d-%h-%Y')}",
+                f"(Entrada del {input_created.for_date.strftime('%d-%h-%Y')})",
             )
 
         # testing the deletion of a shop product input group
@@ -155,7 +155,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         for log in latest_logs:
             self.assertEqual(
                 log.extra_log_info,
-                f"Entrada del {input_created.for_date.strftime('%d-%h-%Y')} cancelada",
+                f"(Entrada del {input_created.for_date.strftime('%d-%h-%Y')} cancelada)",
             )
 
     def test_for_date_must_be_not_future_date(self):
