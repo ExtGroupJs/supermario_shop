@@ -40,7 +40,10 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
     def test_update_log_entry_on_save(self):
         old_price = self.created_instance.sell_price
-        new_price = baker.random_gen.gen_integer(old_price + 1, old_price + 10)
+        old_price_as_int = int(old_price)
+        new_price = baker.random_gen.gen_integer(
+            old_price_as_int + 1, old_price_as_int + 10
+        )
         self.created_instance.sell_price = new_price
         self.created_instance.save()
         log_entry = GenericLog.objects.filter(object_id=self.created_instance.pk).last()
@@ -56,7 +59,10 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
     def test_update_log_entry_sell_price_is_logged_as_float(self):
         old_price = self.created_instance.sell_price
-        new_price = baker.random_gen.gen_integer(old_price + 1, old_price + 10)
+        old_price_as_int = int(old_price)
+        new_price = baker.random_gen.gen_integer(
+            old_price_as_int + 1, old_price_as_int + 10
+        )
         self.created_instance.sell_price = new_price
         self.created_instance.save()
         log_entry = GenericLog.objects.filter(object_id=self.created_instance.pk).last()

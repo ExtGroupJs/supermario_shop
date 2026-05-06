@@ -684,6 +684,44 @@ class TestShopProductsViewSet(BaseTestClass):
             1,
         )
 
+        source_1_log = GenericLog.objects.get(
+            object_id=source_shop_product_1.id,
+            extra_log_info__isnull=False,
+            created_by=self.user,
+        )
+        source_2_log = GenericLog.objects.get(
+            object_id=source_shop_product_2.id,
+            extra_log_info__isnull=False,
+            created_by=self.user,
+        )
+        existing_dest_1_log = GenericLog.objects.get(
+            object_id=existing_dest_shop_product_1.id,
+            extra_log_info__isnull=False,
+            created_by=self.user,
+        )
+        created_dest_2_log = GenericLog.objects.get(
+            object_id=created_dest_shop_product_2.id,
+            extra_log_info__isnull=False,
+            created_by=self.user,
+        )
+
+        self.assertEqual(
+            source_1_log.extra_log_info,
+            f"(transferido a {destiny_shop})",
+        )
+        self.assertEqual(
+            source_2_log.extra_log_info,
+            f"(transferido a {destiny_shop})",
+        )
+        self.assertEqual(
+            existing_dest_1_log.extra_log_info,
+            f"(transferido desde {source_shop_product_1.shop})",
+        )
+        self.assertEqual(
+            created_dest_2_log.extra_log_info,
+            f"(transferido desde {source_shop_product_2.shop})",
+        )
+
     def test_shop_products_logs_action_with_dev_user_and_extra_log_info_on_decrease(
         self,
     ):
