@@ -394,8 +394,12 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         self.user.groups.add(Groups.SHOP_SELLER)
         self.client.force_login(self.user)
 
-        shop_product_1 = baker.make(ShopProducts, quantity=4, cost_price=1, sell_price=3)
-        shop_product_2 = baker.make(ShopProducts, quantity=6, cost_price=1, sell_price=3)
+        shop_product_1 = baker.make(
+            ShopProducts, quantity=4, cost_price=1, sell_price=3
+        )
+        shop_product_2 = baker.make(
+            ShopProducts, quantity=6, cost_price=1, sell_price=3
+        )
 
         create_url = reverse("input-groups-list")
 
@@ -423,7 +427,9 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         )
         self.assertEqual(second_group_response.status_code, status.HTTP_201_CREATED)
 
-        groups = InputGroup.objects.filter(author=self.user).order_by("created_timestamp")
+        groups = InputGroup.objects.filter(author=self.user).order_by(
+            "created_timestamp"
+        )
         first_group = groups.first()
         second_group = groups.last()
 
