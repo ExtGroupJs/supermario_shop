@@ -7,7 +7,9 @@ class InputSerializer(serializers.ModelSerializer):
     # product_name = serializers.CharField(read_only=True)
     created_timestamp = serializers.SerializerMethodField()
     for_date = serializers.SerializerMethodField()
-    shop_product_name = serializers.StringRelatedField(source="shop_product", read_only=True)
+    shop_product_name = serializers.StringRelatedField(
+        source="shop_product", read_only=True
+    )
 
     class Meta:
         model = Input
