@@ -442,3 +442,40 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
 
         self.assertEqual(Input.objects.filter(input_group=first_group).count(), 0)
         self.assertEqual(Input.objects.filter(input_group=second_group).count(), 1)
+
+    def test_input_group_list_response_has_inputs_nested_structure(self):
+        """
+        El list de InputGroup debe exponer una estructura de lectura
+        con los inputs anidados, similar a sells en SellGroup.
+        """
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        shop_product = baker.make(ShopProducts, quantity=5, cost_price=1, sell_price=3)
+
+        create_url = reverse("input-groups-list")
+        payload = {
+            "shop_products_input": [
+                {"shop_product": shop_product.id, "quantity": 2},
+            ],
+            "extra_info": "",
+        }
+        create_response = self.client.post(create_url, data=payload, format="json")
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+
+        list_response = self.client.get(create_url)
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+
+        self.assertIn("results", list_response.data)
+        self.assertEqual(len(list_response.data["results"]), 1)
+
+        retrieved_group = list_response.data["results"][0]
+        self.assertIn("inputs", retrieved_group)
+        self.assertNotIn("shop_products", retrieved_group)
+        self.assertNotIn("shop_products_input", retrieved_group)
+
+        self.assertEqual(len(retrieved_group["inputs"]), 1)
+        input_item = retrieved_group["inputs"][0]
+        self.assertEqual(input_item["shop_product"], shop_product.id)
+        self.assertEqual(input_item["quantity"], 2)
+        self.assertEqual(input_item["author"], self.user.id)

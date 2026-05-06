@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
+from apps.business_app.serializers.input import InputSerializer
 
 from apps.business_app.models.input_group import (
     InputGroup,
@@ -41,3 +42,23 @@ class InputGroupSerializer(serializers.ModelSerializer):
                 "La fecha de la venta no puede ser mayor al momento actual"
             )
         return value
+
+
+class ReadInputGroupSerializer(serializers.ModelSerializer):
+    updated_timestamp = serializers.SerializerMethodField()
+    inputs = InputSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = InputGroup
+        fields = (
+            "id",
+            "extra_info",
+            "author",
+            "updated_timestamp",
+            "for_date",
+            "inputs",
+        )
+        read_only_fields = ("id",)
+
+    def get_updated_timestamp(self, object):
+        return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p")

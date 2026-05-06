@@ -9,6 +9,7 @@ from apps.business_app.models.input import Input
 
 from apps.business_app.serializers.input_group import (
     InputGroupSerializer,
+    ReadInputGroupSerializer,
 )
 from apps.common.common_ordering_filter import CommonOrderingFilter
 
@@ -48,6 +49,11 @@ class InputGroupViewSet(
     ]
 
     ordering_fields = InputGroupSerializer.Meta.fields
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return ReadInputGroupSerializer
+        return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
