@@ -116,6 +116,11 @@ def sales(request):
     return render(request, "sales/sales.html")
 
 
+@user_passes_test(is_owner)
+def inputs(request):
+    return render(request, "input/input.html")
+
+
 def sales_tienda(request):
     return render(request, "sales/sales_tienda.html")
 
