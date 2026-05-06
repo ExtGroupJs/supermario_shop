@@ -29,7 +29,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         url = reverse("input-groups-list")
         self.user.groups.add(Groups.SHOP_SELLER)
         payload = {
-            "shop_products_input": [],
+            "inputs": [],
             "extra_info": "",
         }
         self.client.force_login(self.user)
@@ -70,7 +70,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         )
 
         payload = {
-            "shop_products_input": shop_products,
+            "inputs": shop_products,
             "extra_info": "",
         }
         self.client.force_login(self.user)
@@ -178,7 +178,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         ]
 
         payload = {
-            "shop_products_input": shop_products,
+            "inputs": shop_products,
             "extra_info": "",
             "for_date": datetime.now() + timedelta(days=1),  # This is set to fail
         }
@@ -225,7 +225,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         ]
 
         payload = {  # payload without explicit "for_date" field
-            "shop_products_input": shop_products,
+            "inputs": shop_products,
             "extra_info": "",
         }
         self.client.force_login(self.user)
@@ -270,7 +270,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         ]
 
         payload = {
-            "shop_products_input": shop_products,
+            "inputs": shop_products,
             "extra_info": "",
             "for_date": datetime.now()
             - timedelta(days=baker.random_gen.gen_integer(1, 10)),
@@ -324,7 +324,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
 
         create_url = reverse("input-groups-list")
         payload = {
-            "shop_products_input": [
+            "inputs": [
                 {
                     "shop_product": shop_product_1.id,
                     "quantity": input_quantity_1,
@@ -406,7 +406,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         first_group_response = self.client.post(
             create_url,
             data={
-                "shop_products_input": [
+                "inputs": [
                     {"shop_product": shop_product_1.id, "quantity": 2},
                 ],
                 "extra_info": "",
@@ -418,7 +418,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         second_group_response = self.client.post(
             create_url,
             data={
-                "shop_products_input": [
+                "inputs": [
                     {"shop_product": shop_product_2.id, "quantity": 1},
                 ],
                 "extra_info": "",
@@ -455,7 +455,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
 
         create_url = reverse("input-groups-list")
         payload = {
-            "shop_products_input": [
+            "inputs": [
                 {"shop_product": shop_product.id, "quantity": 2},
             ],
             "extra_info": "",

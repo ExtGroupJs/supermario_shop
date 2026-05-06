@@ -25,3 +25,10 @@ class InputSerializer(serializers.ModelSerializer):
 
     def get_for_date(self, object):
         return object.input_group.for_date.strftime("%d-%h-%Y")
+
+    def validate_quantity(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                "La entrada debe tener al menos un elemento"
+            )
+        return value

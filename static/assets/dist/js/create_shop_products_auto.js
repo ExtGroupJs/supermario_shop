@@ -560,7 +560,7 @@ async function crearEntradas() {
 
   try {
     await axios.post(inputGroupsUrl, {
-      shop_products_input: shopProductsInput,
+      inputs: shopProductsInput,
       extra_info: globalExtraInfo,
     });
 
