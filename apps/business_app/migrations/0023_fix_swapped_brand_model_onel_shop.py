@@ -54,10 +54,15 @@ def fix_swapped_brand_model_data(apps, schema_editor):
         current_brand = current_model.brand
 
         # Detectar par recíproco (A-B y B-A) que evidencia intercambio.
-        reciprocal_model = Model.objects.filter(
-            name=current_brand.name,
-            brand__name=current_model.name,
-        ).exclude(id=current_model.id).order_by("id").first()
+        reciprocal_model = (
+            Model.objects.filter(
+                name=current_brand.name,
+                brand__name=current_model.name,
+            )
+            .exclude(id=current_model.id)
+            .order_by("id")
+            .first()
+        )
 
         if reciprocal_model:
             # Criterio de seguridad: el más antiguo se considera correcto.

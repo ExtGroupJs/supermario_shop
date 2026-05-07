@@ -88,6 +88,9 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
         self.assertEqual(response.data.get("investments"), 22)
 
     def test_shop_product_filter_by_shop(self):
+        ShopProducts.objects.all().delete(
+            force_policy=0
+        )  # this is because in migrations 0021 and 0022 we create ShopProducts
         wholesale_shop = baker.make(Shop, name=Shop.WHOLESALE_SHOP_NAME)
         shop_products_to_create = baker.random_gen.gen_integer(min_int=1, max_int=10)
         baker.make(
