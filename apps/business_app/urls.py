@@ -18,6 +18,7 @@ from apps.business_app.views.shop_products_logs import ShopProductsLogsViewSet
 
 router = ExtendedSimpleRouter()
 
+
 router.register(
     "brands",
     BrandViewSet,

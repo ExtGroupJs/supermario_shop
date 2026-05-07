@@ -5,26 +5,10 @@
     "fields": {
       "name": "Super Admin",
       "permissions": [
-        [
-          "view_systemuser",
-          "users_app",
-          "systemuser"
-        ],
-        [
-          "add_systemuser",
-          "users_app",
-          "systemuser"
-        ],
-        [
-          "change_systemuser",
-          "users_app",
-          "systemuser"
-        ],
-        [
-          "delete_systemuser",
-          "users_app",
-          "systemuser"
-        ]
+        ["view_systemuser", "users_app", "systemuser"],
+        ["add_systemuser", "users_app", "systemuser"],
+        ["change_systemuser", "users_app", "systemuser"],
+        ["delete_systemuser", "users_app", "systemuser"]
       ]
     }
   },
@@ -41,6 +25,14 @@
     "pk": 3,
     "fields": {
       "name": "Vendedor",
+      "permissions": []
+    }
+  },
+  {
+    "model": "auth.group",
+    "pk": 4,
+    "fields": {
+      "name": "Supervisor",
       "permissions": []
     }
   }

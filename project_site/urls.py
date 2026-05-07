@@ -82,6 +82,16 @@ urlpatterns = [
         login_required(pages.shop_products_auto),
         name="shop_products_auto",
     ),
+    path(
+        "shop_products_move_auto/",
+        login_required(pages.shop_products_move_auto),
+        name="shop_products_move_auto",
+    ),
+    path(
+        "shop_products_move_auto_movil/",
+        login_required(pages.shop_products_move_auto_movil),
+        name="shop_products_move_auto_movil",
+    ),
     path("inventario/", login_required(pages.inventario), name="inventario"),
     path(
         "inventario_entrada_log/",

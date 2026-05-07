@@ -3,7 +3,10 @@ import pytest
 from django.urls import reverse
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
-from apps.business_app.serializers.shop_products import MoveToAnotherShopSerializer
+from apps.business_app.serializers.shop_products import (
+    MoveToAnotherShopBatchSerializer,
+    MoveToAnotherShopSerializer,
+)
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
@@ -484,6 +487,239 @@ class TestShopProductsViewSet(BaseTestClass):
                 created_by=self.user,
             ).count(),
             2,
+        )
+
+    def test_move_to_another_shop_batch_validations(self):
+        """ """
+
+        origin_shop = baker.make(Shop)
+        destiny_shop = baker.make(Shop)
+        test_shop_product = baker.make(
+            ShopProducts,
+            shop=origin_shop,
+            cost_price=1,
+            sell_price=3,
+            quantity=baker.random_gen.gen_integer(min_int=2, max_int=10),
+        )
+        url = reverse("shop-products-move-to-another-shop-batch")
+
+        self.client.force_authenticate(user=self.user)
+        self.user.groups.add(Groups.SHOP_OWNER)
+
+        payload = {
+            "shop": destiny_shop.id,
+            "shop_products": [
+                {
+                    "shop_product": test_shop_product.id,
+                    "quantity": 0,
+                }
+            ],
+        }
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["shop_products"]["0"]["quantity"][0],
+            MoveToAnotherShopSerializer.default_error_messages.get(
+                "quantity_lesser_than_one"
+            ),
+        )
+
+        payload["shop_products"][0]["quantity"] = test_shop_product.quantity + 1
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["shop_products"]["0"]["quantity"][0],
+            MoveToAnotherShopSerializer.default_error_messages.get(
+                "quantity_greater_than_available"
+            ),
+        )
+
+        payload = {
+            "shop": origin_shop.id,
+            "shop_products": [
+                {
+                    "shop_product": test_shop_product.id,
+                    "quantity": 1,
+                }
+            ],
+        }
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["shop_products"]["0"]["shop"][0],
+            MoveToAnotherShopSerializer.default_error_messages.get(
+                "destiny_shop_must_be_diferent"
+            ),
+        )
+
+        payload = {
+            "shop": destiny_shop.id,
+            "shop_products": [],
+        }
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["shop_products"][0],
+            MoveToAnotherShopBatchSerializer.default_error_messages.get(
+                "empty_shop_products"
+            ),
+        )
+
+    def test_move_to_another_shop_batch_logic(self):
+        """ """
+
+        self.client.force_authenticate(user=self.user)
+        self.user.groups.add(Groups.SHOP_OWNER)
+
+        destiny_shop = baker.make(Shop)
+        origin_shop_1 = baker.make(Shop)
+        origin_shop_2 = baker.make(Shop)
+
+        source_shop_product_1 = baker.make(
+            ShopProducts,
+            shop=origin_shop_1,
+            cost_price=1,
+            sell_price=3,
+            quantity=10,
+        )
+        source_shop_product_2 = baker.make(
+            ShopProducts,
+            shop=origin_shop_2,
+            cost_price=1,
+            sell_price=3,
+            quantity=9,
+        )
+
+        existing_dest_shop_product_1 = baker.make(
+            ShopProducts,
+            shop=destiny_shop,
+            product=source_shop_product_1.product,
+            quantity=3,
+            cost_price=source_shop_product_1.cost_price,
+            sell_price=source_shop_product_1.sell_price,
+            sell_price_for_catalog=source_shop_product_1.sell_price_for_catalog,
+            extra_info=source_shop_product_1.extra_info,
+        )
+
+        url = reverse("shop-products-move-to-another-shop-batch")
+        payload = {
+            "shop": destiny_shop.id,
+            "shop_products": [
+                {
+                    "shop_product": source_shop_product_1.id,
+                    "quantity": 4,
+                },
+                {
+                    "shop_product": source_shop_product_2.id,
+                    "quantity": 5,
+                },
+            ],
+        }
+
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()), 2)
+
+        source_shop_product_1.refresh_from_db()
+        source_shop_product_2.refresh_from_db()
+        existing_dest_shop_product_1.refresh_from_db()
+
+        self.assertEqual(source_shop_product_1.quantity, 6)
+        self.assertEqual(source_shop_product_2.quantity, 4)
+        self.assertEqual(existing_dest_shop_product_1.quantity, 7)
+
+        created_dest_shop_product_2 = ShopProducts.objects.get(
+            shop=destiny_shop,
+            product=source_shop_product_2.product,
+        )
+        self.assertEqual(created_dest_shop_product_2.quantity, 5)
+        self.assertEqual(
+            created_dest_shop_product_2.cost_price,
+            source_shop_product_2.cost_price,
+        )
+        self.assertEqual(
+            created_dest_shop_product_2.sell_price,
+            source_shop_product_2.sell_price,
+        )
+        self.assertEqual(
+            created_dest_shop_product_2.sell_price_for_catalog,
+            source_shop_product_2.sell_price_for_catalog,
+        )
+        self.assertEqual(
+            created_dest_shop_product_2.extra_info,
+            source_shop_product_2.extra_info,
+        )
+
+        self.assertEqual(
+            GenericLog.objects.filter(
+                object_id=source_shop_product_1.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            GenericLog.objects.filter(
+                object_id=source_shop_product_2.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            GenericLog.objects.filter(
+                object_id=existing_dest_shop_product_1.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            GenericLog.objects.filter(
+                object_id=created_dest_shop_product_2.id,
+                extra_log_info__isnull=False,
+                created_by=self.user,
+            ).count(),
+            1,
+        )
+
+        source_1_log = GenericLog.objects.get(
+            object_id=source_shop_product_1.id,
+            extra_log_info__isnull=False,
+            created_by=self.user,
+        )
+        source_2_log = GenericLog.objects.get(
+            object_id=source_shop_product_2.id,
+            extra_log_info__isnull=False,
+            created_by=self.user,
+        )
+        existing_dest_1_log = GenericLog.objects.get(
+            object_id=existing_dest_shop_product_1.id,
+            extra_log_info__isnull=False,
+            created_by=self.user,
+        )
+        created_dest_2_log = GenericLog.objects.get(
+            object_id=created_dest_shop_product_2.id,
+            extra_log_info__isnull=False,
+            created_by=self.user,
+        )
+
+        self.assertEqual(
+            source_1_log.extra_log_info,
+            f"(transferido a {destiny_shop})",
+        )
+        self.assertEqual(
+            source_2_log.extra_log_info,
+            f"(transferido a {destiny_shop})",
+        )
+        self.assertEqual(
+            existing_dest_1_log.extra_log_info,
+            f"(transferido desde {source_shop_product_1.shop})",
+        )
+        self.assertEqual(
+            created_dest_2_log.extra_log_info,
+            f"(transferido desde {source_shop_product_2.shop})",
         )
 
     def test_shop_products_logs_action_with_dev_user_and_extra_log_info_on_decrease(
