@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
+from apps.business_app.serializers.input import InputSerializer
 
 
 from apps.business_app.models.input_group import (
@@ -10,7 +11,7 @@ from apps.business_app.models.input_group import (
 
 class InputGroupSerializer(serializers.ModelSerializer):
     updated_timestamp = serializers.SerializerMethodField()
-    shop_products_input = serializers.ListField(write_only=True)
+    inputs = InputSerializer(many=True)
 
     class Meta:
         model = InputGroup
@@ -18,20 +19,19 @@ class InputGroupSerializer(serializers.ModelSerializer):
             "id",
             "for_date",
             "updated_timestamp",
-            "shop_products",
             "extra_info",
             "author",
-            "shop_products_input",
+            "inputs",
         )
         read_only_fields = ("id",)
 
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p")
 
-    def validate_shop_products_input(self, value: list):
+    def validate_inputs(self, value: list):
         if len(value) < 1:
             raise ValidationError(
-                "El grupo de entrada de productos debe contener al menos un producto"
+                "La entrada de productos debe contener al menos un producto"
             )
         return value
 

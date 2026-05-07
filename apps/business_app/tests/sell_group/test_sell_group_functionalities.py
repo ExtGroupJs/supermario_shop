@@ -163,7 +163,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.user.groups.add(Groups.SHOP_SELLER)
         random_shop_product_qty = baker.random_gen.gen_integer(min_int=2, max_int=15)
         random_shop_product_input_qty = baker.random_gen.gen_integer(
-            min_int=1, max_int=random_shop_product_qty
+            min_int=2, max_int=random_shop_product_qty
         )
         sells = [
             {
@@ -346,3 +346,154 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             sell_errors[0]["quantity"][0],
             "La venta debe ser de al menos un elemento",
         )
+
+    def test_destroy_sell_group_deletes_sells_and_restores_inventory_with_logs(self):
+        """
+        Al eliminar un SellGroup se deben eliminar sus Sells,
+        restaurar cantidades en inventario y crear logs con info de cancelacion.
+        """
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        initial_quantity_1 = 12
+        initial_quantity_2 = 10
+        sell_quantity_1 = 4
+        sell_quantity_2 = 3
+
+        shop_product_1 = baker.make(
+            ShopProducts,
+            quantity=initial_quantity_1,
+            cost_price=1,
+            sell_price=3,
+        )
+        shop_product_2 = baker.make(
+            ShopProducts,
+            quantity=initial_quantity_2,
+            cost_price=1,
+            sell_price=3,
+        )
+
+        create_url = reverse("sell-groups-list")
+        payload = {
+            "discount": 0,
+            "extra_info": "",
+            "payment_method": "U",
+            "sells": [
+                {
+                    "shop_product": shop_product_1.id,
+                    "quantity": sell_quantity_1,
+                },
+                {
+                    "shop_product": shop_product_2.id,
+                    "quantity": sell_quantity_2,
+                },
+            ],
+        }
+
+        create_response = self.client.post(create_url, data=payload, format="json")
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+
+        created_group = SellGroup.objects.get(seller=self.user)
+        self.assertEqual(created_group.sells.count(), 2)
+
+        shop_product_1.refresh_from_db()
+        shop_product_2.refresh_from_db()
+        self.assertEqual(shop_product_1.quantity, initial_quantity_1 - sell_quantity_1)
+        self.assertEqual(shop_product_2.quantity, initial_quantity_2 - sell_quantity_2)
+
+        destroy_url = reverse("sell-groups-detail", args=[created_group.id])
+        destroy_response = self.client.delete(destroy_url, format="json")
+        self.assertEqual(destroy_response.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.assertFalse(SellGroup.objects.filter(id=created_group.id).exists())
+        self.assertEqual(Sell.objects.filter(sell_group=created_group).count(), 0)
+
+        shop_product_1.refresh_from_db()
+        shop_product_2.refresh_from_db()
+        self.assertEqual(shop_product_1.quantity, initial_quantity_1)
+        self.assertEqual(shop_product_2.quantity, initial_quantity_2)
+
+        updated_logs_sp1 = GenericLog.objects.filter(
+            object_id=shop_product_1.id,
+            performed_action=GenericLog.ACTION.UPDATED,
+            created_by=self.user,
+        ).order_by("created_timestamp")
+        updated_logs_sp2 = GenericLog.objects.filter(
+            object_id=shop_product_2.id,
+            performed_action=GenericLog.ACTION.UPDATED,
+            created_by=self.user,
+        ).order_by("created_timestamp")
+
+        self.assertEqual(updated_logs_sp1.count(), 2)
+        self.assertEqual(updated_logs_sp2.count(), 2)
+
+        expected_sell_log = f"(Venta del {created_group.for_date.strftime('%d-%h-%Y')})"
+        expected_cancel_log = (
+            f"(Venta del {created_group.for_date.strftime('%d-%h-%Y')} cancelada)"
+        )
+
+        self.assertEqual(updated_logs_sp1.first().extra_log_info, expected_sell_log)
+        self.assertEqual(updated_logs_sp2.first().extra_log_info, expected_sell_log)
+        self.assertEqual(updated_logs_sp1.last().extra_log_info, expected_cancel_log)
+        self.assertEqual(updated_logs_sp2.last().extra_log_info, expected_cancel_log)
+
+    def test_destroy_sell_group_only_deletes_its_own_sells(self):
+        """
+        El destroy de un SellGroup solo elimina sus Sells asociados,
+        sin afectar Sells de otros grupos.
+        """
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        shop_product_1 = baker.make(
+            ShopProducts, quantity=15, cost_price=1, sell_price=3
+        )
+        shop_product_2 = baker.make(
+            ShopProducts, quantity=20, cost_price=1, sell_price=3
+        )
+
+        create_url = reverse("sell-groups-list")
+
+        first_group_response = self.client.post(
+            create_url,
+            data={
+                "discount": 0,
+                "extra_info": "",
+                "payment_method": "U",
+                "sells": [
+                    {"shop_product": shop_product_1.id, "quantity": 2},
+                ],
+            },
+            format="json",
+        )
+        self.assertEqual(first_group_response.status_code, status.HTTP_201_CREATED)
+
+        second_group_response = self.client.post(
+            create_url,
+            data={
+                "discount": 0,
+                "extra_info": "",
+                "payment_method": "U",
+                "sells": [
+                    {"shop_product": shop_product_2.id, "quantity": 2},
+                ],
+            },
+            format="json",
+        )
+        self.assertEqual(second_group_response.status_code, status.HTTP_201_CREATED)
+
+        groups = SellGroup.objects.filter(seller=self.user).order_by(
+            "created_timestamp"
+        )
+        first_group = groups.first()
+        second_group = groups.last()
+
+        self.assertEqual(Sell.objects.filter(sell_group=first_group).count(), 1)
+        self.assertEqual(Sell.objects.filter(sell_group=second_group).count(), 1)
+
+        destroy_url = reverse("sell-groups-detail", args=[first_group.id])
+        destroy_response = self.client.delete(destroy_url, format="json")
+        self.assertEqual(destroy_response.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.assertEqual(Sell.objects.filter(sell_group=first_group).count(), 0)
+        self.assertEqual(Sell.objects.filter(sell_group=second_group).count(), 1)

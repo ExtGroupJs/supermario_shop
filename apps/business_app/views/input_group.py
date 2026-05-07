@@ -52,11 +52,9 @@ class InputGroupViewSet(
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        shop_products_input = serializer.validated_data.pop("shop_products_input")
+        inputs = serializer.validated_data.pop("inputs")
         created_shop_product_input_group = self.perform_create(serializer)
-        for input_data in shop_products_input:
-            if "shop_product" in input_data:
-                input_data["shop_product_id"] = input_data.pop("shop_product")
+        for input_data in inputs:
             input_data["input_group"] = created_shop_product_input_group
             input_data["author"] = created_shop_product_input_group.author
             Input.objects.create(**input_data)
@@ -67,3 +65,10 @@ class InputGroupViewSet(
 
     def perform_create(self, serializer):
         return serializer.save(author=SystemUser.objects.get(id=self.request.user.id))
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        for input in instance.inputs.all():
+            input.delete()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
