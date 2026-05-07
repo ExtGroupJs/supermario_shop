@@ -179,7 +179,9 @@ class MoveToAnotherShopSerializer(serializers.ModelSerializer):
 
 
 class MoveToAnotherShopBatchItemSerializer(serializers.Serializer):
-    shop_product = serializers.PrimaryKeyRelatedField(queryset=ShopProducts.objects.all())
+    shop_product = serializers.PrimaryKeyRelatedField(
+        queryset=ShopProducts.objects.all()
+    )
     quantity = serializers.IntegerField()
 
 
@@ -231,7 +233,9 @@ class MoveToAnotherShopBatchSerializer(serializers.Serializer):
                         )
                     ]
                 else:
-                    remaining_quantities[shop_product.id] = available_quantity - quantity
+                    remaining_quantities[shop_product.id] = (
+                        available_quantity - quantity
+                    )
 
             if item_error:
                 item_errors[str(index)] = item_error
