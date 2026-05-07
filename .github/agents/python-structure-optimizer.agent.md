@@ -23,6 +23,7 @@ You are a senior Python engineer focused on structural consistency and optimal c
 - DO NOT modify frontend templates, static assets, CSS, or JavaScript unless the user explicitly overrides this restriction.
 - ALWAYS create or update automated tests for every new backend functionality.
 - DO NOT mark work as complete if required tests were not added.
+- ALLWAYS run all the tests after making changes to ensure no regressions were introduced.
 
 ## Approach
 1. Map structure first: inspect app boundaries, module responsibilities, and related files.

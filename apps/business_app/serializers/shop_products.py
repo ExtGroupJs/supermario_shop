@@ -1,7 +1,9 @@
 from datetime import timedelta
 import datetime
+from django.db import transaction
 from rest_framework import serializers
 
+from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.product import (
     CatalogProductSerializer,
@@ -174,3 +176,85 @@ class MoveToAnotherShopSerializer(serializers.ModelSerializer):
             update_fields=["quantity"], extra_log_info=f"(transferido a {new_shop})"
         )
         return self.instance
+
+
+class MoveToAnotherShopBatchItemSerializer(serializers.Serializer):
+    shop_product = serializers.PrimaryKeyRelatedField(queryset=ShopProducts.objects.all())
+    quantity = serializers.IntegerField()
+
+
+class MoveToAnotherShopBatchSerializer(serializers.Serializer):
+    shop = serializers.PrimaryKeyRelatedField(queryset=Shop.objects.all())
+    shop_products = MoveToAnotherShopBatchItemSerializer(many=True)
+
+    default_error_messages = dict(
+        serializers.Serializer.default_error_messages,
+        empty_shop_products="Debes enviar al menos un producto para transferir.",
+    )
+
+    def validate_shop_products(self, shop_products):
+        if not shop_products:
+            self.fail("empty_shop_products")
+        return shop_products
+
+    def validate(self, attrs):
+        destiny_shop = attrs["shop"]
+        remaining_quantities = {}
+        item_errors = {}
+
+        for index, item in enumerate(attrs["shop_products"]):
+            shop_product = item["shop_product"]
+            quantity = item["quantity"]
+            item_error = {}
+
+            if destiny_shop == shop_product.shop:
+                item_error["shop"] = [
+                    MoveToAnotherShopSerializer.default_error_messages.get(
+                        "destiny_shop_must_be_diferent"
+                    )
+                ]
+
+            if quantity < 1:
+                item_error["quantity"] = [
+                    MoveToAnotherShopSerializer.default_error_messages.get(
+                        "quantity_lesser_than_one"
+                    )
+                ]
+            else:
+                available_quantity = remaining_quantities.get(
+                    shop_product.id, shop_product.quantity
+                )
+                if quantity > available_quantity:
+                    item_error["quantity"] = [
+                        MoveToAnotherShopSerializer.default_error_messages.get(
+                            "quantity_greater_than_available"
+                        )
+                    ]
+                else:
+                    remaining_quantities[shop_product.id] = available_quantity - quantity
+
+            if item_error:
+                item_errors[str(index)] = item_error
+
+        if item_errors:
+            raise serializers.ValidationError({"shop_products": item_errors})
+
+        return attrs
+
+    @transaction.atomic
+    def save(self, **kwargs):
+        destiny_shop = self.validated_data["shop"]
+        updated_instances = []
+
+        for item in self.validated_data["shop_products"]:
+            shop_product = item["shop_product"]
+            shop_product.refresh_from_db()
+            move_serializer = MoveToAnotherShopSerializer(
+                instance=shop_product,
+                data={"shop": destiny_shop.id, "quantity": item["quantity"]},
+                context=self.context,
+            )
+            move_serializer.is_valid(raise_exception=True)
+            updated_instances.append(move_serializer.save())
+
+        return updated_instances

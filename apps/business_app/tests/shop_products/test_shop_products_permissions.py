@@ -100,3 +100,16 @@ class TestShopProductsViewSet(BaseTestClass):
             allowed_roles=allowed_groups,
             request_using_protocol=self.client.post,
         )
+
+    def test_move_to_another_shop_batch(self):
+        """
+        Solo el SUPER_ADMIN y el SHOP_OWNER pueden invocar este EP
+        """
+        url = reverse("shop-products-move-to-another-shop-batch")
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER]
+
+        self._test_permissions(
+            url,
+            allowed_roles=allowed_groups,
+            request_using_protocol=self.client.post,
+        )

@@ -5,6 +5,7 @@ Esta migración fue diseñada para reparar una inversión accidental donde
 los campos model_name y brand_name fueron intercambiados durante la
 población inicial de datos en la tienda Tecnología Ciego (Onel).
 """
+
 import importlib
 
 import pytest
@@ -64,7 +65,9 @@ class TestMigration0023FixSwappedBrandModel:
 
         # Crear producto que apunta al Model invertido
         product = baker.make(Product, name="Galaxy A17", model=samsung_model)
-        baker.make(ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0
+        )
 
         # Ejecutar migración
         MIGRATION_MODULE.fix_swapped_brand_model_data(django_apps, None)
@@ -88,7 +91,9 @@ class TestMigration0023FixSwappedBrandModel:
 
         # Crear producto que apunta al Model invertido
         product = baker.make(Product, name="Redmi Note 15", model=xiaomi_model)
-        baker.make(ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0
+        )
 
         # Guardar ID del Brand incorrecto para verificar eliminación
         incorrect_brand_id = teléfonos_brand.id
@@ -111,7 +116,9 @@ class TestMigration0023FixSwappedBrandModel:
         shop_t = _get_or_create_shop("Tienda T3", shop_type=Shop.TYPE_CHOICES.TECH)
 
         # Crear tienda de otro tipo (MECANIC, no TECH)
-        shop_other = _get_or_create_shop("Tienda Otro3", shop_type=Shop.TYPE_CHOICES.MECANIC)
+        shop_other = _get_or_create_shop(
+            "Tienda Otro3", shop_type=Shop.TYPE_CHOICES.MECANIC
+        )
 
         # Setup: Correcto
         samsung_brand = baker.make(Brand, name="Samsung3")
@@ -123,11 +130,19 @@ class TestMigration0023FixSwappedBrandModel:
 
         # Crear producto en tienda "T" (será reparado)
         product_t = baker.make(Product, name="Galaxy F07", model=samsung_model)
-        baker.make(ShopProducts, shop=shop_t, product=product_t, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts, shop=shop_t, product=product_t, cost_price=0.5, sell_price=1.0
+        )
 
         # Crear producto en tienda "Otro" (no será reparado)
         product_other = baker.make(Product, name="Galaxy F07b", model=samsung_model)
-        baker.make(ShopProducts, shop=shop_other, product=product_other, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts,
+            shop=shop_other,
+            product=product_other,
+            cost_price=0.5,
+            sell_price=1.0,
+        )
 
         # Ejecutar migración
         MIGRATION_MODULE.fix_swapped_brand_model_data(django_apps, None)
@@ -157,8 +172,12 @@ class TestMigration0023FixSwappedBrandModel:
         # Crear múltiples productos con el mismo nombre (case real en BD)
         product1 = baker.make(Product, name="Galaxy A06", model=samsung_model)
         product2 = baker.make(Product, name="Galaxy A06", model=samsung_model)
-        baker.make(ShopProducts, shop=shop, product=product1, cost_price=0.5, sell_price=1.0)
-        baker.make(ShopProducts, shop=shop, product=product2, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts, shop=shop, product=product1, cost_price=0.5, sell_price=1.0
+        )
+        baker.make(
+            ShopProducts, shop=shop, product=product2, cost_price=0.5, sell_price=1.0
+        )
 
         # Ejecutar migración
         MIGRATION_MODULE.fix_swapped_brand_model_data(django_apps, None)
@@ -179,13 +198,25 @@ class TestMigration0023FixSwappedBrandModel:
         apple_brand = baker.make(Brand, name="Apple5")
         iphone_model = baker.make(Model, name="iPhone5", brand=apple_brand)
         product_valid = baker.make(Product, name="iPhone 15", model=iphone_model)
-        baker.make(ShopProducts, shop=shop, product=product_valid, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts,
+            shop=shop,
+            product=product_valid,
+            cost_price=0.5,
+            sell_price=1.0,
+        )
 
         # Crear Brand y Model INVERTIDOS (para crear contexto de corrección)
         teléfonos_brand = baker.make(Brand, name="Teléfonos5_inv")
         samsung_model = baker.make(Model, name="Samsung5_inv", brand=teléfonos_brand)
         product_invalid = baker.make(Product, name="Galaxy S24", model=samsung_model)
-        baker.make(ShopProducts, shop=shop, product=product_invalid, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts,
+            shop=shop,
+            product=product_invalid,
+            cost_price=0.5,
+            sell_price=1.0,
+        )
 
         # Ejecutar migración
         MIGRATION_MODULE.fix_swapped_brand_model_data(django_apps, None)
@@ -204,14 +235,16 @@ class TestMigration0023FixSwappedBrandModel:
         # "Samsung6" no debe borrarse porque aún tiene "Tablets6".
         samsung_brand = baker.make(Brand, name="Samsung6")
         teléfonos_model = baker.make(Model, name="Teléfonos6", brand=samsung_brand)
-        tablets_model = baker.make(Model, name="Tablets6", brand=samsung_brand)
+        baker.make(Model, name="Tablets6", brand=samsung_brand)
 
         # Par invertido: Brand "Teléfonos6" con Model "Samsung6"
         teléfonos_brand = baker.make(Brand, name="Teléfonos6")
         samsung_model = baker.make(Model, name="Samsung6", brand=teléfonos_brand)
 
         product = baker.make(Product, name="Galaxy A06c", model=samsung_model)
-        baker.make(ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0
+        )
 
         # Ejecutar migración
         MIGRATION_MODULE.fix_swapped_brand_model_data(django_apps, None)
@@ -234,7 +267,9 @@ class TestMigration0023FixSwappedBrandModel:
         teléfonos_brand = baker.make(Brand, name="Teléfonos7")
         samsung_model = baker.make(Model, name="Samsung7", brand=teléfonos_brand)
         product = baker.make(Product, name="Galaxy A16", model=samsung_model)
-        baker.make(ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0
+        )
 
         # Primera ejecución
         MIGRATION_MODULE.fix_swapped_brand_model_data(django_apps, None)
@@ -258,7 +293,9 @@ class TestMigration0023FixSwappedBrandModel:
         teléfonos_brand = baker.make(Brand, name="Teléfonos8_inv")
         samsung_model = baker.make(Model, name="Samsung8_inv", brand=teléfonos_brand)
         product = baker.make(Product, name="Galaxy A05", model=samsung_model)
-        baker.make(ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts, shop=shop, product=product, cost_price=0.5, sell_price=1.0
+        )
 
         # Ejecutar migración (no debería fallar aunque no exista el Model correcto)
         MIGRATION_MODULE.fix_swapped_brand_model_data(django_apps, None)
@@ -273,7 +310,9 @@ class TestMigration0023FixSwappedBrandModel:
         algunos correctos, diferentes tipos de tienda.
         """
         # Tienda tipo "T" (será procesada)
-        shop_t = _get_or_create_shop("Almacén Central9", shop_type=Shop.TYPE_CHOICES.TECH)
+        shop_t = _get_or_create_shop(
+            "Almacén Central9", shop_type=Shop.TYPE_CHOICES.TECH
+        )
         # Tienda tipo Mecánica (NO será procesada, tipo != "T")
         shop_distributor = _get_or_create_shop(
             "Distribuidor X9", shop_type=Shop.TYPE_CHOICES.MECANIC
@@ -283,19 +322,33 @@ class TestMigration0023FixSwappedBrandModel:
         samsung_brand = baker.make(Brand, name="Samsung9")
         teléfonos_model = baker.make(Model, name="Teléfonos9", brand=samsung_brand)
         p_correct = baker.make(Product, name="Galaxy A17", model=teléfonos_model)
-        baker.make(ShopProducts, shop=shop_t, product=p_correct, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts, shop=shop_t, product=p_correct, cost_price=0.5, sell_price=1.0
+        )
 
         # Scenario 2: Brand/Model invertido en tienda "T" (debe repararse)
         teléfonos_brand = baker.make(Brand, name="Teléfonos9")
         samsung_model = baker.make(Model, name="Samsung9", brand=teléfonos_brand)
         p_swapped_t = baker.make(Product, name="Galaxy F07", model=samsung_model)
-        baker.make(ShopProducts, shop=shop_t, product=p_swapped_t, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts,
+            shop=shop_t,
+            product=p_swapped_t,
+            cost_price=0.5,
+            sell_price=1.0,
+        )
 
         # Scenario 3: Brand/Model invertido en tienda Mecánica (NO debe repararse, tipo != "T")
         xiaomi_brand = baker.make(Brand, name="Xiaomi9")
         redmi_model = baker.make(Model, name="Redmi9", brand=xiaomi_brand)
         p_swapped_dist = baker.make(Product, name="Redmi Note 15", model=redmi_model)
-        baker.make(ShopProducts, shop=shop_distributor, product=p_swapped_dist, cost_price=0.5, sell_price=1.0)
+        baker.make(
+            ShopProducts,
+            shop=shop_distributor,
+            product=p_swapped_dist,
+            cost_price=0.5,
+            sell_price=1.0,
+        )
 
         # Ejecutar migración
         MIGRATION_MODULE.fix_swapped_brand_model_data(django_apps, None)

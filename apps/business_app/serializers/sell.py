@@ -38,3 +38,19 @@ class SellSerializer(serializers.ModelSerializer):
 
     def get_created_timestamp(self, object):
         return object.created_timestamp.strftime("%d-%h-%Y a las %I:%M %p")
+
+    def validate(self, attrs):
+        quantity = int(attrs.get("quantity"))
+        shop_product = attrs.get("shop_product")
+        if shop_product.quantity < quantity:
+            raise serializers.ValidationError(
+                "La cantidad solicitada es mayor que la disponibilidad."
+            )
+        return attrs
+
+    def validate_quantity(self, value):
+        if not value or value <= 1:
+            raise serializers.ValidationError(
+                "La venta debe ser de al menos un elemento"
+            )
+        return value
