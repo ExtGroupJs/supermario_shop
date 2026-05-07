@@ -314,12 +314,14 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
             quantity=initial_quantity_1,
             cost_price=1,
             sell_price=3,
+            shop=self.user.shop,
         )
         shop_product_2 = baker.make(
             ShopProducts,
             quantity=initial_quantity_2,
             cost_price=1,
             sell_price=3,
+            shop=self.user.shop,
         )
 
         create_url = reverse("input-groups-list")
@@ -479,3 +481,107 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         self.assertEqual(input_item["shop_product"], shop_product.id)
         self.assertEqual(input_item["quantity"], 2)
         self.assertEqual(input_item["author"], self.user.id)
+
+    def test_delete_one_input_rolls_back_only_its_product_and_keeps_group(self):
+        """
+        Una entrada por InputGroup debe incrementar inventario y generar logs.
+        Al eliminar uno de sus Inputs, solo ese producto debe revertirse,
+        crear log de cancelacion y mantener el grupo con el resto de Inputs.
+        """
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        initial_quantity_1 = 4
+        initial_quantity_2 = 7
+        input_quantity_1 = 2
+        input_quantity_2 = 5
+
+        shop_product_1 = baker.make(
+            ShopProducts,
+            quantity=initial_quantity_1,
+            cost_price=1,
+            sell_price=3,
+            shop=self.user.shop,
+        )
+        shop_product_2 = baker.make(
+            ShopProducts,
+            quantity=initial_quantity_2,
+            cost_price=1,
+            sell_price=3,
+            shop=self.user.shop,
+        )
+
+        create_url = reverse("input-groups-list")
+        create_payload = {
+            "inputs": [
+                {
+                    "shop_product": shop_product_1.id,
+                    "quantity": input_quantity_1,
+                },
+                {
+                    "shop_product": shop_product_2.id,
+                    "quantity": input_quantity_2,
+                },
+            ],
+            "extra_info": "",
+        }
+
+        create_response = self.client.post(
+            create_url, data=create_payload, format="json"
+        )
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+
+        input_group = InputGroup.objects.get(author=self.user)
+        self.assertEqual(input_group.inputs.count(), 2)
+
+        shop_product_1.refresh_from_db()
+        shop_product_2.refresh_from_db()
+        self.assertEqual(shop_product_1.quantity, initial_quantity_1 + input_quantity_1)
+        self.assertEqual(shop_product_2.quantity, initial_quantity_2 + input_quantity_2)
+
+        expected_entry_log = (
+            f"(Entrada del {input_group.for_date.strftime('%d-%h-%Y')})"
+        )
+        created_logs = GenericLog.objects.filter(
+            performed_action=GenericLog.ACTION.UPDATED,
+            created_by=self.user,
+            extra_log_info=expected_entry_log,
+            object_id__in=[shop_product_1.id, shop_product_2.id],
+        )
+        self.assertEqual(created_logs.count(), 2)
+
+        input_to_remove = Input.objects.filter(
+            input_group=input_group,
+            shop_product=shop_product_1,
+        ).first()
+        remove_url = reverse("input-products-detail", args=[input_to_remove.id])
+        remove_response = self.client.delete(remove_url, format="json")
+        self.assertEqual(remove_response.status_code, status.HTTP_204_NO_CONTENT)
+
+        input_group.refresh_from_db()
+        self.assertEqual(input_group.inputs.count(), 1)
+        self.assertTrue(InputGroup.objects.filter(id=input_group.id).exists())
+
+        shop_product_1.refresh_from_db()
+        shop_product_2.refresh_from_db()
+        self.assertEqual(shop_product_1.quantity, initial_quantity_1)
+        self.assertEqual(shop_product_2.quantity, initial_quantity_2 + input_quantity_2)
+
+        expected_cancel_log = (
+            f"(Entrada del {input_group.for_date.strftime('%d-%h-%Y')} cancelada)"
+        )
+        cancel_logs = GenericLog.objects.filter(
+            performed_action=GenericLog.ACTION.UPDATED,
+            created_by=self.user,
+            extra_log_info=expected_cancel_log,
+            object_id=shop_product_1.id,
+        )
+        self.assertEqual(cancel_logs.count(), 1)
+
+        unaffected_product_cancel_logs = GenericLog.objects.filter(
+            performed_action=GenericLog.ACTION.UPDATED,
+            created_by=self.user,
+            extra_log_info=expected_cancel_log,
+            object_id=shop_product_2.id,
+        )
+        self.assertEqual(unaffected_product_cancel_logs.count(), 0)
