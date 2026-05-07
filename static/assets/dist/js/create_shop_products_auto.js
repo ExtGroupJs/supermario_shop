@@ -525,11 +525,14 @@ async function crearEntradas() {
   }
 
   const confirmText = `Se crearán ${selectedIndexes.length} entradas de inventario.`;
+  const confirmText = `Se crearán ${selectedIndexes.length} entradas de inventario.`;
   const confirm = await Swal.fire({
     icon: "question",
     title: "Confirmar creación",
+    title: "Confirmar creación",
     text: confirmText,
     showCancelButton: true,
+    confirmButtonText: "Sí, crear",
     confirmButtonText: "Sí, crear",
     cancelButtonText: "Cancelar",
   });
@@ -557,10 +560,27 @@ async function crearEntradas() {
     });
     return;
   }
+  const shopProductsInput = selectedIndexes
+    .map((index) => parsedEntries[index])
+    .filter((entry) => entry && entry.chosenMatch)
+    .map((entry) => ({
+      shop_product: entry.chosenMatch.id,
+      quantity: Number(entry.quantity),
+    }));
+
+  if (!shopProductsInput.length) {
+    load.hidden = true;
+    Swal.fire({
+      icon: "warning",
+      title: "Sin filas válidas",
+      text: "No hay entradas válidas para enviar.",
+    });
+    return;
+  }
 
   try {
     await axios.post(inputGroupsUrl, {
-      shop_products_input: shopProductsInput,
+      inputs: shopProductsInput,
       extra_info: globalExtraInfo,
     });
 
@@ -577,13 +597,20 @@ async function crearEntradas() {
       icon: "success",
       title: "Entradas creadas",
       text: `Se creó un grupo de entrada con ${shopProductsInput.length} productos correctamente.`,
+      text: `Se creó un grupo de entrada con ${shopProductsInput.length} productos correctamente.`,
     });
+  } catch (error) {
   } catch (error) {
     Swal.fire({
       icon: "error",
       title: "Error creando entradas",
       text: "No se pudo crear el grupo de entrada.",
+      icon: "error",
+      title: "Error creando entradas",
+      text: "No se pudo crear el grupo de entrada.",
     });
+  } finally {
+    load.hidden = true;
   } finally {
     load.hidden = true;
   }
