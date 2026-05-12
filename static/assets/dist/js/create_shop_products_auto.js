@@ -91,17 +91,32 @@ function bindEvents() {
 function poblarTiendas() {
   const selectedShopId = localStorage.getItem("selectedShopId");
   const shopSelect = document.getElementById("shop");
-  axios.get("/business-gestion/shops/").then(function (response) {
-    response.data.results.forEach(function (shop) {
-      const isSelected = selectedShopId && Number(shop.id) === Number(selectedShopId);
-      const option = new Option(shop.name, shop.id, isSelected, isSelected);
-      shopSelect.add(option);
-    });
+  shopSelect.innerHTML = "";
 
-    if (!shopSelect.value && shopSelect.options.length > 0) {
-      shopSelect.value = shopSelect.options[0].value;
-    }
-  });
+  axios
+    .get("/business-gestion/shops/")
+    .then(function (response) {
+      const shops = response.data.results || response.data || [];
+
+      shops.forEach(function (shop) {
+        const isSelected = selectedShopId && Number(shop.id) === Number(selectedShopId);
+        const option = new Option(shop.name, shop.id, isSelected, isSelected);
+        shopSelect.add(option);
+      });
+
+      if (!shopSelect.value && shopSelect.options.length > 0) {
+        shopSelect.value = shopSelect.options[0].value;
+      }
+
+      $(shopSelect).trigger("change");
+    })
+    .catch(function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar las tiendas.",
+      });
+    });
 }
 
 async function analizarMensaje() {
@@ -525,14 +540,11 @@ async function crearEntradas() {
   }
 
   const confirmText = `Se crearán ${selectedIndexes.length} entradas de inventario.`;
-  const confirmText = `Se crearán ${selectedIndexes.length} entradas de inventario.`;
   const confirm = await Swal.fire({
     icon: "question",
     title: "Confirmar creación",
-    title: "Confirmar creación",
     text: confirmText,
     showCancelButton: true,
-    confirmButtonText: "Sí, crear",
     confirmButtonText: "Sí, crear",
     cancelButtonText: "Cancelar",
   });
@@ -543,23 +555,6 @@ async function crearEntradas() {
 
   load.hidden = false;
 
-  const shopProductsInput = selectedIndexes
-    .map((index) => parsedEntries[index])
-    .filter((entry) => entry && entry.chosenMatch)
-    .map((entry) => ({
-      shop_product: entry.chosenMatch.id,
-      quantity: Number(entry.quantity),
-    }));
-
-  if (!shopProductsInput.length) {
-    load.hidden = true;
-    Swal.fire({
-      icon: "warning",
-      title: "Sin filas válidas",
-      text: "No hay entradas válidas para enviar.",
-    });
-    return;
-  }
   const shopProductsInput = selectedIndexes
     .map((index) => parsedEntries[index])
     .filter((entry) => entry && entry.chosenMatch)
@@ -597,20 +592,13 @@ async function crearEntradas() {
       icon: "success",
       title: "Entradas creadas",
       text: `Se creó un grupo de entrada con ${shopProductsInput.length} productos correctamente.`,
-      text: `Se creó un grupo de entrada con ${shopProductsInput.length} productos correctamente.`,
     });
-  } catch (error) {
   } catch (error) {
     Swal.fire({
       icon: "error",
       title: "Error creando entradas",
       text: "No se pudo crear el grupo de entrada.",
-      icon: "error",
-      title: "Error creando entradas",
-      text: "No se pudo crear el grupo de entrada.",
     });
-  } finally {
-    load.hidden = true;
   } finally {
     load.hidden = true;
   }
