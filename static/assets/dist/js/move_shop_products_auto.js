@@ -58,6 +58,11 @@ function bindEvents() {
     if (selectedValue === "") {
       entry.chosenMatch = null;
       entry.status = entry.originalStatus;
+    } else if (selectedValue.startsWith("shop_")) {
+      const shopProductId = Number(selectedValue.replace("shop_", ""));
+      const selectedMatch = sourceShopProducts.find((p) => p.id === shopProductId) || null;
+      entry.chosenMatch = selectedMatch;
+      entry.status = selectedMatch ? "seleccionado_manualmente" : entry.originalStatus;
     } else {
       const selectedMatchIndex = Number(selectedValue);
       const candidateSource = getManualSelectionCandidates(entry);
@@ -404,8 +409,8 @@ function renderMatches(entry) {
     const options = [
       '<option value="">Selecciona un shop-product manualmente</option>',
       ...sourceShopProducts.map(
-        (match, index) =>
-          `<option value="${index}">${escapeHtml(match.displayName)} (${escapeHtml(
+        (match) =>
+          `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(
             match.modelBrand
           )}) | Stock: ${escapeHtml(match.currentQuantity)}</option>`
       ),
@@ -422,14 +427,28 @@ function renderMatches(entry) {
   }
 
   if (entry.status === "ambiguo") {
-    const options = [
-      '<option value="">Selecciona una coincidencia</option>',
-      ...entry.matches.map(
-        (match, index) =>
-          `<option value="${index}">${escapeHtml(match.displayName)} (${escapeHtml(
+    const suggestedOptions = entry.matches
+      .map(
+        (match) =>
+          `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(
             match.modelBrand
           )}) - ${Math.round(match.score * 100)}%</option>`
-      ),
+      )
+      .join("");
+
+    const allOptions = sourceShopProducts
+      .map(
+        (match) =>
+          `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(
+            match.modelBrand
+          )}) | Stock: ${escapeHtml(match.currentQuantity)}</option>`
+      )
+      .join("");
+
+    const options = [
+      '<option value="">Selecciona una coincidencia</option>',
+      `<optgroup label="Coincidencias sugeridas">${suggestedOptions}</optgroup>`,
+      `<optgroup label="Todos los productos">${allOptions}</optgroup>`,
     ].join("");
 
     return `
