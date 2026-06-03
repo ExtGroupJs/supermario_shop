@@ -83,6 +83,11 @@ urlpatterns = [
         name="shop_products_auto",
     ),
     path(
+        "create_sales_auto/",
+        login_required(pages.create_sales_auto),
+        name="create_sales_auto",
+    ),
+    path(
         "shop_products_move_auto/",
         login_required(pages.shop_products_move_auto),
         name="shop_products_move_auto",

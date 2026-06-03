@@ -95,6 +95,11 @@ def shop_products_auto(request):
 
 
 @user_passes_test(is_owner)
+def create_sales_auto(request):
+    return render(request, "sales/create_sales_auto.html")
+
+
+@user_passes_test(is_owner)
 def shop_products_move_auto(request):
     return render(request, "shop_products/move_shop_products_auto.html")
 
