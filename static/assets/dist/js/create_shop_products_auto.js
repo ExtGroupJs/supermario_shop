@@ -544,6 +544,114 @@ function updateCreateButtonState() {
   createButton.disabled = checkedEntries.length === 0;
 }
 
+function formatDateTime(dateValue) {
+  const dateObj = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  return new Intl.DateTimeFormat("es-CO", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(dateObj);
+}
+
+function getSelectedText(selectEl) {
+  if (!selectEl) {
+    return "-";
+  }
+  const option = selectEl.options[selectEl.selectedIndex];
+  return option ? option.text : "-";
+}
+
+function buildInputReceiptText(selectedIndexes, payloadProducts, createdGroup) {
+  const now = new Date();
+  const shopName = getSelectedText(document.getElementById("shop"));
+  const groupId = createdGroup && createdGroup.id ? createdGroup.id : "N/D";
+  const groupDate = createdGroup && createdGroup.for_date ? createdGroup.for_date : formatDateTime(now);
+  const cleanExtraInfo = (globalExtraInfo || "").trim();
+
+  const detailLines = selectedIndexes
+    .map((index) => parsedEntries[index])
+    .filter((entry) => entry && entry.chosenMatch)
+    .map((entry) => {
+      const productName = entry.chosenMatch.displayName || entry.productText;
+      return `- ${entry.quantity} x ${productName}`;
+    });
+
+  const totalUnits = payloadProducts.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+
+  return [
+    "COMPROBANTE DE ENTRADA DE INVENTARIO",
+    `Fecha: ${formatDateTime(now)}`,
+    `Tienda: ${shopName}`,
+    `Grupo de entrada: ${groupId}`,
+    `Fecha del grupo: ${groupDate}`,
+    `Nota: ${cleanExtraInfo || "Sin nota"}`,
+    "",
+    "Detalle:",
+    ...detailLines,
+    "",
+    `Lineas: ${payloadProducts.length}`,
+    `Unidades totales: ${totalUnits}`,
+  ].join("\n");
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const helper = document.createElement("textarea");
+  helper.value = text;
+  helper.style.position = "fixed";
+  helper.style.opacity = "0";
+  document.body.appendChild(helper);
+  helper.focus();
+  helper.select();
+  document.execCommand("copy");
+  document.body.removeChild(helper);
+}
+
+async function showInputReceiptModal(receiptText, inputCount) {
+  const receiptHtml = `
+    <p class="mb-2">Se crearon ${inputCount} entradas de inventario correctamente.</p>
+    <textarea id="input-receipt-text" class="swal2-textarea" style="height:220px; width:100%; margin:0;"></textarea>
+    <small class="text-muted d-block mt-2">Puedes copiar este comprobante para compartirlo por mensaje.</small>
+  `;
+
+  const result = await Swal.fire({
+    icon: "success",
+    title: "Entradas creadas",
+    html: receiptHtml,
+    showCancelButton: true,
+    confirmButtonText: "Copiar comprobante",
+    cancelButtonText: "Cerrar",
+    didOpen: () => {
+      const receiptInput = document.getElementById("input-receipt-text");
+      if (receiptInput) {
+        receiptInput.value = receiptText;
+      }
+    },
+    preConfirm: async () => {
+      try {
+        await copyTextToClipboard(receiptText);
+      } catch (error) {
+        Swal.showValidationMessage("No se pudo copiar el comprobante.");
+      }
+    },
+  });
+
+  if (result.isConfirmed) {
+    Swal.fire({
+      icon: "success",
+      title: "Comprobante copiado",
+      timer: 1400,
+      showConfirmButton: false,
+    });
+  }
+}
+
 async function crearEntradas() {
   const selectedIndexes = Array.from(document.querySelectorAll(".entry-check:checked")).map(
     (checkbox) => Number(checkbox.dataset.index)
@@ -593,7 +701,7 @@ async function crearEntradas() {
   }
 
   try {
-    await axios.post(inputGroupsUrl, {
+    const response = await axios.post(inputGroupsUrl, {
       inputs: shopProductsInput,
       extra_info: globalExtraInfo,
     });
@@ -607,11 +715,12 @@ async function crearEntradas() {
       }
     });
 
-    Swal.fire({
-      icon: "success",
-      title: "Entradas creadas",
-      text: `Se creó un grupo de entrada con ${shopProductsInput.length} productos correctamente.`,
-    });
+    const receiptText = buildInputReceiptText(
+      selectedIndexes,
+      shopProductsInput,
+      response.data
+    );
+    await showInputReceiptModal(receiptText, shopProductsInput.length);
   } catch (error) {
     Swal.fire({
       icon: "error",
