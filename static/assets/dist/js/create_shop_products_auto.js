@@ -720,6 +720,9 @@ async function crearEntradas() {
       shopProductsInput,
       response.data
     );
+
+    // Oculta el loader antes de mostrar el comprobante para evitar superposicion visual.
+    load.hidden = true;
     await showInputReceiptModal(receiptText, shopProductsInput.length);
   } catch (error) {
     Swal.fire({
