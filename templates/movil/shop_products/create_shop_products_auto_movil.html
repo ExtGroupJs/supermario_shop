@@ -1,0 +1,194 @@
+{% extends "index.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block head-extra %}
+<link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+<style>
+  .mobile-container { max-width: 720px; margin: 0 auto; }
+  .touch-label { font-size: 0.95rem; font-weight: 600; }
+  .touch-select, .touch-textarea, .touch-btn { min-height: 46px; border-radius: 10px; }
+  .touch-textarea { min-height: 140px; }
+  .entry-card { border: 1px solid #e9ecef; border-radius: 12px; padding: 12px; margin-bottom: 12px; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+  .entry-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .entry-product { font-size: 0.95rem; font-weight: 600; line-height: 1.25rem; }
+  .entry-sub { font-size: 0.82rem; color: #6c757d; margin-bottom: 8px; }
+  .sticky-action { position: sticky; bottom: 0; z-index: 20; background: #f4f6f9; padding: 10px; border-top: 1px solid #dee2e6; }
+  @media (min-width: 992px) { .mobile-view-note { display: none; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid mobile-container">
+      <div class="row mb-2">
+        <div class="col-12">
+          <h1 class="m-0">Entrada Automatica (Movil)</h1>
+          <small class="text-muted mobile-view-note">Vista optimizada para pantalla de telefono</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="overlay" id="load" hidden>
+      <i class="fas fa-2x fa-sync fa-spin"></i>
+    </div>
+
+    <div class="container-fluid mobile-container pb-3">
+      <div class="card">
+        <div class="card-body">
+          <form id="form-parse-message">
+            <div class="form-group">
+              <label class="touch-label" for="shop">Tienda</label>
+              <select class="form-control select2 touch-select" id="shop" name="shop" required></select>
+            </div>
+            <div class="form-group">
+              <label class="touch-label" for="similarityThreshold">Sensibilidad de coincidencia</label>
+              <input type="range" class="form-control-range" id="similarityThreshold" min="10" max="90" value="55">
+              <small id="similarityValue" class="form-text text-muted">55%</small>
+            </div>
+            <div class="form-group">
+              <label class="touch-label" for="messageInput">Mensaje de entrada</label>
+              <textarea class="form-control touch-textarea" id="messageInput" placeholder="Primera linea: nota global&#10;2 - iPhone 13&#10;1 - Cargador USB-C" required></textarea>
+              <small class="form-text text-muted">La primera linea se usa como nota global.</small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block touch-btn">Analizar Mensaje</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header py-2">
+          <strong>Resultados</strong>
+        </div>
+        <div class="card-body" id="parsed-results-list">
+          <div class="text-center text-muted">Sin resultados todavia</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sticky-action">
+      <div class="container-fluid mobile-container">
+        <button type="button" class="btn btn-success btn-block touch-btn" id="btn-create-entries" disabled>
+          Crear Entradas Encontradas
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Modal crear producto -->
+<div class="modal fade" id="modal-create-product" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Crear Producto</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <form id="form-create-product">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="existing-product-select">Producto existente en el sistema (no en esta tienda)</label>
+            <select class="form-control" id="existing-product-select" name="existing_product">
+              <option value="">Selecciona un producto existente</option>
+            </select>
+            <small class="form-text text-muted">Si el producto ya existe, seleccionalo para evitar crearlo nuevamente.</small>
+          </div>
+          <div class="form-group mb-4">
+            <button type="button" class="btn btn-outline-success btn-sm" id="btn-use-existing-product">Usar producto seleccionado</button>
+          </div>
+          <hr>
+          <h6 class="mb-3">Crear nuevo producto (solo si no existe)</h6>
+          <div class="form-group">
+            <label for="product-name">Nombre <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="product-name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="product-model">Modelo <span class="text-danger">*</span></label>
+            <select class="form-control select2" id="product-model" name="model" required></select>
+          </div>
+          <div class="form-group">
+            <label for="product-description">Descripcion</label>
+            <textarea class="form-control" id="product-description" name="description" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="product-image">Imagen</label>
+            <div class="input-group">
+              <div class="custom-file">
+                <input type="file" class="custom-file-input" id="product-image" name="image" accept="image/*">
+                <label class="custom-file-label" for="product-image">Selecciona archivo</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal crear shop product -->
+<div class="modal fade" id="modal-create-shop-product" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Agregar Producto a Tienda</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <form id="form-create-shop-product">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Producto: <span id="sp-product-name"></span></label>
+          </div>
+          <div class="form-group">
+            <label for="sp-quantity">Cantidad <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="sp-quantity" name="quantity" min="1" required>
+          </div>
+          <div class="form-group">
+            <label for="sp-cost-price">Precio de Costo <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="sp-cost-price" name="cost_price" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="sp-sell-price">Precio de Venta <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="sp-sell-price" name="sell_price" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="sp-catalog-price">Precio Catalogo</label>
+            <input type="number" class="form-control" id="sp-catalog-price" name="sell_price_for_catalog" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="sp-extra-info">Informacion Extra</label>
+            <textarea class="form-control" id="sp-extra-info" name="extra_info" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear y Seleccionar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
+<script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+<script src="{% static 'assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jquery-validation/jquery.validate.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jquery-validation/additional-methods.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
+<script src="{% static 'assets/dist/js/movil/shop_products/create_shop_products_auto_movil.js' %}"></script>
+<script>
+  $('.select2').select2({ theme: 'bootstrap4', width: '100%' });
+  $('#product-model').select2({ theme: 'bootstrap4', dropdownParent: $('#modal-create-product') });
+  $('#existing-product-select').select2({ theme: 'bootstrap4', dropdownParent: $('#modal-create-product'), placeholder: 'Selecciona un producto existente', allowClear: true, width: '100%' });
+</script>
+{% endblock %}
