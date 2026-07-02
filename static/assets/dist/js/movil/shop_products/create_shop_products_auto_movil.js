@@ -1,0 +1,708 @@
+const csrfToken = document.cookie
+  .split(";")
+  .find((c) => c.trim().startsWith("csrftoken="))
+  ?.split("=")[1];
+axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
+
+const shopProductsUrl = "/business-gestion/shop-products/";
+const inputGroupsUrl = "/business-gestion/input-groups/";
+const load = document.getElementById("load");
+const parsedResultsList = document.getElementById("parsed-results-list");
+const createButton = document.getElementById("btn-create-entries");
+const thresholdInput = document.getElementById("similarityThreshold");
+const thresholdValue = document.getElementById("similarityValue");
+const shopSelect = document.getElementById("shop");
+
+let parsedEntries = [];
+let globalExtraInfo = "";
+let selectedShopProducts = [];
+let allProducts = [];
+let pendingProductCreation = null;
+
+$(function () {
+  bindEvents();
+  poblarTiendas();
+  poblarModelos();
+});
+
+function bindEvents() {
+  $("#form-parse-message").on("submit", async function (event) {
+    event.preventDefault();
+    await analizarMensaje();
+  });
+
+  $("#btn-create-entries").on("click", async function () {
+    await crearEntradas();
+  });
+
+  $("#similarityThreshold").on("input", function () {
+    thresholdValue.textContent = `${this.value}%`;
+  });
+
+  $(document).on("change", ".manual-match-select", function () {
+    const index = Number(this.dataset.index);
+    const selectedValue = this.value;
+    const entry = parsedEntries[index];
+    if (!entry) return;
+
+    entry.originalStatus = entry.originalStatus || entry.status;
+
+    if (selectedValue === "") {
+      entry.chosenMatch = null;
+      entry.status = entry.originalStatus;
+    } else if (selectedValue.startsWith("existing_")) {
+      const productId = Number(selectedValue.replace("existing_", ""));
+      const product = allProducts.find(p => p.id === productId);
+      if (product) {
+        abrirModalCrearShopProduct(index, productId, product.displayName);
+        return;
+      }
+    } else if (selectedValue.startsWith("shop_")) {
+      const shopProductId = Number(selectedValue.replace("shop_", ""));
+      const selectedMatch = selectedShopProducts.find((p) => p.id === shopProductId) || null;
+      entry.chosenMatch = selectedMatch;
+      entry.status = selectedMatch ? "seleccionado_manualmente" : entry.originalStatus;
+    } else {
+      const selectedMatchIndex = Number(selectedValue);
+      const candidateSource = getManualSelectionCandidates(entry);
+      entry.chosenMatch = candidateSource[selectedMatchIndex] || null;
+      entry.status = entry.chosenMatch ? "seleccionado_manualmente" : entry.originalStatus;
+    }
+
+    const checkbox = document.querySelector(`.entry-check[data-index="${index}"]`);
+    if (checkbox) {
+      checkbox.disabled = !entry.chosenMatch;
+      checkbox.checked = Boolean(entry.chosenMatch);
+    }
+
+    const statusWrap = document.querySelector(`.entry-status[data-index="${index}"]`);
+    if (statusWrap) statusWrap.innerHTML = renderStatus(entry);
+
+    updateCreateButtonState();
+  });
+
+  $(document).on("change", ".entry-check", function () {
+    updateCreateButtonState();
+  });
+
+  $(document).on("click", "#btn-use-existing-product", function () {
+    usarProductoExistenteDesdeModal();
+  });
+}
+
+function poblarTiendas() {
+  const selectedShopId = localStorage.getItem("selectedShopId");
+  shopSelect.innerHTML = "";
+
+  axios.get("/business-gestion/shops/").then(function (response) {
+    const shops = response.data.results || response.data || [];
+    shops.forEach(function (shop) {
+      const isSelected = selectedShopId && Number(shop.id) === Number(selectedShopId);
+      const option = new Option(shop.name, shop.id, isSelected, isSelected);
+      shopSelect.add(option);
+    });
+
+    if (!shopSelect.value && shopSelect.options.length > 0) {
+      shopSelect.value = shopSelect.options[0].value;
+    }
+
+    $(shopSelect).trigger("change");
+  }).catch(function () {
+    Swal.fire({ icon: "error", title: "Error", text: "No se pudieron cargar las tiendas." });
+  });
+}
+
+async function analizarMensaje() {
+  const shopId = shopSelect.value;
+  const message = document.getElementById("messageInput").value || "";
+
+  if (!shopId) {
+    Swal.fire({ icon: "warning", title: "Selecciona una tienda", text: "Debes seleccionar una tienda antes de analizar el mensaje." });
+    return;
+  }
+
+  load.hidden = false;
+  createButton.disabled = true;
+  parsedEntries = [];
+
+  try {
+    selectedShopProducts = (await cargarShopProducts(shopId)).sort((a, b) =>
+      a.displayName.localeCompare(b.displayName)
+    );
+    allProducts = await cargarTodosProductos();
+
+    const lines = message.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0);
+
+    if (lines.length === 0) {
+      renderNoResults("No hay lineas para procesar");
+      return;
+    }
+
+    globalExtraInfo = lines[0];
+    const itemLines = lines.slice(1);
+
+    if (itemLines.length === 0) {
+      renderNoResults("No se detectaron lineas de productos en el mensaje");
+      return;
+    }
+
+    const threshold = Number(thresholdInput.value) / 100;
+
+    parsedEntries = itemLines.map((line, index) => {
+      const parsedLine = parseLine(line, index + 2);
+      if (!parsedLine.valid) {
+        return { ...parsedLine, status: "formato_invalido", matches: [], chosenMatch: null };
+      }
+
+      const matches = findMatches(parsedLine.productText, selectedShopProducts, threshold);
+      if (matches.length === 0) {
+        return { ...parsedLine, status: "no_encontrado", originalStatus: "no_encontrado", matches, chosenMatch: null };
+      }
+
+      if (matches.length > 1) {
+        return { ...parsedLine, status: "ambiguo", originalStatus: "ambiguo", matches, chosenMatch: null };
+      }
+
+      return { ...parsedLine, status: "encontrado", matches, chosenMatch: matches[0] };
+    });
+
+    renderParsedResults();
+  } catch (error) {
+    renderNoResults("Ocurrio un error analizando el mensaje");
+    Swal.fire({ icon: "error", title: "Error", text: "No se pudo analizar el mensaje. Intenta nuevamente." });
+  } finally {
+    load.hidden = true;
+  }
+}
+
+function parseLine(line, lineNumber) {
+  const regex = /^\s*(\d+)\s*-\s*(.+)\s*$/;
+  const match = line.match(regex);
+  if (!match) {
+    return { lineNumber, rawLine: line, valid: true, quantity: 1, productText: line.trim() };
+  }
+  return { lineNumber, rawLine: line, valid: true, quantity: Number(match[1]), productText: match[2].trim() };
+}
+
+async function cargarShopProducts(shopId) {
+  const response = await axios.get(shopProductsUrl, { params: { shop: shopId } });
+  const results = response.data.results || [];
+  return results.map((item) => {
+    const candidateText = [item.product_name || "", item.model_brand || "", item.extra_info || "", item.__repr__ || ""].join(" ").trim();
+    return {
+      id: item.id,
+      currentQuantity: Number(item.quantity || 0),
+      displayName: item.product_name || "Sin nombre",
+      modelBrand: item.model_brand || "",
+      sellPrice: item.sell_price,
+      costPrice: item.cost_price,
+      productId: item.product.id,
+      candidateText,
+      normalizedCandidate: normalizeText(candidateText),
+    };
+  });
+}
+
+async function cargarTodosProductos() {
+  const response = await axios.get("/business-gestion/products/");
+  return (response.data.results || []).map((item) => ({
+    id: item.id,
+    name: item.__str__ || item.name,
+    displayName: item.name,
+  }));
+}
+
+function getProductosNoEnTienda() {
+  const shopProductIds = new Set(selectedShopProducts.map(p => p.productId));
+  return allProducts.filter(p => !shopProductIds.has(p.id));
+}
+
+function findMatches(inputText, candidates, threshold) {
+  const normalizedInput = normalizeText(inputText);
+  const scored = candidates.map((candidate) => {
+    const score = scoreSimilarity(normalizedInput, candidate.normalizedCandidate);
+    return { ...candidate, score };
+  }).filter((candidate) => candidate.score >= threshold).sort((a, b) => b.score - a.score).slice(0, 3);
+
+  if (scored.length <= 1) return scored;
+  const bestScore = scored[0].score;
+  return scored.filter((item) => bestScore - item.score <= 0.08);
+}
+
+function scoreSimilarity(a, b) {
+  if (!a || !b) return 0;
+  const containsBoost = b.includes(a) ? 1 : 0;
+  const levenshtein = levenshteinSimilarity(a, b);
+  const token = tokenOverlapScore(a, b);
+  return 0.6 * levenshtein + 0.3 * token + 0.1 * containsBoost;
+}
+
+function normalizeText(text) {
+  return (text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function levenshteinSimilarity(a, b) {
+  const distance = levenshteinDistance(a, b);
+  const maxLen = Math.max(a.length, b.length);
+  if (maxLen === 0) return 1;
+  return 1 - distance / maxLen;
+}
+
+function levenshteinDistance(a, b) {
+  const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+  for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost);
+    }
+  }
+  return matrix[a.length][b.length];
+}
+
+function tokenOverlapScore(a, b) {
+  const aTokens = a.split(" ").filter(Boolean);
+  const bTokens = b.split(" ").filter(Boolean);
+  if (!aTokens.length || !bTokens.length) return 0;
+  let matches = 0;
+  for (const token of aTokens) {
+    if (bTokens.includes(token)) matches++;
+  }
+  return matches / aTokens.length;
+}
+
+function renderParsedResults() {
+  if (!parsedEntries.length) {
+    renderNoResults("Sin resultados todavia");
+    return;
+  }
+
+  const cards = parsedEntries.map((entry, index) => {
+    const canCreate = canCreateEntry(entry);
+    const statusHtml = renderStatus(entry);
+    const matchesHtml = renderMatches(entry);
+
+    return `
+      <div class="entry-card">
+        <div class="entry-head">
+          <label class="m-0" style="font-weight: 600;">
+            <input type="checkbox" class="entry-check mr-2" data-index="${index}" ${canCreate ? "checked" : "disabled"}>
+            Crear entrada
+          </label>
+          <div class="entry-status" data-index="${index}">${statusHtml}</div>
+        </div>
+        <div class="entry-product">${escapeHtml(entry.productText)}</div>
+        <div class="entry-sub">Cantidad: ${entry.quantity || "-"}</div>
+        ${renderCurrentStock(entry)}
+        ${matchesHtml}
+      </div>
+    `;
+  });
+
+  parsedResultsList.innerHTML = cards.join("");
+  initializeManualSelects();
+  updateCreateButtonState();
+}
+
+function renderMatches(entry) {
+  if (entry.status === "no_encontrado") {
+    const entryIndex = parsedEntries.indexOf(entry);
+    const options = [
+      '<option value="">Selecciona un shop-product manualmente</option>',
+      ...selectedShopProducts.map((match) =>
+        `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`
+      ),
+    ].join("");
+
+    return `
+      <div class="text-danger small mb-2">Sin coincidencias automaticas</div>
+      <div style="display: flex; gap: 6px; align-items: flex-start;">
+        <select class="form-control form-control-sm manual-match-select" data-index="${entryIndex}" style="flex: 1;">
+          ${options}
+        </select>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="abrirModalCrearProducto(${entryIndex})">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+    `;
+  }
+
+  if (entry.status === "ambiguo") {
+    const suggestedOptions = entry.matches.map((match) =>
+      `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) - ${Math.round(match.score * 100)}%</option>`
+    ).join("");
+
+    const allOptions = selectedShopProducts.map((match) =>
+      `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`
+    ).join("");
+
+    return `
+      <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(entry)}">
+        <option value="">Selecciona una coincidencia</option>
+        <optgroup label="Coincidencias sugeridas">${suggestedOptions}</optgroup>
+        <optgroup label="Todos los productos">${allOptions}</optgroup>
+      </select>
+    `;
+  }
+
+  return entry.matches.map((match) =>
+    `${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) - ${Math.round(match.score * 100)}%`
+  ).join("<br>");
+}
+
+function renderCurrentStock(entry) {
+  const stock = entry?.chosenMatch?.currentQuantity;
+  if (typeof stock !== "number") return "";
+  return `<div class="entry-sub">Stock actual: ${escapeHtml(stock)}</div>`;
+}
+
+function renderStatus(entry) {
+  if (entry.status === "encontrado") return '<span class="badge badge-success">Encontrado</span>';
+  if (entry.manuallyCreated) return '<span class="badge badge-primary">Agregado automaticamente al sistema</span>';
+  if (entry.status === "seleccionado_manualmente") return '<span class="badge badge-info">Seleccionado manualmente</span>';
+  if (entry.status === "ambiguo") return '<span class="badge badge-warning">Ambiguo: revisar</span>';
+  if (entry.status === "no_encontrado") return '<span class="badge badge-danger">No existe shop-product (crear manualmente)</span>';
+  return '<span class="badge badge-secondary">Formato invalido</span>';
+}
+
+function renderNoResults(message) {
+  parsedResultsList.innerHTML = `<div class="text-center text-muted">${escapeHtml(message)}</div>`;
+  createButton.disabled = true;
+}
+
+function canCreateEntry(entry) {
+  return ["encontrado", "seleccionado_manualmente"].includes(entry.status) && Boolean(entry.chosenMatch);
+}
+
+function getManualSelectionCandidates(entry) {
+  if (!entry) return [];
+  if (entry.originalStatus === "no_encontrado" || entry.status === "no_encontrado") return selectedShopProducts;
+  return entry.matches || [];
+}
+
+function initializeManualSelects() {
+  $(".manual-match-select").select2({ theme: "bootstrap4", width: "100%", placeholder: "Selecciona un producto" });
+}
+
+function updateCreateButtonState() {
+  const checkedEntries = Array.from(document.querySelectorAll(".entry-check:checked"));
+  createButton.disabled = checkedEntries.length === 0;
+}
+
+function formatDateTime(dateValue) {
+  const dateObj = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  return new Intl.DateTimeFormat("es-CO", {
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  }).format(dateObj);
+}
+
+function getSelectedText(selectEl) {
+  if (!selectEl) return "-";
+  const option = selectEl.options[selectEl.selectedIndex];
+  return option ? option.text : "-";
+}
+
+function buildInputReceiptText(selectedIndexes, payloadProducts, createdGroup) {
+  const now = new Date();
+  const shopName = getSelectedText(shopSelect);
+  const groupId = createdGroup && createdGroup.id ? createdGroup.id : "N/D";
+  const groupDate = createdGroup && createdGroup.for_date ? createdGroup.for_date : formatDateTime(now);
+  const cleanExtraInfo = (globalExtraInfo || "").trim();
+
+  const detailLines = selectedIndexes.map((index) => parsedEntries[index])
+    .filter((entry) => entry && entry.chosenMatch)
+    .map((entry) => {
+      const productName = entry.chosenMatch.displayName || entry.productText;
+      return `- ${entry.quantity} x ${productName}`;
+    });
+
+  const totalUnits = payloadProducts.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+
+  return [
+    "COMPROBANTE DE ENTRADA DE INVENTARIO",
+    `Fecha: ${formatDateTime(now)}`,
+    `Tienda: ${shopName}`,
+    `Grupo de entrada: ${groupId}`,
+    `Fecha del grupo: ${groupDate}`,
+    `Nota: ${cleanExtraInfo || "Sin nota"}`,
+    "",
+    "Detalle:",
+    ...detailLines,
+    "",
+    `Lineas: ${payloadProducts.length}`,
+    `Unidades totales: ${totalUnits}`,
+  ].join("\n");
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const helper = document.createElement("textarea");
+  helper.value = text;
+  helper.style.position = "fixed";
+  helper.style.opacity = "0";
+  document.body.appendChild(helper);
+  helper.focus();
+  helper.select();
+  document.execCommand("copy");
+  document.body.removeChild(helper);
+}
+
+async function showInputReceiptModal(receiptText, inputCount) {
+  const receiptHtml = `
+    <p class="mb-2">Se crearon ${inputCount} entradas de inventario correctamente.</p>
+    <textarea id="input-receipt-text" class="swal2-textarea" style="height:220px; width:100%; margin:0;"></textarea>
+    <small class="text-muted d-block mt-2">Puedes copiar este comprobante para compartirlo por mensaje.</small>
+  `;
+
+  const result = await Swal.fire({
+    icon: "success",
+    title: "Entradas creadas",
+    html: receiptHtml,
+    showCancelButton: true,
+    confirmButtonText: "Copiar comprobante",
+    cancelButtonText: "Cerrar",
+    didOpen: () => {
+      const receiptInput = document.getElementById("input-receipt-text");
+      if (receiptInput) receiptInput.value = receiptText;
+    },
+    preConfirm: async () => {
+      try {
+        await copyTextToClipboard(receiptText);
+      } catch (error) {
+        Swal.showValidationMessage("No se pudo copiar el comprobante.");
+      }
+    },
+  });
+
+  if (result.isConfirmed) {
+    Swal.fire({ icon: "success", title: "Comprobante copiado", timer: 1400, showConfirmButton: false });
+  }
+}
+
+async function crearEntradas() {
+  const selectedIndexes = Array.from(document.querySelectorAll(".entry-check:checked")).map(
+    (checkbox) => Number(checkbox.dataset.index)
+  );
+
+  if (!selectedIndexes.length) {
+    Swal.fire({ icon: "warning", title: "Sin filas seleccionadas", text: "Selecciona al menos una fila encontrada para crear entradas." });
+    return;
+  }
+
+  const confirm = await Swal.fire({
+    icon: "question",
+    title: "Confirmar creacion",
+    text: `Se crearan ${selectedIndexes.length} entradas de inventario.`,
+    showCancelButton: true,
+    confirmButtonText: "Si, crear",
+    cancelButtonText: "Cancelar",
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  load.hidden = false;
+
+  const shopProductsInput = selectedIndexes.map((index) => parsedEntries[index])
+    .filter((entry) => entry && entry.chosenMatch)
+    .map((entry) => ({
+      shop_product: entry.chosenMatch.id,
+      quantity: Number(entry.quantity),
+    }));
+
+  if (!shopProductsInput.length) {
+    load.hidden = true;
+    Swal.fire({ icon: "warning", title: "Sin filas validas", text: "No hay entradas validas para enviar." });
+    return;
+  }
+
+  try {
+    const response = await axios.post(inputGroupsUrl, {
+      inputs: shopProductsInput,
+      extra_info: globalExtraInfo,
+    });
+
+    shopProductsInput.forEach((inputEntry) => {
+      const matchedShopProduct = selectedShopProducts.find((sp) => sp.id === inputEntry.shop_product);
+      if (matchedShopProduct) matchedShopProduct.currentQuantity += inputEntry.quantity;
+    });
+
+    const receiptText = buildInputReceiptText(selectedIndexes, shopProductsInput, response.data);
+    load.hidden = true;
+    await showInputReceiptModal(receiptText, shopProductsInput.length);
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Error creando entradas", text: "No se pudo crear el grupo de entrada." });
+  } finally {
+    load.hidden = true;
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.innerText = text;
+  return div.innerHTML;
+}
+
+function abrirModalCrearProducto(entryIndex) {
+  pendingProductCreation = { entryIndex };
+  document.getElementById("form-create-product").reset();
+  poblarProductosExistentesEnModal();
+  $("#modal-create-product").modal("show");
+}
+
+function poblarProductosExistentesEnModal() {
+  const select = document.getElementById("existing-product-select");
+  if (!select) return;
+  const productosNoEnTienda = getProductosNoEnTienda();
+  select.innerHTML = [
+    '<option value="">Selecciona un producto existente</option>',
+    ...productosNoEnTienda.map((p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`),
+  ].join("");
+  $(select).val("").trigger("change");
+}
+
+function usarProductoExistenteDesdeModal() {
+  if (!pendingProductCreation) return;
+  const selectedValue = document.getElementById("existing-product-select")?.value;
+  if (!selectedValue) {
+    Swal.fire({ icon: "warning", title: "Selecciona un producto", text: "Debes seleccionar un producto existente para continuar." });
+    return;
+  }
+  const productId = Number(selectedValue);
+  const product = allProducts.find((p) => p.id === productId);
+  if (!product) {
+    Swal.fire({ icon: "error", title: "Producto no encontrado", text: "No se pudo identificar el producto seleccionado." });
+    return;
+  }
+  $("#modal-create-product").modal("hide");
+  abrirModalCrearShopProduct(pendingProductCreation.entryIndex, product.id, product.displayName);
+}
+
+function abrirModalCrearShopProduct(entryIndex, productId, productName) {
+  pendingProductCreation = { entryIndex, productId, productName };
+  document.getElementById("form-create-shop-product").reset();
+  document.getElementById("sp-product-name").textContent = productName;
+  const entry = parsedEntries[entryIndex];
+  if (entry) document.getElementById("sp-quantity").value = entry.quantity || 1;
+  $("#modal-create-shop-product").modal("show");
+}
+
+function poblarModelos() {
+  const $model = document.getElementById("product-model");
+  axios.get("/business-gestion/models/").then(function (response) {
+    response.data.results.forEach(function (model) {
+      const option = new Option(model.name, model.id);
+      $model.add(option);
+    });
+    if ($model.options.length > 1) $model.value = $model.options[1].value;
+  });
+}
+
+$(document).ready(function () {
+  $("#form-create-product").validate({
+    rules: { name: { required: true }, model: { required: true } },
+    submitHandler: function (form) { crearProducto(form); },
+    errorElement: "span",
+    errorPlacement: function (error, element) { error.addClass("invalid-feedback"); element.closest(".form-group").append(error); },
+    highlight: function (element) { $(element).addClass("is-invalid"); },
+    unhighlight: function (element) { $(element).removeClass("is-invalid"); },
+  });
+
+  $("#form-create-shop-product").validate({
+    rules: {
+      quantity: { required: true, digits: true, min: 1 },
+      cost_price: { required: true, number: true, min: 0 },
+      sell_price: { required: true, number: true, min: 0 },
+      sell_price_for_catalog: { number: true, min: 0 },
+    },
+    submitHandler: function (form) { crearShopProduct(form); },
+    errorElement: "span",
+    errorPlacement: function (error, element) { error.addClass("invalid-feedback"); element.closest(".form-group").append(error); },
+    highlight: function (element) { $(element).addClass("is-invalid"); },
+    unhighlight: function (element) { $(element).removeClass("is-invalid"); },
+  });
+});
+
+async function crearProducto(form) {
+  const formData = new FormData(form);
+  load.hidden = false;
+
+  try {
+    const response = await axios.post("/business-gestion/products/", formData);
+    if (response.status === 201) {
+      const newProduct = response.data;
+      allProducts.push({ id: newProduct.id, name: newProduct.__str__ || newProduct.name, displayName: newProduct.name });
+      $("#modal-create-product").modal("hide");
+      abrirModalCrearShopProduct(pendingProductCreation.entryIndex, newProduct.id, newProduct.name);
+    }
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Error creando producto", text: "No se pudo crear el producto. Intente nuevamente.", showConfirmButton: true });
+  } finally {
+    load.hidden = true;
+  }
+}
+
+async function crearShopProduct(form) {
+  const { entryIndex, productId, productName } = pendingProductCreation;
+  const entry = parsedEntries[entryIndex];
+  if (!entry) {
+    Swal.fire({ icon: "error", title: "Error", text: "No se pudo identificar la entrada." });
+    return;
+  }
+
+  const shopId = shopSelect.value;
+  const data = {
+    shop: shopId,
+    product: productId,
+    quantity: document.getElementById("sp-quantity").value,
+    cost_price: document.getElementById("sp-cost-price").value,
+    sell_price: document.getElementById("sp-sell-price").value,
+    sell_price_for_catalog: document.getElementById("sp-catalog-price").value || null,
+    extra_info: document.getElementById("sp-extra-info").value || "",
+  };
+
+  load.hidden = false;
+
+  try {
+    const response = await axios.post(shopProductsUrl, data);
+    if (response.status === 201) {
+      const newShopProduct = response.data;
+      const shopProductObj = {
+        id: newShopProduct.id,
+        currentQuantity: Number(newShopProduct.quantity),
+        displayName: productName,
+        modelBrand: newShopProduct.model_brand || "",
+        sellPrice: newShopProduct.sell_price,
+        costPrice: newShopProduct.cost_price,
+        productId: productId,
+        candidateText: productName,
+        normalizedCandidate: normalizeText(productName),
+      };
+
+      selectedShopProducts.push(shopProductObj);
+      selectedShopProducts.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+      entry.chosenMatch = shopProductObj;
+      entry.status = "seleccionado_manualmente";
+      entry.manuallyCreated = true;
+
+      const checkbox = document.querySelector(`.entry-check[data-index="${entryIndex}"]`);
+      if (checkbox) { checkbox.disabled = true; checkbox.checked = false; }
+
+      const statusCell = document.querySelector(`.entry-status[data-index="${entryIndex}"]`);
+      if (statusCell) statusCell.innerHTML = renderStatus(entry);
+
+      updateCreateButtonState();
+      $("#modal-create-shop-product").modal("hide");
+      Swal.fire({ icon: "success", title: "Producto agregado a tienda", text: `${productName} ha sido agregado correctamente.`, showConfirmButton: false, timer: 1500 });
+    }
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Error creando shop-product", text: "No se pudo agregar el producto a la tienda.", showConfirmButton: true });
+  } finally {
+    load.hidden = true;
+  }
+}
