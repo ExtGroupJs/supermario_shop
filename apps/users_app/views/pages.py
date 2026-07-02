@@ -110,6 +110,16 @@ def shop_products_move_auto_movil(request):
 
 
 @user_passes_test(is_owner)
+def shop_products_auto_movil(request):
+    return render(request, "movil/shop_products/create_shop_products_auto_movil.html")
+
+
+@user_passes_test(is_owner)
+def create_sales_auto_movil(request):
+    return render(request, "movil/sales/create_sales_auto_movil.html")
+
+
+@user_passes_test(is_owner)
 def create_shop_products(request):
     return render(request, "shop_products/create_shop_products.html")
 

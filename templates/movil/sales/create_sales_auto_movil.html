@@ -1,0 +1,119 @@
+{% extends "index.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block head-extra %}
+<link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+<style>
+  .mobile-container { max-width: 720px; margin: 0 auto; }
+  .touch-label { font-size: 0.95rem; font-weight: 600; }
+  .touch-select, .touch-textarea, .touch-btn, .touch-input { min-height: 46px; border-radius: 10px; }
+  .touch-textarea { min-height: 140px; }
+  .entry-card { border: 1px solid #e9ecef; border-radius: 12px; padding: 12px; margin-bottom: 12px; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+  .entry-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .entry-product { font-size: 0.95rem; font-weight: 600; line-height: 1.25rem; }
+  .entry-sub { font-size: 0.82rem; color: #6c757d; margin-bottom: 8px; }
+  .sticky-action { position: sticky; bottom: 0; z-index: 20; background: #f4f6f9; padding: 10px; border-top: 1px solid #dee2e6; }
+  @media (min-width: 992px) { .mobile-view-note { display: none; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid mobile-container">
+      <div class="row mb-2">
+        <div class="col-12">
+          <h1 class="m-0">Venta Automatica (Movil)</h1>
+          <small class="text-muted mobile-view-note">Vista optimizada para pantalla de telefono</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="overlay" id="load" hidden>
+      <i class="fas fa-2x fa-sync fa-spin"></i>
+    </div>
+
+    <div class="container-fluid mobile-container pb-3">
+      <div class="card">
+        <div class="card-body">
+          <form id="form-parse-message">
+            <div class="form-group">
+              <label class="touch-label" for="shop">Tienda</label>
+              <select class="form-control select2 touch-select" id="shop" name="shop" required></select>
+            </div>
+            <div class="form-group">
+              <label class="touch-label" for="similarityThreshold">Sensibilidad de coincidencia</label>
+              <input type="range" class="form-control-range" id="similarityThreshold" min="10" max="90" value="55">
+              <small id="similarityValue" class="form-text text-muted">55%</small>
+            </div>
+            <div class="form-group">
+              <label class="touch-label" for="messageInput">Mensaje de venta</label>
+              <textarea class="form-control touch-textarea" id="messageInput" placeholder="2 - iPhone 13&#10;1 - Cargador USB-C" required></textarea>
+              <small class="form-text text-muted">Formato: <strong>cantidad - producto</strong> por linea.</small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block touch-btn">Analizar Mensaje</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header py-2">
+          <strong>Resultados</strong>
+        </div>
+        <div class="card-body" id="parsed-results-list">
+          <div class="text-center text-muted">Sin resultados todavia</div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header py-2">
+          <strong>Datos de la venta</strong>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="touch-label" for="client">Cliente <span class="text-danger">*</span></label>
+            <input type="text" class="form-control touch-input" id="client" name="client" required placeholder="Nombre del cliente">
+          </div>
+          <div class="form-group">
+            <label class="touch-label" for="payment_method">Metodo de pago</label>
+            <select class="form-control touch-select" id="payment_method" name="payment_method">
+              <option value="U">USD</option>
+              <option value="Z">Zelle</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="touch-label" for="discount">Descuento ($)</label>
+            <input type="number" class="form-control touch-input" id="discount" name="discount" value="0" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="touch-label" for="extra_info">Nota adicional</label>
+            <input type="text" class="form-control touch-input" id="extra_info" name="extra_info" placeholder="Nota opcional de la venta">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sticky-action">
+      <div class="container-fluid mobile-container">
+        <button type="button" class="btn btn-success btn-block touch-btn" id="btn-create-sales" disabled>
+          <i class="fas fa-shopping-cart mr-2"></i>Crear Venta
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
+<script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+<script src="{% static 'assets/dist/js/movil/sales/create_sales_auto_movil.js' %}"></script>
+<script>
+  $('.select2').select2({ theme: 'bootstrap4', width: '100%' });
+</script>
+{% endblock %}
