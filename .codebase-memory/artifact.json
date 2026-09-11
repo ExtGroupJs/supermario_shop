@@ -1,11 +1,11 @@
 {
     "schema_version": 2,
-    "commit": "7e6ac4c0bac46de37498bcf808cac52149c04fdf",
-    "indexed_at": "2026-09-11T16:12:39Z",
-    "project": "supermario_shop",
-    "nodes": 21138,
-    "edges": 122605,
-    "original_size": 67371008,
-    "compressed_size": 12343516,
-    "compression_level": 9
+    "commit": "dd916d8ff8f1130942866f7b4abab5180286490f",
+    "indexed_at": "2026-09-11T17:38:53Z",
+    "project": "home-ealmeida-Trabajo-Working_now-ExtGroupJs-supermario_shop.worktrees-add-wholesale-price-field",
+    "nodes": 21143,
+    "edges": 122566,
+    "original_size": 161611776,
+    "compressed_size": 18506815,
+    "compression_level": 3
 }
