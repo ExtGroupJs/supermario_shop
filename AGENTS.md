@@ -57,6 +57,52 @@ API routes (all under `business-gestion/`):
 User routes: `user-gestion/users/`, `user-gestion/groups/`
 Common routes: `common/logs/`
 
+## DRF Structure Standard
+
+MANDATORY for any new feature/entity. Follow this layout exactly so the codebase stays uniform.
+
+### Models
+
+- One file per model under `<app>/models/<name>.py`, re-exported in `<app>/models/__init__.py`.
+- Inherit `BaseModel` (`apps/common/models/base_model.py`) for `created_timestamp`/`updated_timestamp`. Use `models.Model` only for static/read-only entities.
+- If audit-trail is needed, inherit `GenericLogMixin` FIRST (must be first parent — overrides `save`/`delete`), `SafeDeleteModel` second, `BaseModel` last:
+  ```python
+  class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
+      _safedelete_policy = SOFT_DELETE
+  ```
+
+### ViewSets
+
+- One file per viewset under `<app>/views/<name>.py`.
+- Full CRUD → `class XViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView)`. When update is not wanted, compose only needed mixins (e.g. `CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, ListModelMixin` + `GenericViewSet`).
+- Always declare all three filter backends:
+  ```python
+  filter_backends = [DjangoFilterBackend, filters.SearchFilter, CommonOrderingFilter]
+  ```
+- Default `CommonRolePermission` (or an app-specific subclass). `@action(detail=False, methods=["GET"], permission_classes=[AllowAny])` for public catalog-ish endpoints.
+- Override `perform_create` to attach the actor: `serializer.save(seller=SystemUser.objects.get(id=self.request.user.id))`.
+- Role-based row filtering goes in `get_queryset()` (see `shop_products.py`, `sell.py`).
+- Pagination: `AllResultsSetPagination` when the endpoint must return everything (e.g. products); the default `StandardResultsSetPagination` otherwise.
+
+### Serializers
+
+- One file per model under `<app>/serializers/<name>.py`.
+- Write serializer = flat `ModelSerializer` with FKs as bare PKs. Read serializer extends it, swapping FKs for nested read serializers:
+  ```python
+  class ReadProductSerializer(ProductSerializer):
+      model = ReadModelSerializer()
+      class Meta(ProductSerializer.Meta):
+          fields = ProductSerializer.Meta.fields + ("id", "model_name", "__str__")
+  ```
+- Wire read serializers to the viewset with `SerializerMapMixin`: declare `list_serializer_class`, `retrieve_serializer_class`, etc. (`{action}_serializer_class`).
+- Annotate extra columns (e.g. `model_name`) in the viewset `queryset` with `.annotate(...)`; add matching `read_only=True` fields in the read serializer.
+- Parent+children payloads (SellGroup+sells, InputGroup+inputs) embed the child serializer with `many=True`; the view's `create()` pops children from `validated_data` and bulk-creates them.
+
+### URLs
+
+- Register each viewset in the app's `urls.py`. `business_app` uses `ExtendedSimpleRouter`; other apps use `routers.DefaultRouter`.
+- Mount app routers in `project_site/urls.py` under their prefix (`business-gestion/`, `user-gestion/`, etc.).
+
 ## Key Patterns
 
 - **GenericLogMixin**: Audit logging mixin. Must be **first** parent class (overrides `save`/`delete`). Use with `SafeDeleteModel` second.
