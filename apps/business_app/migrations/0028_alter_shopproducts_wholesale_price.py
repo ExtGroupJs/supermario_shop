@@ -746,6 +746,8 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         ("Anillo de goma", "Geely - CK", 1, None, None, None),
     )
     ShopProducts = apps.get_model("business_app", "ShopProducts")
+    GenericLog = apps.get_model("common", "GenericLog")
+    ContentType = apps.get_model("contenttypes", "ContentType")
     unmatched_records = []
 
     for (
@@ -767,10 +769,6 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
             product__name=incoming_product_name,
             model_brand=incoming_model_brand,
         )
-        if incoming_product_name == "Cangreja":
-            print("Skipping product:", incoming_product_name)
-            print("Queryset:", queryset)
-            print(queryset.exists())
         if not queryset.exists():
             unmatched_records.append(
                 (
@@ -789,6 +787,16 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
             extra_info=incoming_extra_info,
             sell_price=sell_price or 0.3,
             wholesale_price=incoming_wholesale_price,
+        )
+        obj = queryset.first()
+        content_type = ContentType.objects.get_for_model(ShopProducts)
+        GenericLog.objects.filter(content_type=content_type, object_id=obj.id).delete()
+        GenericLog.objects.create(
+            content_type=content_type,
+            object_id=obj.id,
+            performed_action="C",
+            details={"quantity": {"old_value": None, "new_value": incoming_quantity}},
+            extra_log_info=" en CONTEO INICIAL",
         )
     output_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
