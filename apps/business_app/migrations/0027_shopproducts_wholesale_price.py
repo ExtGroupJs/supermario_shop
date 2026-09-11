@@ -36,6 +36,8 @@ class Migration(migrations.Migration):
             field=models.FloatField(
                 validators=[validators.MinValueValidator(limit_value=0.3)],
                 verbose_name="Precio al por mayor",
+                blank=True,
+                null=True,
             ),
         ),
     ]

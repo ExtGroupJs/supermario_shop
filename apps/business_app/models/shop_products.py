@@ -33,6 +33,8 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     wholesale_price = models.FloatField(
         verbose_name="Precio al por mayor",
         validators=[validators.MinValueValidator(limit_value=0.3)],
+        null=True,
+        blank=True,
     )
     sell_price_for_catalog = models.FloatField(
         verbose_name="Precio de venta para catálogo",
