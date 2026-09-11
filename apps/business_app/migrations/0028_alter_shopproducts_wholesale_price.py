@@ -17,7 +17,7 @@ def reset_wholesale_shop_products(apps, schema_editor):
         quantity=0,
         sell_price=0.3,
         sell_price_for_catalog=None,
-        wholesale_price=None,
+        wholesale_price=0.3,
     )
 
 
