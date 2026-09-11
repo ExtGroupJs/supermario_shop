@@ -62,6 +62,7 @@ class ShopProductsViewSet(
         "quantity": ["gte", "lte", "exact"],
         "cost_price": ["gte", "lte", "exact"],
         "sell_price": ["gte", "lte", "exact"],
+        "wholesale_price": ["gte", "lte", "exact"],
         "created_timestamp": ["gte", "lte"],
         "updated_timestamp": ["gte", "lte"],
     }
@@ -82,6 +83,7 @@ class ShopProductsViewSet(
         "quantity",
         "cost_price",
         "sell_price",
+        "wholesale_price",
         "updated_timestamp",
     ]
 

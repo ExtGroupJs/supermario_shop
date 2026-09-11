@@ -28,6 +28,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "quantity",
             "cost_price",
             "sell_price",
+            "wholesale_price",
             "shop",
             "shop_name",
             "product",
@@ -40,6 +41,9 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "extra_log_info",
             "__repr__",
         )
+        extra_kwargs = {
+            "wholesale_price": {"required": False},
+        }
 
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y")
@@ -65,6 +69,8 @@ class ShopProductsSerializer(serializers.ModelSerializer):
                 validated_data["sell_price_for_catalog"] = validated_data.get(
                     "sell_price"
                 )
+            if "wholesale_price" not in validated_data:
+                validated_data["wholesale_price"] = validated_data.get("sell_price")
             self.instance = ShopProducts.objects.create(**validated_data)
             if extra_log_info:
                 log_created = GenericLog.objects.get(object_id=self.instance.id)
@@ -103,6 +109,7 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
         fields = (
             "id",
             "sell_price",
+            "wholesale_price",
             "sell_price_for_catalog",
             "product",
             "shop_name",
@@ -165,6 +172,7 @@ class MoveToAnotherShopSerializer(serializers.ModelSerializer):
                 quantity=quantity_to_move,
                 cost_price=self.instance.cost_price,
                 sell_price=self.instance.sell_price,
+                wholesale_price=self.instance.wholesale_price,
                 sell_price_for_catalog=self.instance.sell_price_for_catalog,
                 extra_info=self.instance.extra_info,
             )

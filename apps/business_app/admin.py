@@ -102,6 +102,7 @@ class ShopProductsAdmin(SafeDeleteAdmin):
         "quantity",
         "cost_price",
         "sell_price",
+        "wholesale_price",
         "sell_price_for_catalog",
         "extra_info",
         "updated_timestamp",
