@@ -48,6 +48,7 @@ class TestShopProductsViewSet(BaseTestClass):
         self.assertEqual(response.data["count"], 1)
         retreived_object = response.data["results"][0]
         self.assertIn("is_new", retreived_object.keys())
+        self.assertIn("wholesale_price", retreived_object.keys())
         self.assertFalse(retreived_object.get("is_new"))
 
     def test_is_new_is_in_catalog_response_and_is_true_since_has_less_than_one_month(
@@ -264,6 +265,7 @@ class TestShopProductsViewSet(BaseTestClass):
 
         response = self.client.post(url, data=payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["wholesale_price"], payload["sell_price"])
 
         generated_logs = GenericLog.objects.all()
         self.assertEqual(generated_logs.count(), 1)
@@ -297,6 +299,16 @@ class TestShopProductsViewSet(BaseTestClass):
 
         self.assertIsNotNone(last_generated_log.extra_log_info)
         self.assertEqual(last_generated_log.extra_log_info, payload["extra_log_info"])
+
+    def test_shop_products_model_defaults_wholesale_price_to_sell_price(self):
+        shop_product = baker.make(
+            ShopProducts,
+            sell_price=20.5,
+            wholesale_price=None,
+            _fill_optional=False,
+        )
+
+        self.assertEqual(shop_product.wholesale_price, shop_product.sell_price)
 
     def test_move_to_another_shop_validations(self):
         """ """
@@ -419,6 +431,10 @@ class TestShopProductsViewSet(BaseTestClass):
         )
         self.assertEqual(
             test_shop_product.sell_price, same_shop_product_in_new_shop.sell_price
+        )
+        self.assertEqual(
+            test_shop_product.wholesale_price,
+            same_shop_product_in_new_shop.wholesale_price,
         )
         self.assertEqual(
             test_shop_product.product, same_shop_product_in_new_shop.product
@@ -641,6 +657,10 @@ class TestShopProductsViewSet(BaseTestClass):
         self.assertEqual(
             created_dest_shop_product_2.sell_price,
             source_shop_product_2.sell_price,
+        )
+        self.assertEqual(
+            created_dest_shop_product_2.wholesale_price,
+            source_shop_product_2.wholesale_price,
         )
         self.assertEqual(
             created_dest_shop_product_2.sell_price_for_catalog,
