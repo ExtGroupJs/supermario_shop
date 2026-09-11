@@ -1,8 +1,11 @@
 {
-  "schema_version": 2,
-  "indexed_at": "2026-09-11T15:42:31Z",
-  "project": "supermario_shop",
-  "nodes": 21121,
-  "edges": 122572,
-  "compression_level": 9
+    "schema_version": 2,
+    "commit": "7e6ac4c0bac46de37498bcf808cac52149c04fdf",
+    "indexed_at": "2026-09-11T16:12:39Z",
+    "project": "supermario_shop",
+    "nodes": 21138,
+    "edges": 122605,
+    "original_size": 67371008,
+    "compressed_size": 12343516,
+    "compression_level": 9
 }
