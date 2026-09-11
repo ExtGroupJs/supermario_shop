@@ -4,6 +4,23 @@
 
 Django 5.1.1 + DRF 3.15.2 auto parts shop (Geely vehicles). Python 3.11. Session-based auth. Spanish locale (`es-es`). `USE_TZ = False`, timezone `America/Havana`.
 
+## Codebase Knowledge Graph (codebase-memory-mcp)
+
+This repo uses codebase-memory-mcp (local-first MCP server). A committed index snapshot lives in `.codebase-memory/graph.db.zst`; if it is stale or missing, run `codebase-memory-mcp cli index_repository --repo-path "$PWD" --mode full --persistence true` (or ask the user to run it in OpenCode).
+
+ALWAYS prefer graph tools over grep/glob/file-search for structural questions:
+
+1. `search_graph` — find functions, classes, routes, variables by pattern
+2. `trace_path` — trace who calls a function or what it calls
+3. `get_code_snippet` — read specific function/class source code
+4. `check_index_coverage` — validate candidate paths / missed ranges before making claims
+5. `query_graph` — Cypher queries for complex patterns
+6. `get_architecture` — high-level project summary
+
+Evidence tiers: **Scout** (quick positive lookups, mark provisional), **Verify** (default; task-directed evidence + exact snippets), **Auditor** (bounded full verification with coverage disclosure). After identifying candidate paths, call `check_index_coverage` once with each evidence path before relying on graph results; for partial/unknown coverage, read/grep the reported ranges directly.
+
+Fall back to grep/glob for: string literals, error messages, config values, non-code files (Dockerfiles, shell scripts, fixtures, templates structure), and when graph tools return insufficient results. Series of calls that must run sequentially are the exception; batch independent graph calls in parallel.
+
 ## Local Setup
 
 ```bash
@@ -74,6 +91,7 @@ MANDATORY for any new feature/entity. Follow this layout exactly so the codebase
 ### ViewSets
 
 - One file per viewset under `<app>/views/<name>.py`.
+- The file `<name>.py` must match the model filename.
 - Full CRUD → `class XViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView)`. When update is not wanted, compose only needed mixins (e.g. `CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, ListModelMixin` + `GenericViewSet`).
 - Always declare all three filter backends:
   ```python
@@ -87,6 +105,7 @@ MANDATORY for any new feature/entity. Follow this layout exactly so the codebase
 ### Serializers
 
 - One file per model under `<app>/serializers/<name>.py`.
+- The file `<name>.py` must match the model filename, if several serializers are needed, all of them should be on this file.
 - Write serializer = flat `ModelSerializer` with FKs as bare PKs. Read serializer extends it, swapping FKs for nested read serializers:
   ```python
   class ReadProductSerializer(ProductSerializer):
