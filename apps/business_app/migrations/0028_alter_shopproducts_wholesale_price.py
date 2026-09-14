@@ -6,10 +6,37 @@ import django.core.validators
 from django.db import migrations, models
 from django.db.models import F, Value
 from django.db.models.functions import Concat
+from django.utils import timezone
 
 
 WHOLESALE_SHOP_NAME = "Tienda al por mayor"
 
+
+def delete_unused_products(apps, schema_editor):
+    ShopProducts = apps.get_model("business_app", "ShopProducts")
+    Product = apps.get_model("business_app", "Product")
+
+    today = timezone.localdate()
+    all_product_ids = set(
+        Product.objects.values_list("id", flat=True)
+    )
+    used_product_ids = set(
+        ShopProducts.objects.values_list("product_id", flat=True).distinct()
+    )
+    today_product_ids = set(
+        Product.objects.filter(created_timestamp__date=today).values_list(
+            "id", flat=True
+        )
+    )
+
+    ShopProducts.objects.filter(
+        product_id__in=(today_product_ids & used_product_ids)
+    ).delete()
+
+    target_ids = today_product_ids | (all_product_ids - used_product_ids)
+    deleted_count = Product.objects.filter(id__in=target_ids).delete()[0]
+    if deleted_count:
+        print("Deleted %s unused products" % deleted_count)
 
 def reset_wholesale_shop_products(apps, schema_editor):
     ShopProducts = apps.get_model("business_app", "ShopProducts")
@@ -36,6 +63,7 @@ def reset_wholesale_shop_products(apps, schema_editor):
         content_type=content_type,
         object_id__in=wholesale_shop_product_ids,
     ).delete()
+    delete_unused_products(apps, schema_editor)
 
 
 
