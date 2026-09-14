@@ -21,8 +21,14 @@ def reset_wholesale_shop_products(apps, schema_editor):
     ShopProducts.objects.filter(id__in=wholesale_shop_product_ids).update(
         quantity=0,
     )
-    GenericLog = apps.get_model("common", "GenericLog")
-    ContentType = apps.get_model("contenttypes", "ContentType")
+    try:
+        GenericLog = apps.get_model("common", "GenericLog")
+        ContentType = apps.get_model("contenttypes", "ContentType")
+    except LookupError:
+        from django.apps import apps as real_apps
+
+        GenericLog = real_apps.get_model("common", "GenericLog")
+        ContentType = real_apps.get_model("contenttypes", "ContentType")
 
     content_type = ContentType.objects.get_for_model(ShopProducts)
 
@@ -828,7 +834,7 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
                 obj.wholesale_price = incoming_wholesale_price
                 if obj.pk:
                     existing_updates[obj.pk] = obj
-            pending_logs[matches[0]] = incoming_quantity
+            pending_logs[id(matches[0])] = (matches[0], incoming_quantity)
             continue
 
         product_matches = product_map.get(key)
@@ -845,7 +851,7 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
             )
             pending_created.append(obj)
             created_map[key] = [obj]
-            pending_logs[obj] = incoming_quantity
+            pending_logs[id(obj)] = (obj, incoming_quantity)
             continue
 
         unmatched_records.append(
@@ -867,7 +873,7 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
     if pending_created:
         ShopProducts.objects.bulk_create(pending_created)
 
-    logged_ids = [obj.pk for obj in pending_logs]
+    logged_ids = [obj.pk for obj, _ in pending_logs.values()]
     if logged_ids:
         GenericLog.objects.filter(
             content_type=shopproduct_content_type, object_id__in=logged_ids
@@ -881,7 +887,7 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
                     details={"quantity": {"old_value": None, "new_value": quantity}},
                     extra_log_info=" en CONTEO INICIAL",
                 )
-                for obj, quantity in pending_logs.items()
+                for obj, quantity in pending_logs.values()
             ]
         )
 
