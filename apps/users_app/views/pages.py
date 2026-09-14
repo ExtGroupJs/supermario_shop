@@ -120,6 +120,11 @@ def create_sales_auto_movil(request):
 
 
 @user_passes_test(is_owner)
+def edit_product_image_movil(request):
+    return render(request, "movil/products/edit_product_image_movil.html")
+
+
+@user_passes_test(is_owner)
 def create_shop_products(request):
     return render(request, "shop_products/create_shop_products.html")
 

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from safedelete import SOFT_DELETE_CASCADE
 
 from apps.business_app.models.model import Model
@@ -19,6 +20,13 @@ class Product(SafeDeleteModel, BaseModel):
     class Meta:
         verbose_name = "Producto"
         verbose_name_plural = "Productos"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name", "model"],
+                condition=Q(deleted__isnull=True),
+                name="unique_product_model",
+            )
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.model})"

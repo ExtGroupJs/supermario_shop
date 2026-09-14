@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.core import validators
 from safedelete import SOFT_DELETE
 
@@ -53,6 +54,13 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     class Meta:
         verbose_name = "Productos en Tienda"
         verbose_name_plural = "Productos en Tiendas"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["shop", "product"],
+                condition=Q(deleted__isnull=True),
+                name="unique_shop_product",
+            )
+        ]
 
     def __str__(self):
         return f"{self.product} ({self.shop})"
@@ -65,7 +73,14 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     def save(self, *args, **kwargs):
         if self.wholesale_price is None:
             self.wholesale_price = self.sell_price
-        self.full_clean()  # Valida el modelo antes de guardar
+            # 1. Check if django-safedelete is performing a soft delete action
+        is_safedelete = kwargs.get("keep_deleted", False) or getattr(
+            self, "deleted", None
+        )
+
+        # 2. Only validate if it's a normal save (not a deletion)
+        if not is_safedelete:
+            self.full_clean()  # Valida el modelo antes de guardar
         super().save(*args, **kwargs)
 
     def investment(self):
