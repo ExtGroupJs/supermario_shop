@@ -107,6 +107,11 @@ urlpatterns = [
         login_required(pages.create_sales_auto_movil),
         name="create_sales_auto_movil",
     ),
+    path(
+        "edit_product_image_movil/",
+        login_required(pages.edit_product_image_movil),
+        name="edit_product_image_movil",
+    ),
     path("inventario/", login_required(pages.inventario), name="inventario"),
     path(
         "inventario_entrada_log/",
