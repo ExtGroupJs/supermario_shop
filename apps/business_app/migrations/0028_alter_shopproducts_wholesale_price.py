@@ -12,6 +12,20 @@ from django.db.models.functions import Concat
 WHOLESALE_SHOP_NAME = "Tienda al por mayor"
 
 
+def delete_duplicated_shopproducts(apps, schema_editor):
+    ShopProducts = apps.get_model("business_app", "ShopProducts")
+    Sell = apps.get_model("business_app", "Sell")
+    for sp in ShopProducts.objects.all().only("product_id", "shop_id").order_by("product_id", "shop_id"):
+        duplicates = ShopProducts.objects.filter(
+            product_id=sp.product_id,
+            shop_id=sp.shop_id
+        ).exclude(id=sp.id)
+        if duplicates.exists():
+            # Delete related sells for the duplicates
+            Sell.objects.filter(shop_product_id__in=duplicates.values_list("id", flat=True)).delete()
+            duplicates.delete()
+
+
 def delete_unused_products(apps, schema_editor):
     ShopProducts = apps.get_model("business_app", "ShopProducts")
     Product = apps.get_model("business_app", "Product")
@@ -63,6 +77,7 @@ def reset_wholesale_shop_products(apps, schema_editor):
 
 
 def reset_wholesale_shop_products_feed(apps, schema_editor):
+    delete_duplicated_shopproducts(apps, schema_editor)
     # product, marca_modelo, quantity, extra_info, sell_price, wholesale_price
     PRODUCTS = (
         ("Aforador", "Geely - CK", 11, None, 85, 75),
