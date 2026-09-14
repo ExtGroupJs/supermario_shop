@@ -765,6 +765,8 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
     )
     ShopProducts = apps.get_model("business_app", "ShopProducts")
     Product = apps.get_model("business_app", "Product")
+    Brand = apps.get_model("business_app", "Brand")
+    Model = apps.get_model("business_app", "Model")
     GenericLog = apps.get_model("common", "GenericLog")
     ContentType = apps.get_model("contenttypes", "ContentType")
     Shop = apps.get_model("business_app", "Shop")
@@ -854,16 +856,39 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
             pending_logs[id(obj)] = (obj, incoming_quantity)
             continue
 
-        unmatched_records.append(
-            (
-                incoming_product_name,
-                incoming_model_brand,
-                incoming_quantity,
-                incoming_extra_info,
-                sell_price,
-                incoming_wholesale_price,
+        brand_name, _, model_name = incoming_model_brand.partition(" - ")
+        if not brand_name or not model_name:
+            unmatched_records.append(
+                (
+                    incoming_product_name,
+                    incoming_model_brand,
+                    incoming_quantity,
+                    incoming_extra_info,
+                    sell_price,
+                    incoming_wholesale_price,
+                )
             )
+            continue
+        brand, _ = Brand.objects.get_or_create(name=brand_name)
+        model, _ = Model.objects.get_or_create(name=model_name, defaults={"brand": brand})
+        if model.brand_id != brand.id:
+            model.brand = brand
+            model.save()
+        product = Product(name=incoming_product_name, model=model)
+        product.save()
+        obj = ShopProducts(
+            shop=my_shop,
+            product=product,
+            quantity=incoming_quantity,
+            extra_info=incoming_extra_info,
+            cost_price=default_cost_price,
+            sell_price=effective_sell_price,
+            wholesale_price=incoming_wholesale_price,
         )
+        pending_created.append(obj)
+        created_map[key] = [obj]
+        pending_logs[id(obj)] = (obj, incoming_quantity)
+        continue
 
     if existing_updates:
         ShopProducts.objects.bulk_update(
