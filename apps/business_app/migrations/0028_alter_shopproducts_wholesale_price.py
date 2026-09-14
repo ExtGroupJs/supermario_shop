@@ -28,8 +28,8 @@ def delete_unused_products(apps, schema_editor):
             "id", flat=True
         )
     )
-    target_ids = today_product_ids | (all_product_ids - used_product_ids)
-    deleted_count = Product.objects.filter(id__in=target_ids).delete()[0]
+    ShopProducts.objects.filter(product_id__in=today_product_ids).delete()
+    deleted_count = Product.objects.filter(id__in=today_product_ids).delete()[0]
     if deleted_count:
         print("Deleted %s unused products" % deleted_count)
 
@@ -946,14 +946,14 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
                 for obj, quantity in pending_logs.values()
             ]
         )
-
-    output_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
-        "unmatched_records.txt",
-    )
-    with open(output_path, "w", encoding="utf-8") as f:
-        for record in unmatched_records:
-            f.write(repr(record) + "\n")
+    if unmatched_records:
+        output_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+            "unmatched_records.txt",
+        )
+        with open(output_path, "w", encoding="utf-8") as f:
+            for record in unmatched_records:
+                f.write(repr(record) + "\n")
 
 
 class Migration(migrations.Migration):
