@@ -12,17 +12,31 @@ from django.db.models.functions import Concat
 WHOLESALE_SHOP_NAME = "Tienda al por mayor"
 
 
+def delete_duplicated_shopproducts(apps, schema_editor):
+    ShopProducts = apps.get_model("business_app", "ShopProducts")
+    Sell = apps.get_model("business_app", "Sell")
+    for sp in (
+        ShopProducts.objects.filter(shop__type="M")
+        .only("product_id", "shop_id")
+        .order_by("product_id", "shop_id")
+    ):
+        duplicates = ShopProducts.objects.filter(
+            product_id=sp.product_id, shop_id=sp.shop_id
+        ).exclude(id=sp.id)
+        if duplicates.exists():
+            # Delete related sells for the duplicates
+            Sell.objects.filter(
+                shop_product_id__in=duplicates.values_list("id", flat=True)
+            ).delete()
+            duplicates.delete()
+
+
 def delete_unused_products(apps, schema_editor):
     ShopProducts = apps.get_model("business_app", "ShopProducts")
     Product = apps.get_model("business_app", "Product")
 
     today = date.today()
-    all_product_ids = set(
-        Product.objects.values_list("id", flat=True)
-    )
-    used_product_ids = set(
-        ShopProducts.objects.values_list("product_id", flat=True).distinct()
-    )
+
     today_product_ids = set(
         Product.objects.filter(created_timestamp__date=today).values_list(
             "id", flat=True
@@ -32,6 +46,7 @@ def delete_unused_products(apps, schema_editor):
     deleted_count = Product.objects.filter(id__in=today_product_ids).delete()[0]
     if deleted_count:
         print("Deleted %s unused products" % deleted_count)
+
 
 def reset_wholesale_shop_products(apps, schema_editor):
     ShopProducts = apps.get_model("business_app", "ShopProducts")
@@ -61,8 +76,8 @@ def reset_wholesale_shop_products(apps, schema_editor):
     delete_unused_products(apps, schema_editor)
 
 
-
 def reset_wholesale_shop_products_feed(apps, schema_editor):
+    delete_duplicated_shopproducts(apps, schema_editor)
     # product, marca_modelo, quantity, extra_info, sell_price, wholesale_price
     PRODUCTS = (
         ("Aforador", "Geely - CK", 11, None, 85, 75),
@@ -156,7 +171,6 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         ("Pastillas de freno", "Geely - CK", 12, "Juego", 30, 25),
         ("Pinzas de freno delanteras con ABS", "Geely - CK", 4, "Par", 120, 100),
         ("Pinzas de freno delanteras sin ABS", "Geely - CK", 5, "Par", 90, 80),
-        ("Pizarra moderna", "Geely - CK", 8, None, 90, 75),
         ("Pizarra moderna", "Geely - CK", 8, None, 90, 75),
         ("Plato opresor del cloche", "Geely - CK", 13, None, 80, 70),
         ("Purificador", "Geely - CK", 1, None, 40, 35),
@@ -400,15 +414,7 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
             "Amortiguadores traseros desarmados",
             "Geely - Emgrand 820",
             6,
-            "par",
-            None,
-            None,
-        ),
-        (
-            "Amortiguadores traseros desarmados",
-            "Geely - Emgrand 820",
-            1,
-            "Par",
+            "Pares y uno suelto",
             None,
             None,
         ),
@@ -790,12 +796,20 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
     Product = apps.get_model("business_app", "Product")
     Brand = apps.get_model("business_app", "Brand")
     Model = apps.get_model("business_app", "Model")
-    GenericLog = apps.get_model("common", "GenericLog")
-    ContentType = apps.get_model("contenttypes", "ContentType")
+    try:
+        GenericLog = apps.get_model("common", "GenericLog")
+        ContentType = apps.get_model("contenttypes", "ContentType")
+    except LookupError:
+        from django.apps import apps as real_apps
+
+        GenericLog = real_apps.get_model("common", "GenericLog")
+        ContentType = real_apps.get_model("contenttypes", "ContentType")
     Shop = apps.get_model("business_app", "Shop")
 
     shopproduct_content_type = ContentType.objects.get_for_model(ShopProducts)
-    my_shop = Shop.objects.get(name=WHOLESALE_SHOP_NAME)
+    my_shop = Shop.objects.filter(name=WHOLESALE_SHOP_NAME).first()
+    if my_shop is None:
+        return
     FIXED_COST_PRICE = 0.2
 
     existing_map = {}
@@ -948,7 +962,9 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         )
     if unmatched_records:
         output_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            ),
             "unmatched_records.txt",
         )
         with open(output_path, "w", encoding="utf-8") as f:
