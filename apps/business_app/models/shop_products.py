@@ -53,6 +53,9 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     class Meta:
         verbose_name = "Productos en Tienda"
         verbose_name_plural = "Productos en Tiendas"
+        constraints = [
+            models.UniqueConstraint(fields=["shop", "product"], name="unique_shop_product")
+        ]
 
     def __str__(self):
         return f"{self.product} ({self.shop})"
