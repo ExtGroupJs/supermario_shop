@@ -13,9 +13,9 @@ def clean_wholesale_shop_product_logs(apps, schema_editor):
     ContentType = apps.get_model("contenttypes", "ContentType")
 
     wholesale_shop_product_ids = list(
-        ShopProducts.objects.filter(
-            shop__name=WHOLESALE_SHOP_NAME
-        ).values_list("id", flat=True)
+        ShopProducts.objects.filter(shop__name=WHOLESALE_SHOP_NAME).values_list(
+            "id", flat=True
+        )
     )
     content_type = ContentType.objects.get_for_model(ShopProducts)
 
@@ -32,9 +32,8 @@ def clean_wholesale_shop_product_logs(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('business_app', '0028_alter_shopproducts_wholesale_price'),
+        ("business_app", "0028_alter_shopproducts_wholesale_price"),
     ]
 
     operations = [
