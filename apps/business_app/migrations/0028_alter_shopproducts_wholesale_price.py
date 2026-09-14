@@ -744,19 +744,46 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
     )
     ShopProducts = apps.get_model("business_app", "ShopProducts")
     Product = apps.get_model("business_app", "Product")
-
     GenericLog = apps.get_model("common", "GenericLog")
     ContentType = apps.get_model("contenttypes", "ContentType")
-    shopproduct_content_type = ContentType.objects.get_for_model(ShopProducts)
-
     Shop = apps.get_model("business_app", "Shop")
+
+    shopproduct_content_type = ContentType.objects.get_for_model(ShopProducts)
     my_shop = Shop.objects.get(name=WHOLESALE_SHOP_NAME)
-    effective_sell_price = sell_price or 0.3
     FIXED_COST_PRICE = 0.2
 
-    default_cost_price = min(FIXED_COST_PRICE, round(effective_sell_price * 0.9, 2))
+    existing_map = {}
+    shop_products = ShopProducts.objects.annotate(
+        model_brand=Concat(
+            F("product__model__brand__name"),
+            Value(" - "),
+            F("product__model__name"),
+        )
+    ).select_related("product__model__brand").filter(shop=my_shop)
+    for obj in shop_products:
+        existing_map.setdefault((obj.product.name.lower(), obj.model_brand), []).append(
+            obj
+        )
+
+    product_map = {}
+    products = Product.objects.annotate(
+        model_brand=Concat(
+            F("model__brand__name"),
+            Value(" - "),
+            F("model__name"),
+        )
+    )
+    for product in products:
+        product_map.setdefault((product.name.lower(), product.model_brand), []).append(
+            product
+        )
 
     unmatched_records = []
+
+    created_map = {}
+    existing_updates = {}
+    pending_created = []
+    pending_logs = {}
 
     for (
         incoming_product_name,
@@ -766,85 +793,83 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         sell_price,
         incoming_wholesale_price,
     ) in PRODUCTS:
-        queryset = ShopProducts.objects.annotate(
-            model_brand=Concat(
-                F("product__model__brand__name"),
-                Value(" - "),
-                F("product__model__name"),
-            )
-        ).filter(
-            shop=my_shop,
-            product__name__iexact=incoming_product_name,
-            model_brand=incoming_model_brand,
+        key = (incoming_product_name.lower(), incoming_model_brand)
+        effective_sell_price = sell_price or 0.3
+        default_cost_price = min(
+            FIXED_COST_PRICE, round(effective_sell_price * 0.9, 2)
         )
 
-        if queryset.exists():
-            queryset.update(
+        matches = existing_map.get(key)
+        if matches is None:
+            matches = created_map.get(key)
+
+        if matches:
+            for obj in matches:
+                obj.quantity = incoming_quantity
+                obj.extra_info = incoming_extra_info
+                obj.sell_price = effective_sell_price
+                obj.wholesale_price = incoming_wholesale_price
+                if obj.pk:
+                    existing_updates[obj.pk] = obj
+            pending_logs[matches[0]] = incoming_quantity
+            continue
+
+        product_matches = product_map.get(key)
+        if product_matches:
+            product = product_matches[0]
+            obj = ShopProducts(
+                shop=my_shop,
+                product=product,
                 quantity=incoming_quantity,
                 extra_info=incoming_extra_info,
+                cost_price=default_cost_price,
                 sell_price=effective_sell_price,
                 wholesale_price=incoming_wholesale_price,
             )
-            obj = queryset.first()
-            shopproduct_content_type = ContentType.objects.get_for_model(ShopProducts)
-            GenericLog.objects.filter(
-                content_type=shopproduct_content_type, object_id=obj.id
-            ).delete()
-            GenericLog.objects.create(
-                content_type=shopproduct_content_type,
-                object_id=obj.id,
-                performed_action="C",
-                details={
-                    "quantity": {"old_value": None, "new_value": incoming_quantity}
-                },
-                extra_log_info=" en CONTEO INICIAL",
-            )
+            pending_created.append(obj)
+            created_map[key] = [obj]
+            pending_logs[obj] = incoming_quantity
             continue
-        else:
-            product_queryset = Product.objects.annotate(
-                model_brand=Concat(
-                    F("model__brand__name"),
-                    Value(" - "),
-                    F("model__name"),
-                )
-            ).filter(
-                name__iexact=incoming_product_name,
-                model_brand=incoming_model_brand,
+
+        unmatched_records.append(
+            (
+                incoming_product_name,
+                incoming_model_brand,
+                incoming_quantity,
+                incoming_extra_info,
+                sell_price,
+                incoming_wholesale_price,
             )
+        )
 
-            if product_queryset.exists():
-                product = product_queryset.first()
-                created_shopproduct = ShopProducts.objects.create(
-                    shop=my_shop,
-                    product=product,
-                    quantity=incoming_quantity,
-                    extra_info=incoming_extra_info,
-                    cost_price=default_cost_price,
-                    sell_price=effective_sell_price,
-                    wholesale_price=incoming_wholesale_price,
-                )
+    if existing_updates:
+        ShopProducts.objects.bulk_update(
+            existing_updates.values(),
+            ["quantity", "extra_info", "sell_price", "wholesale_price"],
+        )
+    if pending_created:
+        ShopProducts.objects.bulk_create(pending_created)
 
-                GenericLog.objects.create(
+    logged_ids = [obj.pk for obj in pending_logs]
+    if logged_ids:
+        GenericLog.objects.filter(
+            content_type=shopproduct_content_type, object_id__in=logged_ids
+        ).delete()
+        GenericLog.objects.bulk_create(
+            [
+                GenericLog(
                     content_type=shopproduct_content_type,
-                    object_id=created_shopproduct.id,
+                    object_id=obj.pk,
                     performed_action="C",
                     details={
-                        "quantity": {"old_value": None, "new_value": incoming_quantity}
+                        "quantity": {"old_value": None, "new_value": quantity}
                     },
                     extra_log_info=" en CONTEO INICIAL",
                 )
-                continue
-            else:
-                unmatched_records.append(
-                    (
-                        incoming_product_name,
-                        incoming_model_brand,
-                        incoming_quantity,
-                        incoming_extra_info,
-                        sell_price,
-                        incoming_wholesale_price,
-                    )
-                )
+                for obj, quantity in pending_logs.items()
+            ]
+        )
+
     output_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
         "unmatched_records.txt",
