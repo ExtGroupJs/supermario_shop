@@ -24,12 +24,12 @@ def delete_unused_products(apps, schema_editor):
         ShopProducts.objects.values_list("product_id", flat=True).distinct()
     )
     today_product_ids = set(
-        Product.all_objects.filter(created_timestamp__date=today).values_list(
+        Product.objects.filter(created_timestamp__date=today).values_list(
             "id", flat=True
         )
     )
     target_ids = today_product_ids | (all_product_ids - used_product_ids)
-    deleted_count = Product.all_objects.filter(id__in=target_ids).delete()[0]
+    deleted_count = Product.objects.filter(id__in=target_ids).delete()[0]
     if deleted_count:
         print("Deleted %s unused products" % deleted_count)
 
