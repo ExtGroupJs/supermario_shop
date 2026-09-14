@@ -11,133 +11,50 @@ from apps.business_app.models.input_group import (
 )
 from apps.business_app.models.input import Input
 from apps.business_app.models.shop_products import ShopProducts
-from safedelete.admin import SafeDeleteAdmin, highlight_deleted
+from apps.common.admin import GenericModelAdmin
+from safedelete.admin import SafeDeleteAdmin
+
+
+class TimestampedAdmin(GenericModelAdmin):
+    EXCLUDED_FIELDS_FOR_EDITING = {"created_timestamp", "updated_timestamp"}
+
+
+class SafeDeleteTimestampedAdmin(SafeDeleteAdmin, TimestampedAdmin):
+    EXCLUDED_FIELDS_FOR_EDITING = {
+        "created_timestamp",
+        "updated_timestamp",
+        "deleted",
+        "deleted_by_cascade",
+    }
 
 
 @admin.register(Brand)
-class BrandAdmin(admin.ModelAdmin):
-    empty_value_display = "-empty-"
-    list_display = [
-        "id",
-        "name",
-        "logo",
-    ]
-    fields = [
-        "name",
-        "logo",
-    ]
+class BrandAdmin(GenericModelAdmin):
+    pass
 
 
 @admin.register(Model)
-class ModelAdmin(admin.ModelAdmin):
-    empty_value_display = "-empty-"
-    list_display = [
-        "id",
-        "name",
-        "brand",
-        "extra_info",
-    ]
-    fields = [
-        "name",
-        "brand",
-        "extra_info",
-    ]
+class ModelAdmin(GenericModelAdmin):
+    pass
 
 
 @admin.register(Product)
-class ProductAdmin(SafeDeleteAdmin):
-    empty_value_display = "-empty-"
-    list_display = (
-        highlight_deleted,
-        "id",
-        "name",
-        "model",
-        "description",
-        "image",
-    ) + SafeDeleteAdmin.list_display
-    fields = [
-        "name",
-        "model",
-        "description",
-        "image",
-    ]
-    field_to_highlight = "id"
-
-
-ProductAdmin.highlight_deleted_field.name = ProductAdmin.field_to_highlight
+class ProductAdmin(SafeDeleteTimestampedAdmin):
+    pass
 
 
 @admin.register(Shop)
-class ShopAdmin(admin.ModelAdmin):
-    empty_value_display = "-empty-"
-    list_display = [
-        "id",
-        "name",
-        "logo",
-        "extra_info",
-        "enabled",
-        "type",
-        "catalog_url",
-        "principal",
-    ]
-    fields = [
-        "name",
-        "logo",
-        "extra_info",
-        "enabled",
-        "type",
-        "catalog_url",
-        "principal",
-    ]
+class ShopAdmin(GenericModelAdmin):
+    pass
 
 
 @admin.register(ShopProducts)
-class ShopProductsAdmin(SafeDeleteAdmin):
-    empty_value_display = "-empty-"
-    list_display = (
-        highlight_deleted,
-        "id",
-        "shop",
-        "product",
-        "quantity",
-        "cost_price",
-        "sell_price",
-        "wholesale_price",
-        "sell_price_for_catalog",
-        "extra_info",
-        "updated_timestamp",
-    ) + SafeDeleteAdmin.list_display
-    fields = [
-        "shop",
-        "product",
-        "extra_info",
-        "quantity",
-        "cost_price",
-        "sell_price",
-        "sell_price_for_catalog",
-    ]
-    field_to_highlight = "id"
+class ShopProductsAdmin(SafeDeleteTimestampedAdmin):
+    pass
 
 
 @admin.register(Sell)
-class SellAdmin(admin.ModelAdmin):
-    empty_value_display = "-empty-"
-    list_display = [
-        "id",
-        "shop_product",
-        "sell_group",
-        "seller",
-        "extra_info",
-        "quantity",
-        "updated_timestamp",
-    ]
-    fields = [
-        "shop_product",
-        "seller",
-        "extra_info",
-        "sell_group",
-        "quantity",
-    ]
+class SellAdmin(TimestampedAdmin):
     search_fields = [
         "shop_product__product__name",
         "shop_product__product__model__name",
@@ -146,50 +63,15 @@ class SellAdmin(admin.ModelAdmin):
 
 
 @admin.register(SellGroup)
-class SellGroupAdmin(admin.ModelAdmin):
-    empty_value_display = "-empty-"
-    list_display = [
-        "id",
-        "discount",
-        "seller",
-        "extra_info",
-        "payment_method",
-        "client",
-    ]
-    fields = [
-        "discount",
-        "seller",
-        "extra_info",
-        "payment_method",
-        "client",
-    ]
+class SellGroupAdmin(TimestampedAdmin):
+    pass
 
 
 @admin.register(InputGroup)
-class InputGroupAdmin(admin.ModelAdmin):
-    empty_value_display = "-empty-"
-    list_display = [
-        "id",
-        "for_date",
-        "extra_info",
-    ]
-    fields = [
-        "for_date",
-        "extra_info",
-    ]
+class InputGroupAdmin(TimestampedAdmin):
+    pass
 
 
 @admin.register(Input)
-class InputAdmin(admin.ModelAdmin):
-    empty_value_display = "-empty-"
-    list_display = [
-        "id",
-        "input_group",
-        "shop_product",
-        "quantity",
-    ]
-    fields = [
-        "input_group",
-        "shop_product",
-        "quantity",
-    ]
+class InputAdmin(TimestampedAdmin):
+    pass
