@@ -788,9 +788,9 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         .filter(shop=my_shop)
     )
     for obj in shop_products:
-        existing_map.setdefault((obj.product.name.lower(), obj.model_brand), []).append(
-            obj
-        )
+        existing_map.setdefault(
+            (obj.product.name.lower(), obj.model_brand.lower()), []
+        ).append(obj)
 
     product_map = {}
     products = Product.objects.annotate(
@@ -801,9 +801,9 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         )
     )
     for product in products:
-        product_map.setdefault((product.name.lower(), product.model_brand), []).append(
-            product
-        )
+        product_map.setdefault(
+            (product.name.lower(), product.model_brand.lower()), []
+        ).append(product)
 
     unmatched_records = []
 
@@ -820,7 +820,7 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         sell_price,
         incoming_wholesale_price,
     ) in PRODUCTS:
-        key = (incoming_product_name.lower(), incoming_model_brand)
+        key = (incoming_product_name.lower(), incoming_model_brand.lower())
         effective_sell_price = sell_price or 0.3
         default_cost_price = min(FIXED_COST_PRICE, round(effective_sell_price * 0.9, 2))
 
@@ -869,13 +869,21 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
                 )
             )
             continue
-        brand, _ = Brand.objects.get_or_create(name=brand_name)
-        model, _ = Model.objects.get_or_create(name=model_name, defaults={"brand": brand})
+        brand, _ = Brand.objects.get_or_create(
+            name__iexact=brand_name, defaults={"name": brand_name}
+        )
+        model, _ = Model.objects.get_or_create(
+            name__iexact=model_name, defaults={"name": model_name, "brand": brand}
+        )
         if model.brand_id != brand.id:
             model.brand = brand
             model.save()
-        product = Product(name=incoming_product_name, model=model)
-        product.save()
+        product = Product.objects.filter(
+            name__iexact=incoming_product_name, model=model
+        ).first()
+        if product is None:
+            product = Product(name=incoming_product_name, model=model)
+            product.save()
         obj = ShopProducts(
             shop=my_shop,
             product=product,
