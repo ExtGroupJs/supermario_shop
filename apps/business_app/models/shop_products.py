@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.core import validators
 from safedelete import SOFT_DELETE
 
@@ -55,7 +56,9 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
         verbose_name_plural = "Productos en Tiendas"
         constraints = [
             models.UniqueConstraint(
-                fields=["shop", "product"], name="unique_shop_product"
+                fields=["shop", "product"],
+                condition=Q(deleted__isnull=True),
+                name="unique_shop_product",
             )
         ]
 

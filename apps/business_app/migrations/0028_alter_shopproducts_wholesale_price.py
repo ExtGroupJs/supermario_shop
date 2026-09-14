@@ -16,7 +16,7 @@ def delete_duplicated_shopproducts(apps, schema_editor):
     ShopProducts = apps.get_model("business_app", "ShopProducts")
     Sell = apps.get_model("business_app", "Sell")
     for sp in (
-        ShopProducts.objects.all()
+        ShopProducts.objects.filter(shop__type="M")
         .only("product_id", "shop_id")
         .order_by("product_id", "shop_id")
     ):
@@ -796,12 +796,20 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
     Product = apps.get_model("business_app", "Product")
     Brand = apps.get_model("business_app", "Brand")
     Model = apps.get_model("business_app", "Model")
-    GenericLog = apps.get_model("common", "GenericLog")
-    ContentType = apps.get_model("contenttypes", "ContentType")
+    try:
+        GenericLog = apps.get_model("common", "GenericLog")
+        ContentType = apps.get_model("contenttypes", "ContentType")
+    except LookupError:
+        from django.apps import apps as real_apps
+
+        GenericLog = real_apps.get_model("common", "GenericLog")
+        ContentType = real_apps.get_model("contenttypes", "ContentType")
     Shop = apps.get_model("business_app", "Shop")
 
     shopproduct_content_type = ContentType.objects.get_for_model(ShopProducts)
-    my_shop = Shop.objects.get(name=WHOLESALE_SHOP_NAME)
+    my_shop = Shop.objects.filter(name=WHOLESALE_SHOP_NAME).first()
+    if my_shop is None:
+        return
     FIXED_COST_PRICE = 0.2
 
     existing_map = {}
