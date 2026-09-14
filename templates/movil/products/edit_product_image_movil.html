@@ -1,0 +1,133 @@
+{% extends "index.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block head-extra %}
+<link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/cropperjs/cropper.min.css' %}">
+<style>
+  .mobile-container { max-width: 720px; margin: 0 auto; }
+  .touch-label { font-size: 0.95rem; font-weight: 600; }
+  .touch-select, .touch-btn { min-height: 46px; border-radius: 10px; }
+  .photo-preview { width: 100%; height: 240px; object-fit: contain; background: #f4f6f9; border-radius: 12px; border: 1px dashed #dee2e6; }
+  .photo-preview--empty { display: flex; align-items: center; justify-content: center; color: #adb5bd; }
+  .crop-wrap { height: 420px; background: #212529; border-radius: 12px; }
+  .crop-wrap img { display: block; max-width: 100%; max-height: 420px; }
+  .sticky-action { position: sticky; bottom: 0; z-index: 20; background: #f4f6f9; padding: 10px; border-top: 1px solid #dee2e6; }
+  .pending-badge { font-size: 0.8rem; }
+  @media (min-width: 992px) { .mobile-view-note { display: none; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid mobile-container">
+      <div class="row mb-2">
+        <div class="col-12">
+          <h1 class="m-0">Editar Foto Producto (Movil)</h1>
+          <small class="text-muted mobile-view-note">Toma, recorta y sube la foto del producto</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="overlay" id="load" hidden>
+      <i class="fas fa-2x fa-sync fa-spin"></i>
+    </div>
+
+    <div class="container-fluid mobile-container pb-3">
+      <!-- Seleccion de producto -->
+      <div class="card">
+        <div class="card-header py-2">
+          <strong>1. Selecciona el producto</strong>
+          <span class="badge badge-warning float-right pending-badge" id="pending-count">-</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group mb-2">
+            <select class="form-control select2 touch-select" id="product-select" name="product"></select>
+            <small class="form-text text-muted">Primero aparecen los productos sin foto.</small>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-block touch-btn" id="btn-next-pending">
+            <i class="fas fa-forward mr-2"></i>Siguiente sin foto
+          </button>
+        </div>
+      </div>
+
+      <!-- Producto seleccionado -->
+      <div class="card mt-3" id="product-info-card" hidden>
+        <div class="card-header py-2">
+          <strong id="product-info-name">-</strong>
+        </div>
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-5">
+              <img id="current-image" class="photo-preview" src="" alt="Foto actual">
+            </div>
+            <div class="col-7">
+              <dl class="row mb-0 small">
+                <dt class="col-12 text-muted mb-1" id="product-info-model">-</dt>
+                <dt class="col-12 text-muted mb-1" id="product-info-status">Sin foto</dt>
+              </dl>
+              <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
+              <input type="file" id="gallery-input" accept="image/*" hidden>
+              <button type="button" class="btn btn-primary btn-block touch-btn mb-2" id="btn-take-photo">
+                <i class="fas fa-camera mr-2"></i>Tomar Foto
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-block touch-btn" id="btn-gallery">
+                <i class="fas fa-images mr-2"></i>Galería
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editor / recorte -->
+      <div class="card mt-3" id="editor-card" hidden>
+        <div class="card-header py-2">
+          <strong>2. Ajusta la foto</strong>
+        </div>
+        <div class="card-body">
+          <div class="crop-wrap overflow-hidden" id="crop-container">
+            <img id="crop-image" alt="Imagen a recortar">
+          </div>
+          <div class="row mt-3">
+            <div class="col-6">
+              <button type="button" class="btn btn-outline-secondary btn-block touch-btn" id="btn-rotate">
+                <i class="fas fa-redo mr-2"></i>Rotar
+              </button>
+            </div>
+            <div class="col-6">
+              <button type="button" class="btn btn-outline-danger btn-block touch-btn" id="btn-retake">
+                <i class="fas fa-camera mr-2"></i>Repetir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accion fija inferior -->
+    <div class="sticky-action">
+      <div class="container-fluid mobile-container">
+        <button type="button" class="btn btn-success btn-block touch-btn" id="btn-upload" disabled>
+          <i class="fas fa-cloud-upload-alt mr-2"></i>Subir Foto (WEBP)
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
+<script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+<script src="{% static 'assets/plugins/cropperjs/cropper.min.js' %}"></script>
+<script src="{% static 'assets/dist/js/movil/products/edit_product_image_movil.js' %}"></script>
+<script>
+  $('#product-select').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'Busca y selecciona un producto' });
+</script>
+{% endblock %}
