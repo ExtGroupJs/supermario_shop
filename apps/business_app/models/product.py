@@ -20,7 +20,9 @@ class Product(SafeDeleteModel, BaseModel):
         verbose_name = "Producto"
         verbose_name_plural = "Productos"
         constraints = [
-            models.UniqueConstraint(fields=["name", "model"], name="unique_product_model")
+            models.UniqueConstraint(
+                fields=["name", "model"], name="unique_product_model"
+            )
         ]
 
     def __str__(self):

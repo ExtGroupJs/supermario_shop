@@ -15,14 +15,19 @@ WHOLESALE_SHOP_NAME = "Tienda al por mayor"
 def delete_duplicated_shopproducts(apps, schema_editor):
     ShopProducts = apps.get_model("business_app", "ShopProducts")
     Sell = apps.get_model("business_app", "Sell")
-    for sp in ShopProducts.objects.all().only("product_id", "shop_id").order_by("product_id", "shop_id"):
+    for sp in (
+        ShopProducts.objects.all()
+        .only("product_id", "shop_id")
+        .order_by("product_id", "shop_id")
+    ):
         duplicates = ShopProducts.objects.filter(
-            product_id=sp.product_id,
-            shop_id=sp.shop_id
+            product_id=sp.product_id, shop_id=sp.shop_id
         ).exclude(id=sp.id)
         if duplicates.exists():
             # Delete related sells for the duplicates
-            Sell.objects.filter(shop_product_id__in=duplicates.values_list("id", flat=True)).delete()
+            Sell.objects.filter(
+                shop_product_id__in=duplicates.values_list("id", flat=True)
+            ).delete()
             duplicates.delete()
 
 
@@ -31,12 +36,7 @@ def delete_unused_products(apps, schema_editor):
     Product = apps.get_model("business_app", "Product")
 
     today = date.today()
-    all_product_ids = set(
-        Product.objects.values_list("id", flat=True)
-    )
-    used_product_ids = set(
-        ShopProducts.objects.values_list("product_id", flat=True).distinct()
-    )
+
     today_product_ids = set(
         Product.objects.filter(created_timestamp__date=today).values_list(
             "id", flat=True
@@ -46,6 +46,7 @@ def delete_unused_products(apps, schema_editor):
     deleted_count = Product.objects.filter(id__in=today_product_ids).delete()[0]
     if deleted_count:
         print("Deleted %s unused products" % deleted_count)
+
 
 def reset_wholesale_shop_products(apps, schema_editor):
     ShopProducts = apps.get_model("business_app", "ShopProducts")
@@ -73,7 +74,6 @@ def reset_wholesale_shop_products(apps, schema_editor):
         object_id__in=wholesale_shop_product_ids,
     ).delete()
     delete_unused_products(apps, schema_editor)
-
 
 
 def reset_wholesale_shop_products_feed(apps, schema_editor):
@@ -954,7 +954,9 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         )
     if unmatched_records:
         output_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            ),
             "unmatched_records.txt",
         )
         with open(output_path, "w", encoding="utf-8") as f:
