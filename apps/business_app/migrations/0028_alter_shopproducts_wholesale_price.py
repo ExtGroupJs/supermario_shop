@@ -13,9 +13,24 @@ WHOLESALE_SHOP_NAME = "Tienda al por mayor"
 
 def reset_wholesale_shop_products(apps, schema_editor):
     ShopProducts = apps.get_model("business_app", "ShopProducts")
-    ShopProducts.objects.filter(shop__name=WHOLESALE_SHOP_NAME).update(
+    wholesale_shop_product_ids = list(
+        ShopProducts.objects.filter(shop__name=WHOLESALE_SHOP_NAME).values_list(
+            "id", flat=True
+        )
+    )
+    ShopProducts.objects.filter(id__in=wholesale_shop_product_ids).update(
         quantity=0,
     )
+    GenericLog = apps.get_model("common", "GenericLog")
+    ContentType = apps.get_model("contenttypes", "ContentType")
+
+    content_type = ContentType.objects.get_for_model(ShopProducts)
+
+    GenericLog.objects.filter(
+        content_type=content_type,
+        object_id__in=wholesale_shop_product_ids,
+    ).delete()
+
 
 
 def reset_wholesale_shop_products_feed(apps, schema_editor):
@@ -753,13 +768,17 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
     FIXED_COST_PRICE = 0.2
 
     existing_map = {}
-    shop_products = ShopProducts.objects.annotate(
-        model_brand=Concat(
-            F("product__model__brand__name"),
-            Value(" - "),
-            F("product__model__name"),
+    shop_products = (
+        ShopProducts.objects.annotate(
+            model_brand=Concat(
+                F("product__model__brand__name"),
+                Value(" - "),
+                F("product__model__name"),
+            )
         )
-    ).select_related("product__model__brand").filter(shop=my_shop)
+        .select_related("product__model__brand")
+        .filter(shop=my_shop)
+    )
     for obj in shop_products:
         existing_map.setdefault((obj.product.name.lower(), obj.model_brand), []).append(
             obj
@@ -795,9 +814,7 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
     ) in PRODUCTS:
         key = (incoming_product_name.lower(), incoming_model_brand)
         effective_sell_price = sell_price or 0.3
-        default_cost_price = min(
-            FIXED_COST_PRICE, round(effective_sell_price * 0.9, 2)
-        )
+        default_cost_price = min(FIXED_COST_PRICE, round(effective_sell_price * 0.9, 2))
 
         matches = existing_map.get(key)
         if matches is None:
@@ -861,9 +878,7 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
                     content_type=shopproduct_content_type,
                     object_id=obj.pk,
                     performed_action="C",
-                    details={
-                        "quantity": {"old_value": None, "new_value": quantity}
-                    },
+                    details={"quantity": {"old_value": None, "new_value": quantity}},
                     extra_log_info=" en CONTEO INICIAL",
                 )
                 for obj, quantity in pending_logs.items()
