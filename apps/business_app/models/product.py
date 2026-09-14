@@ -1,9 +1,10 @@
 from django.db import models
-from django.db.models import Q
 from safedelete import SOFT_DELETE_CASCADE
+from django.db.models import Q
 
 from apps.business_app.models.model import Model
 from apps.common.models import BaseModel
+from apps.common.utils.product_code import assign_product_code
 from safedelete.models import SafeDeleteModel
 from PIL import Image
 
@@ -11,6 +12,9 @@ from PIL import Image
 class Product(SafeDeleteModel, BaseModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     name = models.CharField(verbose_name="Nombre", max_length=200)
+    code = models.CharField(
+        verbose_name="Código", max_length=15, null=True, blank=True, editable=False
+    )
     model = models.ForeignKey(
         to=Model, verbose_name="Modelo", on_delete=models.CASCADE, null=True, blank=True
     )
@@ -33,6 +37,11 @@ class Product(SafeDeleteModel, BaseModel):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        if not self.code:
+            self.code = assign_product_code(self)
+            self.save(update_fields=["code"])
+        if "update_fields" in kwargs:
+            return
         # Abrir imagen
 
         if self.image:

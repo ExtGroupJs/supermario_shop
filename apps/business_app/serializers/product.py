@@ -13,6 +13,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "internal_code",
             "description",
             "model",
             "image",
@@ -25,7 +26,7 @@ class ReadProductSerializer(ProductSerializer):
 
     class Meta(ProductSerializer.Meta):
         model = Product
-        fields = ProductSerializer.Meta.fields + ("id", "model_name", "__str__")
+        fields = ProductSerializer.Meta.fields + ("internal_code", "id", "model_name", "__str__")
 
 
 class CatalogProductSerializer(ProductSerializer):
@@ -34,4 +35,4 @@ class CatalogProductSerializer(ProductSerializer):
 
     class Meta(ProductSerializer.Meta):
         model = Product
-        fields = ("name", "model", "image", "model_name", "__str__")
+        fields = ("internal_code", "name", "model", "image", "model_name", "__str__")
