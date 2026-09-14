@@ -6,10 +6,37 @@ import django.core.validators
 from django.db import migrations, models
 from django.db.models import F, Value
 from django.db.models.functions import Concat
+from django.utils import timezone
 
 
 WHOLESALE_SHOP_NAME = "Tienda al por mayor"
 
+
+def delete_unused_products(apps, schema_editor):
+    ShopProducts = apps.get_model("business_app", "ShopProducts")
+    Product = apps.get_model("business_app", "Product")
+
+    today = timezone.localdate()
+    all_product_ids = set(
+        Product.objects.values_list("id", flat=True)
+    )
+    used_product_ids = set(
+        ShopProducts.objects.values_list("product_id", flat=True).distinct()
+    )
+    today_product_ids = set(
+        Product.objects.filter(created_timestamp__date=today).values_list(
+            "id", flat=True
+        )
+    )
+
+    ShopProducts.objects.filter(
+        product_id__in=(today_product_ids & used_product_ids)
+    ).delete()
+
+    target_ids = today_product_ids | (all_product_ids - used_product_ids)
+    deleted_count = Product.objects.filter(id__in=target_ids).delete()[0]
+    if deleted_count:
+        print("Deleted %s unused products" % deleted_count)
 
 def reset_wholesale_shop_products(apps, schema_editor):
     ShopProducts = apps.get_model("business_app", "ShopProducts")
@@ -36,6 +63,7 @@ def reset_wholesale_shop_products(apps, schema_editor):
         content_type=content_type,
         object_id__in=wholesale_shop_product_ids,
     ).delete()
+    delete_unused_products(apps, schema_editor)
 
 
 
@@ -788,9 +816,9 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         .filter(shop=my_shop)
     )
     for obj in shop_products:
-        existing_map.setdefault((obj.product.name.lower(), obj.model_brand), []).append(
-            obj
-        )
+        existing_map.setdefault(
+            (obj.product.name.lower(), obj.model_brand.lower()), []
+        ).append(obj)
 
     product_map = {}
     products = Product.objects.annotate(
@@ -801,9 +829,9 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         )
     )
     for product in products:
-        product_map.setdefault((product.name.lower(), product.model_brand), []).append(
-            product
-        )
+        product_map.setdefault(
+            (product.name.lower(), product.model_brand.lower()), []
+        ).append(product)
 
     unmatched_records = []
 
@@ -820,7 +848,7 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
         sell_price,
         incoming_wholesale_price,
     ) in PRODUCTS:
-        key = (incoming_product_name.lower(), incoming_model_brand)
+        key = (incoming_product_name.lower(), incoming_model_brand.lower())
         effective_sell_price = sell_price or 0.3
         default_cost_price = min(FIXED_COST_PRICE, round(effective_sell_price * 0.9, 2))
 
@@ -869,13 +897,21 @@ def reset_wholesale_shop_products_feed(apps, schema_editor):
                 )
             )
             continue
-        brand, _ = Brand.objects.get_or_create(name=brand_name)
-        model, _ = Model.objects.get_or_create(name=model_name, defaults={"brand": brand})
+        brand, _ = Brand.objects.get_or_create(
+            name__iexact=brand_name, defaults={"name": brand_name}
+        )
+        model, _ = Model.objects.get_or_create(
+            name__iexact=model_name, defaults={"name": model_name, "brand": brand}
+        )
         if model.brand_id != brand.id:
             model.brand = brand
             model.save()
-        product = Product(name=incoming_product_name, model=model)
-        product.save()
+        product = Product.objects.filter(
+            name__iexact=incoming_product_name, model=model
+        ).first()
+        if product is None:
+            product = Product(name=incoming_product_name, model=model)
+            product.save()
         obj = ShopProducts(
             shop=my_shop,
             product=product,
