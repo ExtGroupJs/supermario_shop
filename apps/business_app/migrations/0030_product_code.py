@@ -2,6 +2,15 @@ from django.db import migrations, models
 
 
 def populate_product_code(apps, schema_editor):
+    """Populate missing internal codes for all products in the database.
+
+    This migration runs after adding the ``internal_code`` field to ``Product`` and
+    generates a code for each product that does not already have one. The code is
+    built from the brand initials, the model initials, and the first letters of the
+    product name, followed by the product primary key to keep it unique. The
+    generated value follows the format ``BRAND_MODEL-PRODUCT{pk}``, where the brand
+    and model segments are uppercase abbreviations derived from their names.
+    """
     Product = apps.get_model("business_app", "Product")
     for product in Product.objects.all():
         if product.internal_code:
@@ -22,7 +31,7 @@ def populate_product_code(apps, schema_editor):
             product_code = "".join(word[0] for word in product_words[:3]).upper()
         else:
             product_code = product.name[:3].upper()
-        product.internal_code = f"{brand_code}{model_code}-{product_code}{product.pk}"
+        product.internal_code = f"{brand_code}{model_code}-{product_code}{product.pk}".upper()
         product.save(update_fields=["internal_code"])
 
 
