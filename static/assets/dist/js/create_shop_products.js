@@ -59,6 +59,7 @@ $(function () {
       let data = new FormData();
       data.append("shop", document.getElementById("shop").value);
       data.append("product", document.getElementById("product").value);
+      data.append("pallet", document.getElementById("pallet").value);
       data.append("quantity", document.getElementById("quantity").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       data.append("extra_info", document.getElementById("extra_info").value);
@@ -137,6 +138,21 @@ function poblarListas() {
     })
     .then(() => {
       cargarProductoEspecifico($product.value);
+    });
+
+  // Poblar la lista de pallets
+  var $pallet = document.getElementById("pallet");
+  $pallet.add(new Option("Seleccione un pallet", ""));
+  axios
+    .get("/business-gestion/pallets/", { params: { page_size: 1000 } })
+    .then(function (response) {
+      response.data.results.forEach(function (element) {
+        var option = new Option(
+          `${element.rack}${element.section}${element.number}`,
+          element.id,
+        );
+        $pallet.add(option);
+      });
     });
 }
 
