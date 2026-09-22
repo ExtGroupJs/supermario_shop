@@ -14,6 +14,7 @@ from apps.business_app.views.input import InputViewSet
 from apps.business_app.views.shop_products import ShopProductsViewSet
 from apps.business_app.views.sell import SellViewSet
 from apps.business_app.views.shop_products_logs import ShopProductsLogsViewSet
+from apps.business_app.views.pallet import PalletViewSet
 
 
 router = ExtendedSimpleRouter()
@@ -78,6 +79,11 @@ router.register(
     "input-products",
     InputViewSet,
     basename="input-products",
+)
+router.register(
+    "pallets",
+    PalletViewSet,
+    basename="pallets",
 )
 
 urlpatterns = []
