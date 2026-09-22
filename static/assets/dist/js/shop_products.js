@@ -519,7 +519,9 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         form.elements.product.value = shopProduct.product.id;
         form.elements.pallet.value = shopProduct.pallet || "";
         $("#product").val(shopProduct.product.id).trigger("change.select2");
-        $("#pallet").val(shopProduct.pallet || "").trigger("change.select2");
+        $("#pallet")
+          .val(shopProduct.pallet || "")
+          .trigger("change.select2");
         load.hidden = true;
       })
       .catch(function (error) {});
