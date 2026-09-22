@@ -29,15 +29,10 @@ $(function () {
         digits: true, // Solo números
         min: 0,
       },
-      cost_price: {
-        required: true,
-        number: true, // Solo números
-        min: 0,
-      },
       sell_price: {
         required: true,
         number: true, // Solo números
-        greaterThan: "#cost_price", // El precio de venta debe ser mayor que el precio de costo
+        min: 0,
       },
       extra_info: {
         required: false, // Campo no obligatorio
@@ -48,17 +43,10 @@ $(function () {
         required: "Este campo es obligatorio.",
         digits: "Por favor, introduzca solo números.",
       },
-      cost_price: {
-        required: "Este campo es obligatorio.",
-        number: "Por favor, introduzca un número válido.",
-        min: "Por favor, valores mayores o iguales a 0.",
-      },
       sell_price: {
         required: "Este campo es obligatorio.",
         number: "Por favor, introduzca un número válido.",
         min: "Por favor, valores mayores o iguales a 0.",
-        greaterThan:
-          "El precio de venta debe ser mayor que el precio de costo.",
       },
     },
     submitHandler: function (form) {
@@ -72,7 +60,6 @@ $(function () {
       data.append("shop", document.getElementById("shop").value);
       data.append("product", document.getElementById("product").value);
       data.append("quantity", document.getElementById("quantity").value);
-      data.append("cost_price", document.getElementById("cost_price").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       data.append("extra_info", document.getElementById("extra_info").value);
 
@@ -119,15 +106,6 @@ $(function () {
     },
   });
 });
-
-// Método para validar que el precio de venta sea mayor que el precio de costo
-$.validator.addMethod(
-  "greaterThan",
-  function (value, element, param) {
-    return this.optional(element) || Number(value) > Number($(param).val());
-  },
-  "El precio de venta debe ser mayor que el precio de costo."
-);
 
 function poblarListas() {
   let selectedShopId = localStorage.getItem("selectedShopId");

@@ -1,5 +1,7 @@
 import django_filters
-from django.db.models import F, Q
+from decimal import Decimal, InvalidOperation
+
+from django.db.models import Q
 from apps.common.filters.generic_log import GenericLogFilter
 from apps.common.models.generic_log import GenericLog
 
@@ -19,20 +21,34 @@ class ShopProductsLogsFilter(GenericLogFilter):
             "created_timestamp": ["gte", "lte"],
         }
 
-    def filter_entries(self, queryset, name, value):
-        extra_condition = Q()
-        if value:
-            filter_content = Q(
-                details__quantity__new_value__gt=F("details__quantity__old_value")
-            )
-            extra_condition = Q(performed_action=GenericLog.ACTION.CREATED)
-        else:
-            filter_content = Q(
-                details__quantity__new_value__lt=F("details__quantity__old_value")
-            )
-        return_queryset = queryset.filter(
-            Q(Q(performed_action=GenericLog.ACTION.UPDATED) & filter_content)
-            | extra_condition
-        )
+    @staticmethod
+    def _as_decimal(value):
+        try:
+            return Decimal(str(value))
+        except (InvalidOperation, TypeError, ValueError):
+            return None
 
-        return return_queryset
+    def filter_entries(self, queryset, name, value):
+        updated_logs = queryset.filter(performed_action=GenericLog.ACTION.UPDATED).only(
+            "id", "details"
+        )
+        matching_updated_ids = []
+
+        for log in updated_logs:
+            quantity_changes = (log.details or {}).get("quantity") or {}
+            old_value = self._as_decimal(quantity_changes.get("old_value"))
+            new_value = self._as_decimal(quantity_changes.get("new_value"))
+
+            if old_value is None or new_value is None:
+                continue
+
+            if value and new_value > old_value:
+                matching_updated_ids.append(log.id)
+            elif not value and new_value < old_value:
+                matching_updated_ids.append(log.id)
+
+        query = Q(id__in=matching_updated_ids)
+        if value:
+            query |= Q(performed_action=GenericLog.ACTION.CREATED)
+
+        return queryset.filter(query)

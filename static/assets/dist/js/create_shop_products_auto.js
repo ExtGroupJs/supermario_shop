@@ -53,30 +53,39 @@ function bindEvents() {
       entry.status = entry.originalStatus;
     } else if (selectedValue.startsWith("existing_")) {
       const productId = Number(selectedValue.replace("existing_", ""));
-      const product = allProducts.find(p => p.id === productId);
+      const product = allProducts.find((p) => p.id === productId);
       if (product) {
         abrirModalCrearShopProduct(index, productId, product.displayName);
         return;
       }
     } else if (selectedValue.startsWith("shop_")) {
       const shopProductId = Number(selectedValue.replace("shop_", ""));
-      const selectedMatch = selectedShopProducts.find((p) => p.id === shopProductId) || null;
+      const selectedMatch =
+        selectedShopProducts.find((p) => p.id === shopProductId) || null;
       entry.chosenMatch = selectedMatch;
-      entry.status = selectedMatch ? "seleccionado_manualmente" : entry.originalStatus;
+      entry.status = selectedMatch
+        ? "seleccionado_manualmente"
+        : entry.originalStatus;
     } else {
       const selectedMatchIndex = Number(selectedValue);
       const candidateSource = getManualSelectionCandidates(entry);
       entry.chosenMatch = candidateSource[selectedMatchIndex] || null;
-      entry.status = entry.chosenMatch ? "seleccionado_manualmente" : entry.originalStatus;
+      entry.status = entry.chosenMatch
+        ? "seleccionado_manualmente"
+        : entry.originalStatus;
     }
 
-    const checkbox = document.querySelector(`.entry-check[data-index="${index}"]`);
+    const checkbox = document.querySelector(
+      `.entry-check[data-index="${index}"]`,
+    );
     if (checkbox) {
       checkbox.disabled = !entry.chosenMatch;
       checkbox.checked = Boolean(entry.chosenMatch);
     }
 
-    const statusCell = document.querySelector(`.entry-status[data-index="${index}"]`);
+    const statusCell = document.querySelector(
+      `.entry-status[data-index="${index}"]`,
+    );
     if (statusCell) {
       statusCell.innerHTML = renderStatus(entry);
     }
@@ -104,7 +113,8 @@ function poblarTiendas() {
       const shops = response.data.results || response.data || [];
 
       shops.forEach(function (shop) {
-        const isSelected = selectedShopId && Number(shop.id) === Number(selectedShopId);
+        const isSelected =
+          selectedShopId && Number(shop.id) === Number(selectedShopId);
         const option = new Option(shop.name, shop.id, isSelected, isSelected);
         shopSelect.add(option);
       });
@@ -143,7 +153,7 @@ async function analizarMensaje() {
 
   try {
     selectedShopProducts = (await cargarShopProducts(shopId)).sort((a, b) =>
-      a.displayName.localeCompare(b.displayName)
+      a.displayName.localeCompare(b.displayName),
     );
     allProducts = await cargarTodosProductos();
 
@@ -178,7 +188,11 @@ async function analizarMensaje() {
         };
       }
 
-      const matches = findMatches(parsedLine.productText, selectedShopProducts, threshold);
+      const matches = findMatches(
+        parsedLine.productText,
+        selectedShopProducts,
+        threshold,
+      );
       if (matches.length === 0) {
         return {
           ...parsedLine,
@@ -266,7 +280,6 @@ async function cargarShopProducts(shopId) {
       displayName: item.product_name || "Sin nombre",
       modelBrand: item.model_brand || "",
       sellPrice: item.sell_price,
-      costPrice: item.cost_price,
       productId: item.product.id,
       candidateText,
       normalizedCandidate: normalizeText(candidateText),
@@ -284,15 +297,18 @@ async function cargarTodosProductos() {
 }
 
 function getProductosNoEnTienda() {
-  const shopProductIds = new Set(selectedShopProducts.map(p => p.productId));
-  return allProducts.filter(p => !shopProductIds.has(p.id));
+  const shopProductIds = new Set(selectedShopProducts.map((p) => p.productId));
+  return allProducts.filter((p) => !shopProductIds.has(p.id));
 }
 
 function findMatches(inputText, candidates, threshold) {
   const normalizedInput = normalizeText(inputText);
   const scored = candidates
     .map((candidate) => {
-      const score = scoreSimilarity(normalizedInput, candidate.normalizedCandidate);
+      const score = scoreSimilarity(
+        normalizedInput,
+        candidate.normalizedCandidate,
+      );
       return {
         ...candidate,
         score,
@@ -342,7 +358,9 @@ function levenshteinSimilarity(a, b) {
 }
 
 function levenshteinDistance(a, b) {
-  const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  const matrix = Array.from({ length: a.length + 1 }, () =>
+    Array(b.length + 1).fill(0),
+  );
   for (let i = 0; i <= a.length; i++) {
     matrix[i][0] = i;
   }
@@ -356,7 +374,7 @@ function levenshteinDistance(a, b) {
       matrix[i][j] = Math.min(
         matrix[i - 1][j] + 1,
         matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost
+        matrix[i - 1][j - 1] + cost,
       );
     }
   }
@@ -421,8 +439,8 @@ function renderMatches(entry) {
       ...selectedShopProducts.map(
         (match) =>
           `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(
-            match.modelBrand
-          )}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`
+            match.modelBrand,
+          )}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`,
       ),
     ].join("");
 
@@ -446,8 +464,8 @@ function renderMatches(entry) {
       .map(
         (match) =>
           `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(
-            match.modelBrand
-          )}) - ${Math.round(match.score * 100)}%</option>`
+            match.modelBrand,
+          )}) - ${Math.round(match.score * 100)}%</option>`,
       )
       .join("");
 
@@ -455,8 +473,8 @@ function renderMatches(entry) {
       .map(
         (match) =>
           `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(
-            match.modelBrand
-          )}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`
+            match.modelBrand,
+          )}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`,
       )
       .join("");
 
@@ -469,7 +487,7 @@ function renderMatches(entry) {
     return `
       <div>
         <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(
-          entry
+          entry,
         )}">
           ${options}
         </select>
@@ -481,8 +499,8 @@ function renderMatches(entry) {
     .map(
       (match) =>
         `${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) - ${Math.round(
-          match.score * 100
-        )}%`
+          match.score * 100,
+        )}%`,
     )
     .join("<br>");
 }
@@ -516,7 +534,10 @@ function renderNoResults(message) {
 }
 
 function canCreateEntry(entry) {
-  return ["encontrado", "seleccionado_manualmente"].includes(entry.status) && Boolean(entry.chosenMatch);
+  return (
+    ["encontrado", "seleccionado_manualmente"].includes(entry.status) &&
+    Boolean(entry.chosenMatch)
+  );
 }
 
 function getManualSelectionCandidates(entry) {
@@ -524,7 +545,10 @@ function getManualSelectionCandidates(entry) {
     return [];
   }
 
-  if (entry.originalStatus === "no_encontrado" || entry.status === "no_encontrado") {
+  if (
+    entry.originalStatus === "no_encontrado" ||
+    entry.status === "no_encontrado"
+  ) {
     return selectedShopProducts;
   }
 
@@ -540,7 +564,9 @@ function initializeManualSelects() {
 }
 
 function updateCreateButtonState() {
-  const checkedEntries = Array.from(document.querySelectorAll(".entry-check:checked"));
+  const checkedEntries = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  );
   createButton.disabled = checkedEntries.length === 0;
 }
 
@@ -567,7 +593,10 @@ function buildInputReceiptText(selectedIndexes, payloadProducts, createdGroup) {
   const now = new Date();
   const shopName = getSelectedText(document.getElementById("shop"));
   const groupId = createdGroup && createdGroup.id ? createdGroup.id : "N/D";
-  const groupDate = createdGroup && createdGroup.for_date ? createdGroup.for_date : formatDateTime(now);
+  const groupDate =
+    createdGroup && createdGroup.for_date
+      ? createdGroup.for_date
+      : formatDateTime(now);
   const cleanExtraInfo = (globalExtraInfo || "").trim();
 
   const detailLines = selectedIndexes
@@ -578,7 +607,10 @@ function buildInputReceiptText(selectedIndexes, payloadProducts, createdGroup) {
       return `- ${entry.quantity} x ${productName}`;
     });
 
-  const totalUnits = payloadProducts.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+  const totalUnits = payloadProducts.reduce(
+    (acc, item) => acc + Number(item.quantity || 0),
+    0,
+  );
 
   return [
     "COMPROBANTE DE ENTRADA DE INVENTARIO",
@@ -653,9 +685,9 @@ async function showInputReceiptModal(receiptText, inputCount) {
 }
 
 async function crearEntradas() {
-  const selectedIndexes = Array.from(document.querySelectorAll(".entry-check:checked")).map(
-    (checkbox) => Number(checkbox.dataset.index)
-  );
+  const selectedIndexes = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  ).map((checkbox) => Number(checkbox.dataset.index));
 
   if (!selectedIndexes.length) {
     Swal.fire({
@@ -708,7 +740,7 @@ async function crearEntradas() {
 
     shopProductsInput.forEach((inputEntry) => {
       const matchedShopProduct = selectedShopProducts.find(
-        (shopProduct) => shopProduct.id === inputEntry.shop_product
+        (shopProduct) => shopProduct.id === inputEntry.shop_product,
       );
       if (matchedShopProduct) {
         matchedShopProduct.currentQuantity += inputEntry.quantity;
@@ -718,7 +750,7 @@ async function crearEntradas() {
     const receiptText = buildInputReceiptText(
       selectedIndexes,
       shopProductsInput,
-      response.data
+      response.data,
     );
 
     // Oculta el loader antes de mostrar el comprobante para evitar superposicion visual.
@@ -758,7 +790,8 @@ function poblarProductosExistentesEnModal() {
   const options = [
     '<option value="">Selecciona un producto existente</option>',
     ...productosNoEnTienda.map(
-      (product) => `<option value="${product.id}">${escapeHtml(product.displayName)}</option>`
+      (product) =>
+        `<option value="${product.id}">${escapeHtml(product.displayName)}</option>`,
     ),
   ];
 
@@ -771,7 +804,9 @@ function usarProductoExistenteDesdeModal() {
     return;
   }
 
-  const selectedValue = document.getElementById("existing-product-select")?.value;
+  const selectedValue = document.getElementById(
+    "existing-product-select",
+  )?.value;
   if (!selectedValue) {
     Swal.fire({
       icon: "warning",
@@ -793,25 +828,29 @@ function usarProductoExistenteDesdeModal() {
   }
 
   $("#modal-create-product").modal("hide");
-  abrirModalCrearShopProduct(pendingProductCreation.entryIndex, product.id, product.displayName);
+  abrirModalCrearShopProduct(
+    pendingProductCreation.entryIndex,
+    product.id,
+    product.displayName,
+  );
 }
 
 function abrirModalCrearShopProduct(entryIndex, productId, productName) {
   pendingProductCreation = { entryIndex, productId, productName };
   document.getElementById("form-create-shop-product").reset();
   document.getElementById("sp-product-name").textContent = productName;
-  
+
   const entry = parsedEntries[entryIndex];
   if (entry) {
     document.getElementById("sp-quantity").value = entry.quantity || 1;
   }
-  
+
   $("#modal-create-shop-product").modal("show");
 }
 
 $(document).ready(function () {
   poblarModelos();
-  
+
   $("#form-create-product").validate({
     rules: {
       name: { required: true },
@@ -836,7 +875,6 @@ $(document).ready(function () {
   $("#form-create-shop-product").validate({
     rules: {
       quantity: { required: true, digits: true, min: 1 },
-      cost_price: { required: true, number: true, min: 0 },
       sell_price: { required: true, number: true, min: 0 },
       sell_price_for_catalog: { number: true, min: 0 },
     },
@@ -888,7 +926,7 @@ async function crearProducto(form) {
       abrirModalCrearShopProduct(
         pendingProductCreation.entryIndex,
         newProduct.id,
-        newProduct.name
+        newProduct.name,
       );
     }
   } catch (error) {
@@ -906,7 +944,7 @@ async function crearProducto(form) {
 async function crearShopProduct(form) {
   const { entryIndex, productId, productName } = pendingProductCreation;
   const entry = parsedEntries[entryIndex];
-  
+
   if (!entry) {
     Swal.fire({
       icon: "error",
@@ -921,9 +959,9 @@ async function crearShopProduct(form) {
     shop: shopId,
     product: productId,
     quantity: document.getElementById("sp-quantity").value,
-    cost_price: document.getElementById("sp-cost-price").value,
     sell_price: document.getElementById("sp-sell-price").value,
-    sell_price_for_catalog: document.getElementById("sp-catalog-price").value || null,
+    sell_price_for_catalog:
+      document.getElementById("sp-catalog-price").value || null,
     extra_info: document.getElementById("sp-extra-info").value || "",
   };
 
@@ -933,40 +971,45 @@ async function crearShopProduct(form) {
     const response = await axios.post(shopProductsUrl, data);
     if (response.status === 201) {
       const newShopProduct = response.data;
-      
+
       const shopProductObj = {
         id: newShopProduct.id,
         currentQuantity: Number(newShopProduct.quantity),
         displayName: productName,
         modelBrand: newShopProduct.model_brand || "",
         sellPrice: newShopProduct.sell_price,
-        costPrice: newShopProduct.cost_price,
         productId: productId,
         candidateText: productName,
         normalizedCandidate: normalizeText(productName),
       };
-      
+
       selectedShopProducts.push(shopProductObj);
-      selectedShopProducts.sort((a, b) => a.displayName.localeCompare(b.displayName));
-      
+      selectedShopProducts.sort((a, b) =>
+        a.displayName.localeCompare(b.displayName),
+      );
+
       entry.chosenMatch = shopProductObj;
       entry.status = "seleccionado_manualmente";
       entry.manuallyCreated = true;
-      
-      const checkbox = document.querySelector(`.entry-check[data-index="${entryIndex}"]`);
+
+      const checkbox = document.querySelector(
+        `.entry-check[data-index="${entryIndex}"]`,
+      );
       if (checkbox) {
         checkbox.disabled = true;
         checkbox.checked = false;
       }
-      
-      const statusCell = document.querySelector(`.entry-status[data-index="${entryIndex}"]`);
+
+      const statusCell = document.querySelector(
+        `.entry-status[data-index="${entryIndex}"]`,
+      );
       if (statusCell) {
         statusCell.innerHTML = renderStatus(entry);
       }
-      
+
       updateCreateButtonState();
       $("#modal-create-shop-product").modal("hide");
-      
+
       Swal.fire({
         icon: "success",
         title: "Producto agregado a tienda",

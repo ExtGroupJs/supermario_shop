@@ -10,7 +10,6 @@ from apps.business_app.serializers.product import (
     ReadProductSerializer,
 )
 from apps.common.models.generic_log import GenericLog
-from apps.users_app.models.groups import Groups
 
 
 class ShopProductsSerializer(serializers.ModelSerializer):
@@ -26,7 +25,6 @@ class ShopProductsSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "quantity",
-            "cost_price",
             "sell_price",
             "wholesale_price",
             "shop",
@@ -87,18 +85,6 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
     class Meta(ShopProductsSerializer.Meta):
         model = ShopProducts
         fields = ShopProductsSerializer.Meta.fields + ("sales_count",)
-
-    def to_representation(self, instance):
-        response = super().to_representation(instance)
-        request = self.context.get("request")
-        if (
-            request
-            and request.user.groups.exclude(
-                id__in=[Groups.SHOP_OWNER.value, Groups.SUPER_ADMIN.value]
-            ).exists()
-        ):
-            response.pop("cost_price", None)
-        return response
 
 
 class CatalogShopProductSerializer(ReadShopProductsSerializer):

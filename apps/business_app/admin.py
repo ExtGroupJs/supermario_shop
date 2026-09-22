@@ -50,7 +50,13 @@ class ShopAdmin(GenericModelAdmin):
 
 @admin.register(ShopProducts)
 class ShopProductsAdmin(SafeDeleteTimestampedAdmin):
-    pass
+    EXCLUDED_FIELDS_FOR_EDITING = {
+        "created_timestamp",
+        "updated_timestamp",
+        "deleted",
+        "deleted_by_cascade",
+        "cost_price",
+    }
 
 
 @admin.register(Sell)
