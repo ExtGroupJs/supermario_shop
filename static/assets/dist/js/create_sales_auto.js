@@ -460,7 +460,7 @@ async function crearVentas() {
     return;
   }
 
-  const composedExtraInfo = `${manualExtraInfo ? ` | Nota: ${manualExtraInfo}` : ""}`;
+  const composedExtraInfo = `${manualExtraInfo ? ` ${manualExtraInfo}` : ""}`;
 
   const sells = selectedIndexes
     .map((index) => parsedEntries[index])
