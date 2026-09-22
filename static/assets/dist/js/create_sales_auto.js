@@ -49,22 +49,29 @@ function bindEvents() {
 
     if (selectedValue === "") {
       entry.status = entry.originalStatus;
-      entry.chosenMatch = entry.matches && entry.matches.length === 1 ? entry.matches[0] : null;
+      entry.chosenMatch =
+        entry.matches && entry.matches.length === 1 ? entry.matches[0] : null;
     } else {
-      const match = selectedShopProducts.find((p) => String(p.id) === String(selectedValue));
+      const match = selectedShopProducts.find(
+        (p) => String(p.id) === String(selectedValue),
+      );
       if (match) {
         entry.chosenMatch = match;
         entry.status = "seleccionado_manualmente";
       }
     }
 
-    const checkbox = document.querySelector(`.entry-check[data-index="${index}"]`);
+    const checkbox = document.querySelector(
+      `.entry-check[data-index="${index}"]`,
+    );
     if (checkbox) {
       checkbox.checked = canCreateEntry(entry);
       checkbox.disabled = !canCreateEntry(entry);
     }
 
-    const statusCell = document.querySelector(`.entry-status[data-index="${index}"]`);
+    const statusCell = document.querySelector(
+      `.entry-status[data-index="${index}"]`,
+    );
     if (statusCell) statusCell.innerHTML = renderStatus(entry);
 
     updateCreateButtonState();
@@ -99,7 +106,11 @@ function poblarTiendas() {
       $(shopSelect).trigger("change");
     })
     .catch(function () {
-      Swal.fire({ icon: "error", title: "Error", text: "No se pudieron cargar las tiendas." });
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar las tiendas.",
+      });
     });
 }
 
@@ -116,7 +127,11 @@ async function analizarMensaje() {
   const message = document.getElementById("messageInput").value || "";
 
   if (!shopId) {
-    Swal.fire({ icon: "warning", title: "Selecciona una tienda", text: "Debes seleccionar una tienda antes de analizar el mensaje." });
+    Swal.fire({
+      icon: "warning",
+      title: "Selecciona una tienda",
+      text: "Debes seleccionar una tienda antes de analizar el mensaje.",
+    });
     return;
   }
 
@@ -126,7 +141,7 @@ async function analizarMensaje() {
 
   try {
     selectedShopProducts = (await cargarShopProducts(shopId)).sort((a, b) =>
-      a.displayName.localeCompare(b.displayName)
+      a.displayName.localeCompare(b.displayName),
     );
 
     const lines = message
@@ -145,7 +160,11 @@ async function analizarMensaje() {
 
     parsedEntries = itemLines.map((line, index) => {
       const parsed = parseLine(line, index + 1);
-      const matches = findMatches(parsed.productText, selectedShopProducts, threshold);
+      const matches = findMatches(
+        parsed.productText,
+        selectedShopProducts,
+        threshold,
+      );
 
       let status;
       let chosenMatch = null;
@@ -165,7 +184,11 @@ async function analizarMensaje() {
     renderParsedResults();
   } catch (error) {
     renderNoResults("Ocurrió un error analizando el mensaje");
-    Swal.fire({ icon: "error", title: "Error", text: "No se pudo analizar el mensaje. Intenta nuevamente." });
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo analizar el mensaje. Intenta nuevamente.",
+    });
   } finally {
     hideLoader();
   }
@@ -175,9 +198,21 @@ function parseLine(line, lineNumber) {
   const regex = /^\s*(\d+)\s*-\s*(.+)\s*$/;
   const match = line.match(regex);
   if (!match) {
-    return { lineNumber, rawLine: line, valid: true, quantity: 1, productText: line.trim() };
+    return {
+      lineNumber,
+      rawLine: line,
+      valid: true,
+      quantity: 1,
+      productText: line.trim(),
+    };
   }
-  return { lineNumber, rawLine: line, valid: true, quantity: Number(match[1]), productText: match[2].trim() };
+  return {
+    lineNumber,
+    rawLine: line,
+    valid: true,
+    quantity: Number(match[1]),
+    productText: match[2].trim(),
+  };
 }
 
 async function cargarShopProducts(shopId) {
@@ -188,7 +223,8 @@ async function cargarShopProducts(shopId) {
   const results = response.data.results || [];
   return results.map((item) => ({
     id: item.id,
-    displayName: item.__repr__ || item.__str__ || item.product?.name || String(item.id),
+    displayName:
+      item.__repr__ || item.__str__ || item.product?.name || String(item.id),
     productName: item.product?.name || "",
     modelBrand: item.product?.model_brand || "",
     stock: item.quantity,
@@ -240,7 +276,9 @@ function levenshteinSimilarity(a, b) {
 }
 
 function levenshteinDistance(a, b) {
-  const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  const matrix = Array.from({ length: a.length + 1 }, () =>
+    Array(b.length + 1).fill(0),
+  );
   for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
   for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
   for (let i = 1; i <= a.length; i++) {
@@ -249,7 +287,7 @@ function levenshteinDistance(a, b) {
       matrix[i][j] = Math.min(
         matrix[i - 1][j] + 1,
         matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost
+        matrix[i - 1][j - 1] + cost,
       );
     }
   }
@@ -262,7 +300,11 @@ function tokenOverlapScore(a, b) {
   if (!aTokens.length || !bTokens.length) return 0;
   let matches = 0;
   for (const token of aTokens) {
-    if (bTokens.some((bt) => bt === token || bt.includes(token) || token.includes(bt))) {
+    if (
+      bTokens.some(
+        (bt) => bt === token || bt.includes(token) || token.includes(bt),
+      )
+    ) {
       matches++;
     }
   }
@@ -307,7 +349,9 @@ function renderParsedResults() {
 function renderMatches(entry) {
   if (entry.status === "no_encontrado") {
     const options = selectedShopProducts
-      .map((p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`)
+      .map(
+        (p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`,
+      )
       .join("");
     return `
       <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(entry)}">
@@ -318,10 +362,15 @@ function renderMatches(entry) {
 
   if (entry.status === "ambiguo") {
     const options = entry.matches
-      .map((m) => `<option value="${m.id}">${escapeHtml(m.displayName)} (${Math.round(m.score * 100)}%)</option>`)
+      .map(
+        (m) =>
+          `<option value="${m.id}">${escapeHtml(m.displayName)} (${Math.round(m.score * 100)}%)</option>`,
+      )
       .join("");
     const allOptions = selectedShopProducts
-      .map((p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`)
+      .map(
+        (p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`,
+      )
       .join("");
     return `
       <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(entry)}">
@@ -332,15 +381,22 @@ function renderMatches(entry) {
   }
 
   return entry.matches
-    .map((match) => `${escapeHtml(match.displayName)} - ${Math.round(match.score * 100)}%`)
+    .map(
+      (match) =>
+        `${escapeHtml(match.displayName)} - ${Math.round(match.score * 100)}%`,
+    )
     .join("<br>");
 }
 
 function renderStatus(entry) {
-  if (entry.status === "encontrado") return '<span class="badge badge-success">Encontrado</span>';
-  if (entry.status === "seleccionado_manualmente") return '<span class="badge badge-info">Seleccionado</span>';
-  if (entry.status === "ambiguo") return '<span class="badge badge-warning">Ambiguo</span>';
-  if (entry.status === "no_encontrado") return '<span class="badge badge-danger">No encontrado</span>';
+  if (entry.status === "encontrado")
+    return '<span class="badge badge-success">Encontrado</span>';
+  if (entry.status === "seleccionado_manualmente")
+    return '<span class="badge badge-info">Seleccionado</span>';
+  if (entry.status === "ambiguo")
+    return '<span class="badge badge-warning">Ambiguo</span>';
+  if (entry.status === "no_encontrado")
+    return '<span class="badge badge-danger">No encontrado</span>';
   return '<span class="badge badge-secondary">Formato inválido</span>';
 }
 
@@ -350,15 +406,24 @@ function renderNoResults(message) {
 }
 
 function canCreateEntry(entry) {
-  return ["encontrado", "seleccionado_manualmente"].includes(entry.status) && Boolean(entry.chosenMatch);
+  return (
+    ["encontrado", "seleccionado_manualmente"].includes(entry.status) &&
+    Boolean(entry.chosenMatch)
+  );
 }
 
 function initializeManualSelects() {
-  $(".manual-match-select").select2({ theme: "bootstrap4", width: "100%", placeholder: "Selecciona un producto" });
+  $(".manual-match-select").select2({
+    theme: "bootstrap4",
+    width: "100%",
+    placeholder: "Selecciona un producto",
+  });
 }
 
 function updateCreateButtonState() {
-  const checkedEntries = Array.from(document.querySelectorAll(".entry-check:checked"));
+  const checkedEntries = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  );
   createButton.disabled = checkedEntries.length === 0;
 }
 
@@ -367,12 +432,16 @@ async function crearVentas() {
     return;
   }
 
-  const selectedIndexes = Array.from(document.querySelectorAll(".entry-check:checked")).map(
-    (cb) => Number(cb.dataset.index)
-  );
+  const selectedIndexes = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  ).map((cb) => Number(cb.dataset.index));
 
   if (!selectedIndexes.length) {
-    Swal.fire({ icon: "warning", title: "Sin selección", text: "No hay productos seleccionados para vender." });
+    Swal.fire({
+      icon: "warning",
+      title: "Sin selección",
+      text: "No hay productos seleccionados para vender.",
+    });
     return;
   }
 
@@ -391,7 +460,7 @@ async function crearVentas() {
     return;
   }
 
-  const composedExtraInfo = `Cliente: ${clientName}${manualExtraInfo ? ` | Nota: ${manualExtraInfo}` : ""}`;
+  const composedExtraInfo = `${manualExtraInfo ? ` | Nota: ${manualExtraInfo}` : ""}`;
 
   const sells = selectedIndexes
     .map((index) => parsedEntries[index])
@@ -403,13 +472,19 @@ async function crearVentas() {
     }));
 
   if (!sells.length) {
-    Swal.fire({ icon: "warning", title: "Sin ventas válidas", text: "No hay ventas válidas para crear." });
+    Swal.fire({
+      icon: "warning",
+      title: "Sin ventas válidas",
+      text: "No hay ventas válidas para crear.",
+    });
     return;
   }
 
   // Validar stock
   for (const sell of sells) {
-    const shopProduct = selectedShopProducts.find((p) => p.id === sell.shop_product);
+    const shopProduct = selectedShopProducts.find(
+      (p) => p.id === sell.shop_product,
+    );
     if (shopProduct && sell.quantity > shopProduct.stock) {
       Swal.fire({
         icon: "error",
@@ -494,7 +569,9 @@ async function crearVentas() {
     thresholdValue.textContent = `${thresholdInput.value}%`;
   } catch (error) {
     hideLoader();
-    const detail = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+    const detail = error.response?.data
+      ? JSON.stringify(error.response.data)
+      : error.message;
     Swal.fire({ icon: "error", title: "Error al crear venta", text: detail });
   } finally {
     updateCreateButtonState();
@@ -502,7 +579,14 @@ async function crearVentas() {
   }
 }
 
-function buildComprobanteText({ saleId, sells, clientName, paymentMethod, discount, extraInfo }) {
+function buildComprobanteText({
+  saleId,
+  sells,
+  clientName,
+  paymentMethod,
+  discount,
+  extraInfo,
+}) {
   const paymentMethodName = paymentMethod === "Z" ? "Zelle" : "USD";
 
   const grossTotal = sells.reduce((acc, sell) => {

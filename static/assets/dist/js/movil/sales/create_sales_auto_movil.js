@@ -51,20 +51,26 @@ function bindEvents() {
       entry.chosenMatch = null;
       entry.status = entry.originalStatus;
     } else {
-      const match = selectedShopProducts.find((p) => String(p.id) === String(selectedValue));
+      const match = selectedShopProducts.find(
+        (p) => String(p.id) === String(selectedValue),
+      );
       if (match) {
         entry.chosenMatch = match;
         entry.status = "seleccionado_manualmente";
       }
     }
 
-    const checkbox = document.querySelector(`.entry-check[data-index="${index}"]`);
+    const checkbox = document.querySelector(
+      `.entry-check[data-index="${index}"]`,
+    );
     if (checkbox) {
       checkbox.disabled = !entry.chosenMatch;
       checkbox.checked = Boolean(entry.chosenMatch);
     }
 
-    const statusWrap = document.querySelector(`.entry-status[data-index="${index}"]`);
+    const statusWrap = document.querySelector(
+      `.entry-status[data-index="${index}"]`,
+    );
     if (statusWrap) statusWrap.innerHTML = renderStatus(entry);
 
     updateCreateButtonState();
@@ -79,22 +85,30 @@ function poblarTiendas() {
   const selectedShopId = localStorage.getItem("selectedShopId");
   shopSelect.innerHTML = "";
 
-  axios.get("/business-gestion/shops/").then(function (response) {
-    const shops = response.data.results || response.data || [];
-    shops.forEach(function (shop) {
-      const isSelected = selectedShopId && Number(shop.id) === Number(selectedShopId);
-      const option = new Option(shop.name, shop.id, isSelected, isSelected);
-      shopSelect.add(option);
+  axios
+    .get("/business-gestion/shops/")
+    .then(function (response) {
+      const shops = response.data.results || response.data || [];
+      shops.forEach(function (shop) {
+        const isSelected =
+          selectedShopId && Number(shop.id) === Number(selectedShopId);
+        const option = new Option(shop.name, shop.id, isSelected, isSelected);
+        shopSelect.add(option);
+      });
+
+      if (!shopSelect.value && shopSelect.options.length > 0) {
+        shopSelect.value = shopSelect.options[0].value;
+      }
+
+      $(shopSelect).trigger("change");
+    })
+    .catch(function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar las tiendas.",
+      });
     });
-
-    if (!shopSelect.value && shopSelect.options.length > 0) {
-      shopSelect.value = shopSelect.options[0].value;
-    }
-
-    $(shopSelect).trigger("change");
-  }).catch(function () {
-    Swal.fire({ icon: "error", title: "Error", text: "No se pudieron cargar las tiendas." });
-  });
 }
 
 async function analizarMensaje() {
@@ -102,7 +116,11 @@ async function analizarMensaje() {
   const message = document.getElementById("messageInput").value || "";
 
   if (!shopId) {
-    Swal.fire({ icon: "warning", title: "Selecciona una tienda", text: "Debes seleccionar una tienda antes de analizar el mensaje." });
+    Swal.fire({
+      icon: "warning",
+      title: "Selecciona una tienda",
+      text: "Debes seleccionar una tienda antes de analizar el mensaje.",
+    });
     return;
   }
 
@@ -112,10 +130,13 @@ async function analizarMensaje() {
 
   try {
     selectedShopProducts = (await cargarShopProducts(shopId)).sort((a, b) =>
-      a.displayName.localeCompare(b.displayName)
+      a.displayName.localeCompare(b.displayName),
     );
 
-    const lines = message.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0);
+    const lines = message
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
 
     if (lines.length === 0) {
       renderNoResults("El mensaje esta vacio");
@@ -126,8 +147,13 @@ async function analizarMensaje() {
 
     parsedEntries = lines.map((line, index) => {
       const parsed = parseLine(line, index + 1);
-      const matches = findMatches(parsed.productText, selectedShopProducts, threshold);
-      let status, chosenMatch = null;
+      const matches = findMatches(
+        parsed.productText,
+        selectedShopProducts,
+        threshold,
+      );
+      let status,
+        chosenMatch = null;
       if (matches.length === 0) {
         status = "no_encontrado";
       } else if (matches.length === 1) {
@@ -142,7 +168,11 @@ async function analizarMensaje() {
     renderParsedResults();
   } catch (error) {
     renderNoResults("Ocurrio un error analizando el mensaje");
-    Swal.fire({ icon: "error", title: "Error", text: "No se pudo analizar el mensaje. Intenta nuevamente." });
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo analizar el mensaje. Intenta nuevamente.",
+    });
   } finally {
     load.hidden = true;
   }
@@ -152,17 +182,32 @@ function parseLine(line, lineNumber) {
   const regex = /^\s*(\d+)\s*-\s*(.+)\s*$/;
   const match = line.match(regex);
   if (!match) {
-    return { lineNumber, rawLine: line, valid: true, quantity: 1, productText: line.trim() };
+    return {
+      lineNumber,
+      rawLine: line,
+      valid: true,
+      quantity: 1,
+      productText: line.trim(),
+    };
   }
-  return { lineNumber, rawLine: line, valid: true, quantity: Number(match[1]), productText: match[2].trim() };
+  return {
+    lineNumber,
+    rawLine: line,
+    valid: true,
+    quantity: Number(match[1]),
+    productText: match[2].trim(),
+  };
 }
 
 async function cargarShopProducts(shopId) {
-  const response = await axios.get(shopProductsUrl, { params: { shop: shopId, quantity__gte: 1 } });
+  const response = await axios.get(shopProductsUrl, {
+    params: { shop: shopId, quantity__gte: 1 },
+  });
   const results = response.data.results || [];
   return results.map((item) => ({
     id: item.id,
-    displayName: item.__repr__ || item.__str__ || item.product?.name || String(item.id),
+    displayName:
+      item.__repr__ || item.__str__ || item.product?.name || String(item.id),
     productName: item.product?.name || "",
     modelBrand: item.product?.model_brand || "",
     stock: item.quantity,
@@ -173,10 +218,14 @@ async function cargarShopProducts(shopId) {
 
 function findMatches(inputText, candidates, threshold) {
   const normalizedInput = normalizeText(inputText);
-  const scored = candidates.map((candidate) => ({
-    ...candidate,
-    score: scoreSimilarity(normalizedInput, candidate.normalizedName),
-  })).filter((candidate) => candidate.score >= threshold).sort((a, b) => b.score - a.score).slice(0, 3);
+  const scored = candidates
+    .map((candidate) => ({
+      ...candidate,
+      score: scoreSimilarity(normalizedInput, candidate.normalizedName),
+    }))
+    .filter((candidate) => candidate.score >= threshold)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
 
   if (scored.length <= 1) return scored;
   const bestScore = scored[0].score;
@@ -192,7 +241,13 @@ function scoreSimilarity(a, b) {
 }
 
 function normalizeText(text) {
-  return (text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  return (text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function levenshteinSimilarity(a, b) {
@@ -203,13 +258,19 @@ function levenshteinSimilarity(a, b) {
 }
 
 function levenshteinDistance(a, b) {
-  const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  const matrix = Array.from({ length: a.length + 1 }, () =>
+    Array(b.length + 1).fill(0),
+  );
   for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
   for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
   for (let i = 1; i <= a.length; i++) {
     for (let j = 1; j <= b.length; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost);
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost,
+      );
     }
   }
   return matrix[a.length][b.length];
@@ -221,7 +282,12 @@ function tokenOverlapScore(a, b) {
   if (!aTokens.length || !bTokens.length) return 0;
   let matches = 0;
   for (const token of aTokens) {
-    if (bTokens.some((bt) => bt === token || bt.includes(token) || token.includes(bt))) matches++;
+    if (
+      bTokens.some(
+        (bt) => bt === token || bt.includes(token) || token.includes(bt),
+      )
+    )
+      matches++;
   }
   return matches / aTokens.length;
 }
@@ -264,9 +330,11 @@ function renderParsedResults() {
 
 function renderMatches(entry) {
   if (entry.status === "no_encontrado") {
-    const options = selectedShopProducts.map((p) =>
-      `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`
-    ).join("");
+    const options = selectedShopProducts
+      .map(
+        (p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`,
+      )
+      .join("");
     return `
       <div class="text-danger small mb-2">Sin coincidencias automaticas</div>
       <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(entry)}">
@@ -276,12 +344,17 @@ function renderMatches(entry) {
   }
 
   if (entry.status === "ambiguo") {
-    const options = entry.matches.map((m) =>
-      `<option value="${m.id}">${escapeHtml(m.displayName)} (${Math.round(m.score * 100)}%)</option>`
-    ).join("");
-    const allOptions = selectedShopProducts.map((p) =>
-      `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`
-    ).join("");
+    const options = entry.matches
+      .map(
+        (m) =>
+          `<option value="${m.id}">${escapeHtml(m.displayName)} (${Math.round(m.score * 100)}%)</option>`,
+      )
+      .join("");
+    const allOptions = selectedShopProducts
+      .map(
+        (p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`,
+      )
+      .join("");
     return `
       <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(entry)}">
         <option value="">Multiples coincidencias - elige una</option>
@@ -290,16 +363,23 @@ function renderMatches(entry) {
       </select>`;
   }
 
-  return entry.matches.map((match) =>
-    `${escapeHtml(match.displayName)} - ${Math.round(match.score * 100)}%`
-  ).join("<br>");
+  return entry.matches
+    .map(
+      (match) =>
+        `${escapeHtml(match.displayName)} - ${Math.round(match.score * 100)}%`,
+    )
+    .join("<br>");
 }
 
 function renderStatus(entry) {
-  if (entry.status === "encontrado") return '<span class="badge badge-success">Encontrado</span>';
-  if (entry.status === "seleccionado_manualmente") return '<span class="badge badge-info">Seleccionado</span>';
-  if (entry.status === "ambiguo") return '<span class="badge badge-warning">Ambiguo</span>';
-  if (entry.status === "no_encontrado") return '<span class="badge badge-danger">No encontrado</span>';
+  if (entry.status === "encontrado")
+    return '<span class="badge badge-success">Encontrado</span>';
+  if (entry.status === "seleccionado_manualmente")
+    return '<span class="badge badge-info">Seleccionado</span>';
+  if (entry.status === "ambiguo")
+    return '<span class="badge badge-warning">Ambiguo</span>';
+  if (entry.status === "no_encontrado")
+    return '<span class="badge badge-danger">No encontrado</span>';
   return '<span class="badge badge-secondary">Formato invalido</span>';
 }
 
@@ -309,27 +389,40 @@ function renderNoResults(message) {
 }
 
 function canCreateEntry(entry) {
-  return ["encontrado", "seleccionado_manualmente"].includes(entry.status) && Boolean(entry.chosenMatch);
+  return (
+    ["encontrado", "seleccionado_manualmente"].includes(entry.status) &&
+    Boolean(entry.chosenMatch)
+  );
 }
 
 function initializeManualSelects() {
-  $(".manual-match-select").select2({ theme: "bootstrap4", width: "100%", placeholder: "Selecciona un producto" });
+  $(".manual-match-select").select2({
+    theme: "bootstrap4",
+    width: "100%",
+    placeholder: "Selecciona un producto",
+  });
 }
 
 function updateCreateButtonState() {
-  const checkedEntries = Array.from(document.querySelectorAll(".entry-check:checked"));
+  const checkedEntries = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  );
   createButton.disabled = checkedEntries.length === 0;
 }
 
 async function crearVentas() {
   if (createButton.disabled) return;
 
-  const selectedIndexes = Array.from(document.querySelectorAll(".entry-check:checked")).map(
-    (cb) => Number(cb.dataset.index)
-  );
+  const selectedIndexes = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  ).map((cb) => Number(cb.dataset.index));
 
   if (!selectedIndexes.length) {
-    Swal.fire({ icon: "warning", title: "Sin seleccion", text: "No hay productos seleccionados para vender." });
+    Swal.fire({
+      icon: "warning",
+      title: "Sin seleccion",
+      text: "No hay productos seleccionados para vender.",
+    });
     return;
   }
 
@@ -340,13 +433,18 @@ async function crearVentas() {
   const sellerId = localStorage.getItem("id");
 
   if (!clientName) {
-    Swal.fire({ icon: "warning", title: "Cliente obligatorio", text: "Debes escribir el nombre del cliente para crear la venta." });
+    Swal.fire({
+      icon: "warning",
+      title: "Cliente obligatorio",
+      text: "Debes escribir el nombre del cliente para crear la venta.",
+    });
     return;
   }
 
-  const composedExtraInfo = `Cliente: ${clientName}${manualExtraInfo ? ` | Nota: ${manualExtraInfo}` : ""}`;
+  const composedExtraInfo = `${manualExtraInfo ? ` | Nota: ${manualExtraInfo}` : ""}`;
 
-  const sells = selectedIndexes.map((index) => parsedEntries[index])
+  const sells = selectedIndexes
+    .map((index) => parsedEntries[index])
     .filter((entry) => entry && entry.chosenMatch)
     .map((entry) => ({
       shop_product: entry.chosenMatch.id,
@@ -355,15 +453,22 @@ async function crearVentas() {
     }));
 
   if (!sells.length) {
-    Swal.fire({ icon: "warning", title: "Sin ventas validas", text: "No hay ventas validas para crear." });
+    Swal.fire({
+      icon: "warning",
+      title: "Sin ventas validas",
+      text: "No hay ventas validas para crear.",
+    });
     return;
   }
 
   for (const sell of sells) {
-    const shopProduct = selectedShopProducts.find((p) => p.id === sell.shop_product);
+    const shopProduct = selectedShopProducts.find(
+      (p) => p.id === sell.shop_product,
+    );
     if (shopProduct && sell.quantity > shopProduct.stock) {
       Swal.fire({
-        icon: "error", title: "Stock insuficiente",
+        icon: "error",
+        title: "Stock insuficiente",
         text: `El producto "${shopProduct.displayName}" tiene stock ${shopProduct.stock}, pero se intentan vender ${sell.quantity}.`,
       });
       return;
@@ -372,9 +477,12 @@ async function crearVentas() {
 
   const totalItems = sells.reduce((sum, s) => sum + s.quantity, 0);
   const confirm = await Swal.fire({
-    icon: "question", title: "Confirmar venta",
+    icon: "question",
+    title: "Confirmar venta",
     text: `Se crearan ${sells.length} lineas de venta (${totalItems} unidades en total).`,
-    showCancelButton: true, confirmButtonText: "Si, crear venta", cancelButtonText: "Cancelar",
+    showCancelButton: true,
+    confirmButtonText: "Si, crear venta",
+    cancelButtonText: "Cancelar",
   });
 
   if (!confirm.isConfirmed) return;
@@ -382,28 +490,52 @@ async function crearVentas() {
   createButton.disabled = true;
   load.hidden = false;
 
-  const payload = { discount, extra_info: composedExtraInfo, payment_method: paymentMethod, seller: sellerId, sells };
+  const payload = {
+    discount,
+    extra_info: composedExtraInfo,
+    payment_method: paymentMethod,
+    seller: sellerId,
+    sells,
+  };
 
   try {
     const response = await axios.post(sellGroupsUrl, payload);
     load.hidden = true;
 
     const comprobanteText = buildComprobanteText({
-      saleId: response.data?.id, sells, clientName, paymentMethod, discount, extraInfo: composedExtraInfo,
+      saleId: response.data?.id,
+      sells,
+      clientName,
+      paymentMethod,
+      discount,
+      extraInfo: composedExtraInfo,
     });
     const comprobanteHtml = buildComprobanteHtml(comprobanteText);
 
     const result = await Swal.fire({
-      icon: "success", title: "Venta creada", html: comprobanteHtml, width: 700,
-      showDenyButton: true, confirmButtonText: "Copiar comprobante", denyButtonText: "Cerrar",
+      icon: "success",
+      title: "Venta creada",
+      html: comprobanteHtml,
+      width: 700,
+      showDenyButton: true,
+      confirmButtonText: "Copiar comprobante",
+      denyButtonText: "Cerrar",
     });
 
     if (result.isConfirmed) {
       const copied = await copiarComprobante(comprobanteText);
       if (copied) {
-        await Swal.fire({ icon: "success", title: "Comprobante copiado", text: "El comprobante se copio al portapapeles." });
+        await Swal.fire({
+          icon: "success",
+          title: "Comprobante copiado",
+          text: "El comprobante se copio al portapapeles.",
+        });
       } else {
-        await Swal.fire({ icon: "error", title: "No se pudo copiar", text: "No fue posible copiar el comprobante automaticamente." });
+        await Swal.fire({
+          icon: "error",
+          title: "No se pudo copiar",
+          text: "No fue posible copiar el comprobante automaticamente.",
+        });
       }
     }
 
@@ -416,7 +548,9 @@ async function crearVentas() {
     thresholdValue.textContent = `${thresholdInput.value}%`;
   } catch (error) {
     load.hidden = true;
-    const detail = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+    const detail = error.response?.data
+      ? JSON.stringify(error.response.data)
+      : error.message;
     Swal.fire({ icon: "error", title: "Error al crear venta", text: detail });
   } finally {
     updateCreateButtonState();
@@ -424,7 +558,14 @@ async function crearVentas() {
   }
 }
 
-function buildComprobanteText({ saleId, sells, clientName, paymentMethod, discount, extraInfo }) {
+function buildComprobanteText({
+  saleId,
+  sells,
+  clientName,
+  paymentMethod,
+  discount,
+  extraInfo,
+}) {
   const paymentMethodName = paymentMethod === "Z" ? "Zelle" : "USD";
   const grossTotal = sells.reduce((acc, sell) => {
     const sp = selectedShopProducts.find((p) => p.id === sell.shop_product);
@@ -433,13 +574,15 @@ function buildComprobanteText({ saleId, sells, clientName, paymentMethod, discou
   const netTotal = Math.max(grossTotal - Number(discount || 0), 0);
   const dateStr = new Date().toLocaleString("es-VE");
 
-  const productLines = sells.map((sell, index) => {
-    const sp = selectedShopProducts.find((p) => p.id === sell.shop_product);
-    const name = sp ? sp.displayName : String(sell.shop_product);
-    const unitPrice = Number(sp?.sellPrice || 0);
-    const subtotal = unitPrice * sell.quantity;
-    return `${index + 1}. ${name}\n   Cantidad: ${sell.quantity}\n   Precio: $${unitPrice.toFixed(2)}\n   Subtotal: $${subtotal.toFixed(2)}`;
-  }).join("\n\n");
+  const productLines = sells
+    .map((sell, index) => {
+      const sp = selectedShopProducts.find((p) => p.id === sell.shop_product);
+      const name = sp ? sp.displayName : String(sell.shop_product);
+      const unitPrice = Number(sp?.sellPrice || 0);
+      const subtotal = unitPrice * sell.quantity;
+      return `${index + 1}. ${name}\n   Cantidad: ${sell.quantity}\n   Precio: $${unitPrice.toFixed(2)}\n   Subtotal: $${subtotal.toFixed(2)}`;
+    })
+    .join("\n\n");
 
   return [
     "COMPROBANTE DE VENTA",
