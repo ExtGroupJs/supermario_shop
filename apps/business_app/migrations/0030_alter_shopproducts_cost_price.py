@@ -14,16 +14,17 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('business_app', '0029_product_unique_product_model_and_more'),
+        ("business_app", "0029_product_unique_product_model_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='shopproducts',
-            name='cost_price',
-            field=models.FloatField(blank=True, null=True, verbose_name='Precio de costo'),
+            model_name="shopproducts",
+            name="cost_price",
+            field=models.FloatField(
+                blank=True, null=True, verbose_name="Precio de costo"
+            ),
         ),
         migrations.RunPython(nullify_cost_price, noop_reverse),
     ]

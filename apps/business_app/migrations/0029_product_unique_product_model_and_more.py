@@ -4,18 +4,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('business_app', '0028_alter_shopproducts_wholesale_price'),
+        ("business_app", "0028_alter_shopproducts_wholesale_price"),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='product',
-            constraint=models.UniqueConstraint(condition=models.Q(('deleted__isnull', True)), fields=('name', 'model'), name='unique_product_model'),
+            model_name="product",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("deleted__isnull", True)),
+                fields=("name", "model"),
+                name="unique_product_model",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='shopproducts',
-            constraint=models.UniqueConstraint(condition=models.Q(('deleted__isnull', True)), fields=('shop', 'product'), name='unique_shop_product'),
+            model_name="shopproducts",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("deleted__isnull", True)),
+                fields=("shop", "product"),
+                name="unique_shop_product",
+            ),
         ),
     ]

@@ -14,6 +14,7 @@ const defaultProductImage = document.getElementById("productImagen")?.src || "";
 function buildComprobanteText({
   saleId,
   productos,
+  clientName,
   paymentMethod,
   discount,
   extraInfo,
@@ -44,6 +45,7 @@ function buildComprobanteText({
     "COMPROBANTE DE VENTA",
     `Nro: ${String(saleId || "N/A")}`,
     `Fecha: ${dateStr}`,
+    `Cliente: ${clientName}`,
     `Metodo de pago: ${paymentMethodName}`,
     "------------------------------",
     "PRODUCTOS:",
@@ -260,8 +262,19 @@ $("#crearVenta").on("click", function () {
 
   const descuento = parseInt($("#descuento").val()) || 0;
   const extraInfo = $("#extra_info").val() || "";
+  const clientName = ($("#client").val() || "").trim();
   const paymentMethod = $("#payment_method").val();
   const sellerId = localStorage.getItem("id");
+
+  if (!clientName) {
+    load.hidden = true;
+    Swal.fire({
+      icon: "warning",
+      title: "Cliente obligatorio",
+      text: "Debes escribir el nombre del cliente para crear la venta.",
+    });
+    return;
+  }
 
   const payload = {
     discount: descuento,
@@ -284,6 +297,7 @@ $("#crearVenta").on("click", function () {
       const comprobanteText = buildComprobanteText({
         saleId: response.data?.id,
         productos: productosSeleccionados,
+        clientName,
         paymentMethod,
         discount: descuento,
         extraInfo,
@@ -321,6 +335,7 @@ $("#crearVenta").on("click", function () {
       $("#productosTable tbody").empty();
       $("#descuento").val("");
       $("#extra_info").val("");
+      $("#client").val("");
       $("#payment_method").val("U"); // Restablecer a USD por defecto
     })
     .catch((error) => {
