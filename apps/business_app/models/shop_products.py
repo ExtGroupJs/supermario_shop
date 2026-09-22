@@ -5,6 +5,7 @@ from safedelete import SOFT_DELETE
 
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.product import Product
+from apps.business_app.models.pallet import Pallet
 from apps.common.mixins.generic_log import GenericLogMixin
 from apps.common.models import BaseModel
 from django.core.exceptions import ValidationError
@@ -18,6 +19,13 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     )
     product = models.ForeignKey(
         to=Product, on_delete=models.DO_NOTHING, verbose_name="Producto"
+    )
+    pallet = models.ForeignKey(
+        to=Pallet,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Pallet",
     )
     extra_info = models.TextField(
         verbose_name="Información Extra", null=True, blank=True

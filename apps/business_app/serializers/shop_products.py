@@ -32,6 +32,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "product",
             "product_name",
             "model_brand",
+            "pallet",
             "extra_info",
             "sell_price_for_catalog",
             "created_timestamp",
