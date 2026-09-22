@@ -52,30 +52,39 @@ function bindEvents() {
       entry.status = entry.originalStatus;
     } else if (selectedValue.startsWith("existing_")) {
       const productId = Number(selectedValue.replace("existing_", ""));
-      const product = allProducts.find(p => p.id === productId);
+      const product = allProducts.find((p) => p.id === productId);
       if (product) {
         abrirModalCrearShopProduct(index, productId, product.displayName);
         return;
       }
     } else if (selectedValue.startsWith("shop_")) {
       const shopProductId = Number(selectedValue.replace("shop_", ""));
-      const selectedMatch = selectedShopProducts.find((p) => p.id === shopProductId) || null;
+      const selectedMatch =
+        selectedShopProducts.find((p) => p.id === shopProductId) || null;
       entry.chosenMatch = selectedMatch;
-      entry.status = selectedMatch ? "seleccionado_manualmente" : entry.originalStatus;
+      entry.status = selectedMatch
+        ? "seleccionado_manualmente"
+        : entry.originalStatus;
     } else {
       const selectedMatchIndex = Number(selectedValue);
       const candidateSource = getManualSelectionCandidates(entry);
       entry.chosenMatch = candidateSource[selectedMatchIndex] || null;
-      entry.status = entry.chosenMatch ? "seleccionado_manualmente" : entry.originalStatus;
+      entry.status = entry.chosenMatch
+        ? "seleccionado_manualmente"
+        : entry.originalStatus;
     }
 
-    const checkbox = document.querySelector(`.entry-check[data-index="${index}"]`);
+    const checkbox = document.querySelector(
+      `.entry-check[data-index="${index}"]`,
+    );
     if (checkbox) {
       checkbox.disabled = !entry.chosenMatch;
       checkbox.checked = Boolean(entry.chosenMatch);
     }
 
-    const statusWrap = document.querySelector(`.entry-status[data-index="${index}"]`);
+    const statusWrap = document.querySelector(
+      `.entry-status[data-index="${index}"]`,
+    );
     if (statusWrap) statusWrap.innerHTML = renderStatus(entry);
 
     updateCreateButtonState();
@@ -94,22 +103,30 @@ function poblarTiendas() {
   const selectedShopId = localStorage.getItem("selectedShopId");
   shopSelect.innerHTML = "";
 
-  axios.get("/business-gestion/shops/").then(function (response) {
-    const shops = response.data.results || response.data || [];
-    shops.forEach(function (shop) {
-      const isSelected = selectedShopId && Number(shop.id) === Number(selectedShopId);
-      const option = new Option(shop.name, shop.id, isSelected, isSelected);
-      shopSelect.add(option);
+  axios
+    .get("/business-gestion/shops/")
+    .then(function (response) {
+      const shops = response.data.results || response.data || [];
+      shops.forEach(function (shop) {
+        const isSelected =
+          selectedShopId && Number(shop.id) === Number(selectedShopId);
+        const option = new Option(shop.name, shop.id, isSelected, isSelected);
+        shopSelect.add(option);
+      });
+
+      if (!shopSelect.value && shopSelect.options.length > 0) {
+        shopSelect.value = shopSelect.options[0].value;
+      }
+
+      $(shopSelect).trigger("change");
+    })
+    .catch(function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar las tiendas.",
+      });
     });
-
-    if (!shopSelect.value && shopSelect.options.length > 0) {
-      shopSelect.value = shopSelect.options[0].value;
-    }
-
-    $(shopSelect).trigger("change");
-  }).catch(function () {
-    Swal.fire({ icon: "error", title: "Error", text: "No se pudieron cargar las tiendas." });
-  });
 }
 
 async function analizarMensaje() {
@@ -117,7 +134,11 @@ async function analizarMensaje() {
   const message = document.getElementById("messageInput").value || "";
 
   if (!shopId) {
-    Swal.fire({ icon: "warning", title: "Selecciona una tienda", text: "Debes seleccionar una tienda antes de analizar el mensaje." });
+    Swal.fire({
+      icon: "warning",
+      title: "Selecciona una tienda",
+      text: "Debes seleccionar una tienda antes de analizar el mensaje.",
+    });
     return;
   }
 
@@ -127,11 +148,14 @@ async function analizarMensaje() {
 
   try {
     selectedShopProducts = (await cargarShopProducts(shopId)).sort((a, b) =>
-      a.displayName.localeCompare(b.displayName)
+      a.displayName.localeCompare(b.displayName),
     );
     allProducts = await cargarTodosProductos();
 
-    const lines = message.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0);
+    const lines = message
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
 
     if (lines.length === 0) {
       renderNoResults("No hay lineas para procesar");
@@ -151,25 +175,55 @@ async function analizarMensaje() {
     parsedEntries = itemLines.map((line, index) => {
       const parsedLine = parseLine(line, index + 2);
       if (!parsedLine.valid) {
-        return { ...parsedLine, status: "formato_invalido", matches: [], chosenMatch: null };
+        return {
+          ...parsedLine,
+          status: "formato_invalido",
+          matches: [],
+          chosenMatch: null,
+        };
       }
 
-      const matches = findMatches(parsedLine.productText, selectedShopProducts, threshold);
+      const matches = findMatches(
+        parsedLine.productText,
+        selectedShopProducts,
+        threshold,
+      );
       if (matches.length === 0) {
-        return { ...parsedLine, status: "no_encontrado", originalStatus: "no_encontrado", matches, chosenMatch: null };
+        return {
+          ...parsedLine,
+          status: "no_encontrado",
+          originalStatus: "no_encontrado",
+          matches,
+          chosenMatch: null,
+        };
       }
 
       if (matches.length > 1) {
-        return { ...parsedLine, status: "ambiguo", originalStatus: "ambiguo", matches, chosenMatch: null };
+        return {
+          ...parsedLine,
+          status: "ambiguo",
+          originalStatus: "ambiguo",
+          matches,
+          chosenMatch: null,
+        };
       }
 
-      return { ...parsedLine, status: "encontrado", matches, chosenMatch: matches[0] };
+      return {
+        ...parsedLine,
+        status: "encontrado",
+        matches,
+        chosenMatch: matches[0],
+      };
     });
 
     renderParsedResults();
   } catch (error) {
     renderNoResults("Ocurrio un error analizando el mensaje");
-    Swal.fire({ icon: "error", title: "Error", text: "No se pudo analizar el mensaje. Intenta nuevamente." });
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo analizar el mensaje. Intenta nuevamente.",
+    });
   } finally {
     load.hidden = true;
   }
@@ -179,23 +233,43 @@ function parseLine(line, lineNumber) {
   const regex = /^\s*(\d+)\s*-\s*(.+)\s*$/;
   const match = line.match(regex);
   if (!match) {
-    return { lineNumber, rawLine: line, valid: true, quantity: 1, productText: line.trim() };
+    return {
+      lineNumber,
+      rawLine: line,
+      valid: true,
+      quantity: 1,
+      productText: line.trim(),
+    };
   }
-  return { lineNumber, rawLine: line, valid: true, quantity: Number(match[1]), productText: match[2].trim() };
+  return {
+    lineNumber,
+    rawLine: line,
+    valid: true,
+    quantity: Number(match[1]),
+    productText: match[2].trim(),
+  };
 }
 
 async function cargarShopProducts(shopId) {
-  const response = await axios.get(shopProductsUrl, { params: { shop: shopId } });
+  const response = await axios.get(shopProductsUrl, {
+    params: { shop: shopId },
+  });
   const results = response.data.results || [];
   return results.map((item) => {
-    const candidateText = [item.product_name || "", item.model_brand || "", item.extra_info || "", item.__repr__ || ""].join(" ").trim();
+    const candidateText = [
+      item.product_name || "",
+      item.model_brand || "",
+      item.extra_info || "",
+      item.__repr__ || "",
+    ]
+      .join(" ")
+      .trim();
     return {
       id: item.id,
       currentQuantity: Number(item.quantity || 0),
       displayName: item.product_name || "Sin nombre",
       modelBrand: item.model_brand || "",
       sellPrice: item.sell_price,
-      costPrice: item.cost_price,
       productId: item.product.id,
       candidateText,
       normalizedCandidate: normalizeText(candidateText),
@@ -213,16 +287,23 @@ async function cargarTodosProductos() {
 }
 
 function getProductosNoEnTienda() {
-  const shopProductIds = new Set(selectedShopProducts.map(p => p.productId));
-  return allProducts.filter(p => !shopProductIds.has(p.id));
+  const shopProductIds = new Set(selectedShopProducts.map((p) => p.productId));
+  return allProducts.filter((p) => !shopProductIds.has(p.id));
 }
 
 function findMatches(inputText, candidates, threshold) {
   const normalizedInput = normalizeText(inputText);
-  const scored = candidates.map((candidate) => {
-    const score = scoreSimilarity(normalizedInput, candidate.normalizedCandidate);
-    return { ...candidate, score };
-  }).filter((candidate) => candidate.score >= threshold).sort((a, b) => b.score - a.score).slice(0, 3);
+  const scored = candidates
+    .map((candidate) => {
+      const score = scoreSimilarity(
+        normalizedInput,
+        candidate.normalizedCandidate,
+      );
+      return { ...candidate, score };
+    })
+    .filter((candidate) => candidate.score >= threshold)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
 
   if (scored.length <= 1) return scored;
   const bestScore = scored[0].score;
@@ -238,7 +319,13 @@ function scoreSimilarity(a, b) {
 }
 
 function normalizeText(text) {
-  return (text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  return (text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function levenshteinSimilarity(a, b) {
@@ -249,13 +336,19 @@ function levenshteinSimilarity(a, b) {
 }
 
 function levenshteinDistance(a, b) {
-  const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  const matrix = Array.from({ length: a.length + 1 }, () =>
+    Array(b.length + 1).fill(0),
+  );
   for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
   for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
   for (let i = 1; i <= a.length; i++) {
     for (let j = 1; j <= b.length; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost);
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost,
+      );
     }
   }
   return matrix[a.length][b.length];
@@ -310,8 +403,9 @@ function renderMatches(entry) {
     const entryIndex = parsedEntries.indexOf(entry);
     const options = [
       '<option value="">Selecciona un shop-product manualmente</option>',
-      ...selectedShopProducts.map((match) =>
-        `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`
+      ...selectedShopProducts.map(
+        (match) =>
+          `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`,
       ),
     ].join("");
 
@@ -329,13 +423,19 @@ function renderMatches(entry) {
   }
 
   if (entry.status === "ambiguo") {
-    const suggestedOptions = entry.matches.map((match) =>
-      `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) - ${Math.round(match.score * 100)}%</option>`
-    ).join("");
+    const suggestedOptions = entry.matches
+      .map(
+        (match) =>
+          `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) - ${Math.round(match.score * 100)}%</option>`,
+      )
+      .join("");
 
-    const allOptions = selectedShopProducts.map((match) =>
-      `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`
-    ).join("");
+    const allOptions = selectedShopProducts
+      .map(
+        (match) =>
+          `<option value="shop_${match.id}">${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) | Precio: ${escapeHtml(match.sellPrice)} | Stock: ${escapeHtml(match.currentQuantity)}</option>`,
+      )
+      .join("");
 
     return `
       <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(entry)}">
@@ -346,9 +446,12 @@ function renderMatches(entry) {
     `;
   }
 
-  return entry.matches.map((match) =>
-    `${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) - ${Math.round(match.score * 100)}%`
-  ).join("<br>");
+  return entry.matches
+    .map(
+      (match) =>
+        `${escapeHtml(match.displayName)} (${escapeHtml(match.modelBrand)}) - ${Math.round(match.score * 100)}%`,
+    )
+    .join("<br>");
 }
 
 function renderCurrentStock(entry) {
@@ -358,11 +461,16 @@ function renderCurrentStock(entry) {
 }
 
 function renderStatus(entry) {
-  if (entry.status === "encontrado") return '<span class="badge badge-success">Encontrado</span>';
-  if (entry.manuallyCreated) return '<span class="badge badge-primary">Agregado automaticamente al sistema</span>';
-  if (entry.status === "seleccionado_manualmente") return '<span class="badge badge-info">Seleccionado manualmente</span>';
-  if (entry.status === "ambiguo") return '<span class="badge badge-warning">Ambiguo: revisar</span>';
-  if (entry.status === "no_encontrado") return '<span class="badge badge-danger">No existe shop-product (crear manualmente)</span>';
+  if (entry.status === "encontrado")
+    return '<span class="badge badge-success">Encontrado</span>';
+  if (entry.manuallyCreated)
+    return '<span class="badge badge-primary">Agregado automaticamente al sistema</span>';
+  if (entry.status === "seleccionado_manualmente")
+    return '<span class="badge badge-info">Seleccionado manualmente</span>';
+  if (entry.status === "ambiguo")
+    return '<span class="badge badge-warning">Ambiguo: revisar</span>';
+  if (entry.status === "no_encontrado")
+    return '<span class="badge badge-danger">No existe shop-product (crear manualmente)</span>';
   return '<span class="badge badge-secondary">Formato invalido</span>';
 }
 
@@ -372,29 +480,45 @@ function renderNoResults(message) {
 }
 
 function canCreateEntry(entry) {
-  return ["encontrado", "seleccionado_manualmente"].includes(entry.status) && Boolean(entry.chosenMatch);
+  return (
+    ["encontrado", "seleccionado_manualmente"].includes(entry.status) &&
+    Boolean(entry.chosenMatch)
+  );
 }
 
 function getManualSelectionCandidates(entry) {
   if (!entry) return [];
-  if (entry.originalStatus === "no_encontrado" || entry.status === "no_encontrado") return selectedShopProducts;
+  if (
+    entry.originalStatus === "no_encontrado" ||
+    entry.status === "no_encontrado"
+  )
+    return selectedShopProducts;
   return entry.matches || [];
 }
 
 function initializeManualSelects() {
-  $(".manual-match-select").select2({ theme: "bootstrap4", width: "100%", placeholder: "Selecciona un producto" });
+  $(".manual-match-select").select2({
+    theme: "bootstrap4",
+    width: "100%",
+    placeholder: "Selecciona un producto",
+  });
 }
 
 function updateCreateButtonState() {
-  const checkedEntries = Array.from(document.querySelectorAll(".entry-check:checked"));
+  const checkedEntries = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  );
   createButton.disabled = checkedEntries.length === 0;
 }
 
 function formatDateTime(dateValue) {
   const dateObj = dateValue instanceof Date ? dateValue : new Date(dateValue);
   return new Intl.DateTimeFormat("es-CO", {
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(dateObj);
 }
 
@@ -408,17 +532,24 @@ function buildInputReceiptText(selectedIndexes, payloadProducts, createdGroup) {
   const now = new Date();
   const shopName = getSelectedText(shopSelect);
   const groupId = createdGroup && createdGroup.id ? createdGroup.id : "N/D";
-  const groupDate = createdGroup && createdGroup.for_date ? createdGroup.for_date : formatDateTime(now);
+  const groupDate =
+    createdGroup && createdGroup.for_date
+      ? createdGroup.for_date
+      : formatDateTime(now);
   const cleanExtraInfo = (globalExtraInfo || "").trim();
 
-  const detailLines = selectedIndexes.map((index) => parsedEntries[index])
+  const detailLines = selectedIndexes
+    .map((index) => parsedEntries[index])
     .filter((entry) => entry && entry.chosenMatch)
     .map((entry) => {
       const productName = entry.chosenMatch.displayName || entry.productText;
       return `- ${entry.quantity} x ${productName}`;
     });
 
-  const totalUnits = payloadProducts.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+  const totalUnits = payloadProducts.reduce(
+    (acc, item) => acc + Number(item.quantity || 0),
+    0,
+  );
 
   return [
     "COMPROBANTE DE ENTRADA DE INVENTARIO",
@@ -480,17 +611,26 @@ async function showInputReceiptModal(receiptText, inputCount) {
   });
 
   if (result.isConfirmed) {
-    Swal.fire({ icon: "success", title: "Comprobante copiado", timer: 1400, showConfirmButton: false });
+    Swal.fire({
+      icon: "success",
+      title: "Comprobante copiado",
+      timer: 1400,
+      showConfirmButton: false,
+    });
   }
 }
 
 async function crearEntradas() {
-  const selectedIndexes = Array.from(document.querySelectorAll(".entry-check:checked")).map(
-    (checkbox) => Number(checkbox.dataset.index)
-  );
+  const selectedIndexes = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  ).map((checkbox) => Number(checkbox.dataset.index));
 
   if (!selectedIndexes.length) {
-    Swal.fire({ icon: "warning", title: "Sin filas seleccionadas", text: "Selecciona al menos una fila encontrada para crear entradas." });
+    Swal.fire({
+      icon: "warning",
+      title: "Sin filas seleccionadas",
+      text: "Selecciona al menos una fila encontrada para crear entradas.",
+    });
     return;
   }
 
@@ -507,7 +647,8 @@ async function crearEntradas() {
 
   load.hidden = false;
 
-  const shopProductsInput = selectedIndexes.map((index) => parsedEntries[index])
+  const shopProductsInput = selectedIndexes
+    .map((index) => parsedEntries[index])
     .filter((entry) => entry && entry.chosenMatch)
     .map((entry) => ({
       shop_product: entry.chosenMatch.id,
@@ -516,7 +657,11 @@ async function crearEntradas() {
 
   if (!shopProductsInput.length) {
     load.hidden = true;
-    Swal.fire({ icon: "warning", title: "Sin filas validas", text: "No hay entradas validas para enviar." });
+    Swal.fire({
+      icon: "warning",
+      title: "Sin filas validas",
+      text: "No hay entradas validas para enviar.",
+    });
     return;
   }
 
@@ -527,15 +672,26 @@ async function crearEntradas() {
     });
 
     shopProductsInput.forEach((inputEntry) => {
-      const matchedShopProduct = selectedShopProducts.find((sp) => sp.id === inputEntry.shop_product);
-      if (matchedShopProduct) matchedShopProduct.currentQuantity += inputEntry.quantity;
+      const matchedShopProduct = selectedShopProducts.find(
+        (sp) => sp.id === inputEntry.shop_product,
+      );
+      if (matchedShopProduct)
+        matchedShopProduct.currentQuantity += inputEntry.quantity;
     });
 
-    const receiptText = buildInputReceiptText(selectedIndexes, shopProductsInput, response.data);
+    const receiptText = buildInputReceiptText(
+      selectedIndexes,
+      shopProductsInput,
+      response.data,
+    );
     load.hidden = true;
     await showInputReceiptModal(receiptText, shopProductsInput.length);
   } catch (error) {
-    Swal.fire({ icon: "error", title: "Error creando entradas", text: "No se pudo crear el grupo de entrada." });
+    Swal.fire({
+      icon: "error",
+      title: "Error creando entradas",
+      text: "No se pudo crear el grupo de entrada.",
+    });
   } finally {
     load.hidden = true;
   }
@@ -560,26 +716,42 @@ function poblarProductosExistentesEnModal() {
   const productosNoEnTienda = getProductosNoEnTienda();
   select.innerHTML = [
     '<option value="">Selecciona un producto existente</option>',
-    ...productosNoEnTienda.map((p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`),
+    ...productosNoEnTienda.map(
+      (p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`,
+    ),
   ].join("");
   $(select).val("").trigger("change");
 }
 
 function usarProductoExistenteDesdeModal() {
   if (!pendingProductCreation) return;
-  const selectedValue = document.getElementById("existing-product-select")?.value;
+  const selectedValue = document.getElementById(
+    "existing-product-select",
+  )?.value;
   if (!selectedValue) {
-    Swal.fire({ icon: "warning", title: "Selecciona un producto", text: "Debes seleccionar un producto existente para continuar." });
+    Swal.fire({
+      icon: "warning",
+      title: "Selecciona un producto",
+      text: "Debes seleccionar un producto existente para continuar.",
+    });
     return;
   }
   const productId = Number(selectedValue);
   const product = allProducts.find((p) => p.id === productId);
   if (!product) {
-    Swal.fire({ icon: "error", title: "Producto no encontrado", text: "No se pudo identificar el producto seleccionado." });
+    Swal.fire({
+      icon: "error",
+      title: "Producto no encontrado",
+      text: "No se pudo identificar el producto seleccionado.",
+    });
     return;
   }
   $("#modal-create-product").modal("hide");
-  abrirModalCrearShopProduct(pendingProductCreation.entryIndex, product.id, product.displayName);
+  abrirModalCrearShopProduct(
+    pendingProductCreation.entryIndex,
+    product.id,
+    product.displayName,
+  );
 }
 
 function abrirModalCrearShopProduct(entryIndex, productId, productName) {
@@ -605,25 +777,42 @@ function poblarModelos() {
 $(document).ready(function () {
   $("#form-create-product").validate({
     rules: { name: { required: true }, model: { required: true } },
-    submitHandler: function (form) { crearProducto(form); },
+    submitHandler: function (form) {
+      crearProducto(form);
+    },
     errorElement: "span",
-    errorPlacement: function (error, element) { error.addClass("invalid-feedback"); element.closest(".form-group").append(error); },
-    highlight: function (element) { $(element).addClass("is-invalid"); },
-    unhighlight: function (element) { $(element).removeClass("is-invalid"); },
+    errorPlacement: function (error, element) {
+      error.addClass("invalid-feedback");
+      element.closest(".form-group").append(error);
+    },
+    highlight: function (element) {
+      $(element).addClass("is-invalid");
+    },
+    unhighlight: function (element) {
+      $(element).removeClass("is-invalid");
+    },
   });
 
   $("#form-create-shop-product").validate({
     rules: {
       quantity: { required: true, digits: true, min: 1 },
-      cost_price: { required: true, number: true, min: 0 },
       sell_price: { required: true, number: true, min: 0 },
       sell_price_for_catalog: { number: true, min: 0 },
     },
-    submitHandler: function (form) { crearShopProduct(form); },
+    submitHandler: function (form) {
+      crearShopProduct(form);
+    },
     errorElement: "span",
-    errorPlacement: function (error, element) { error.addClass("invalid-feedback"); element.closest(".form-group").append(error); },
-    highlight: function (element) { $(element).addClass("is-invalid"); },
-    unhighlight: function (element) { $(element).removeClass("is-invalid"); },
+    errorPlacement: function (error, element) {
+      error.addClass("invalid-feedback");
+      element.closest(".form-group").append(error);
+    },
+    highlight: function (element) {
+      $(element).addClass("is-invalid");
+    },
+    unhighlight: function (element) {
+      $(element).removeClass("is-invalid");
+    },
   });
 });
 
@@ -635,12 +824,25 @@ async function crearProducto(form) {
     const response = await axios.post("/business-gestion/products/", formData);
     if (response.status === 201) {
       const newProduct = response.data;
-      allProducts.push({ id: newProduct.id, name: newProduct.__str__ || newProduct.name, displayName: newProduct.name });
+      allProducts.push({
+        id: newProduct.id,
+        name: newProduct.__str__ || newProduct.name,
+        displayName: newProduct.name,
+      });
       $("#modal-create-product").modal("hide");
-      abrirModalCrearShopProduct(pendingProductCreation.entryIndex, newProduct.id, newProduct.name);
+      abrirModalCrearShopProduct(
+        pendingProductCreation.entryIndex,
+        newProduct.id,
+        newProduct.name,
+      );
     }
   } catch (error) {
-    Swal.fire({ icon: "error", title: "Error creando producto", text: "No se pudo crear el producto. Intente nuevamente.", showConfirmButton: true });
+    Swal.fire({
+      icon: "error",
+      title: "Error creando producto",
+      text: "No se pudo crear el producto. Intente nuevamente.",
+      showConfirmButton: true,
+    });
   } finally {
     load.hidden = true;
   }
@@ -650,7 +852,11 @@ async function crearShopProduct(form) {
   const { entryIndex, productId, productName } = pendingProductCreation;
   const entry = parsedEntries[entryIndex];
   if (!entry) {
-    Swal.fire({ icon: "error", title: "Error", text: "No se pudo identificar la entrada." });
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo identificar la entrada.",
+    });
     return;
   }
 
@@ -659,9 +865,9 @@ async function crearShopProduct(form) {
     shop: shopId,
     product: productId,
     quantity: document.getElementById("sp-quantity").value,
-    cost_price: document.getElementById("sp-cost-price").value,
     sell_price: document.getElementById("sp-sell-price").value,
-    sell_price_for_catalog: document.getElementById("sp-catalog-price").value || null,
+    sell_price_for_catalog:
+      document.getElementById("sp-catalog-price").value || null,
     extra_info: document.getElementById("sp-extra-info").value || "",
   };
 
@@ -677,31 +883,50 @@ async function crearShopProduct(form) {
         displayName: productName,
         modelBrand: newShopProduct.model_brand || "",
         sellPrice: newShopProduct.sell_price,
-        costPrice: newShopProduct.cost_price,
         productId: productId,
         candidateText: productName,
         normalizedCandidate: normalizeText(productName),
       };
 
       selectedShopProducts.push(shopProductObj);
-      selectedShopProducts.sort((a, b) => a.displayName.localeCompare(b.displayName));
+      selectedShopProducts.sort((a, b) =>
+        a.displayName.localeCompare(b.displayName),
+      );
 
       entry.chosenMatch = shopProductObj;
       entry.status = "seleccionado_manualmente";
       entry.manuallyCreated = true;
 
-      const checkbox = document.querySelector(`.entry-check[data-index="${entryIndex}"]`);
-      if (checkbox) { checkbox.disabled = true; checkbox.checked = false; }
+      const checkbox = document.querySelector(
+        `.entry-check[data-index="${entryIndex}"]`,
+      );
+      if (checkbox) {
+        checkbox.disabled = true;
+        checkbox.checked = false;
+      }
 
-      const statusCell = document.querySelector(`.entry-status[data-index="${entryIndex}"]`);
+      const statusCell = document.querySelector(
+        `.entry-status[data-index="${entryIndex}"]`,
+      );
       if (statusCell) statusCell.innerHTML = renderStatus(entry);
 
       updateCreateButtonState();
       $("#modal-create-shop-product").modal("hide");
-      Swal.fire({ icon: "success", title: "Producto agregado a tienda", text: `${productName} ha sido agregado correctamente.`, showConfirmButton: false, timer: 1500 });
+      Swal.fire({
+        icon: "success",
+        title: "Producto agregado a tienda",
+        text: `${productName} ha sido agregado correctamente.`,
+        showConfirmButton: false,
+        timer: 1500,
+      });
     }
   } catch (error) {
-    Swal.fire({ icon: "error", title: "Error creando shop-product", text: "No se pudo agregar el producto a la tienda.", showConfirmButton: true });
+    Swal.fire({
+      icon: "error",
+      title: "Error creando shop-product",
+      text: "No se pudo agregar el producto a la tienda.",
+      showConfirmButton: true,
+    });
   } finally {
     load.hidden = true;
   }

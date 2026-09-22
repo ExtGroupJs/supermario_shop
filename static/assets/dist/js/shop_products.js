@@ -194,7 +194,7 @@ async function exportShopProductsToExcel(dt) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Entradas de Producto");
   const imageColumnIndex = visibleColumns.findIndex(
-    (column) => column.title === "Foto"
+    (column) => column.title === "Foto",
   );
 
   worksheet.columns = visibleColumns.map((column, index) => ({
@@ -228,7 +228,10 @@ async function exportShopProductsToExcel(dt) {
 
           worksheetRow.getCell(imageColumnIndex + 1).value = "";
           worksheet.addImage(imageId, {
-            tl: { col: imageColumnIndex + 0.15, row: worksheetRow.number - 0.85 },
+            tl: {
+              col: imageColumnIndex + 0.15,
+              row: worksheetRow.number - 0.85,
+            },
             ext: { width: 48, height: 48 },
             editAs: "oneCell",
           });
@@ -268,7 +271,7 @@ $(document).ready(function () {
         action: function (e, dt, node, config) {
           $("#modal-crear-shop-products").modal("show");
         },
-      },     
+      },
       {
         text: "Excel",
         action: async function (e, dt, node, config) {
@@ -303,7 +306,7 @@ $(document).ready(function () {
           });
         },
       },
-       {
+      {
         extend: "colvis",
         text: "Ver",
         columns: ":not(:last-child)",
@@ -365,9 +368,12 @@ $(document).ready(function () {
       { data: "product_name", title: "Producto" },
       { data: "model_brand", title: "Marca - Modelo" },
       { data: "quantity", title: "Cantidad" },
-      { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
-      { data: "sell_price_for_catalog", title: "Precio Catálogo", defaultContent: "-" },
+      {
+        data: "sell_price_for_catalog",
+        title: "Precio Catálogo",
+        defaultContent: "-",
+      },
       { data: "updated_timestamp", title: "Fecha" },
       {
         data: "extra_info",
@@ -417,7 +423,7 @@ $(document).ready(function () {
       }
     },
 
-    order: [[6, "desc"]],
+    order: [[5, "desc"]],
   });
   function convertirFecha(fecha, hora) {
     // Dividir la fecha en partes
@@ -500,9 +506,9 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         const shopProduct = response.data;
         modal.find(".modal-title").text("Editar " + shopProduct.product_name);
         form.elements.quantity.value = shopProduct.quantity;
-        form.elements.cost_price.value = shopProduct.cost_price;
         form.elements.sell_price.value = shopProduct.sell_price;
-        form.elements.sell_price_for_catalog.value = shopProduct.sell_price_for_catalog || "";
+        form.elements.sell_price_for_catalog.value =
+          shopProduct.sell_price_for_catalog || "";
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
         form.elements.product.value = shopProduct.product.id;
@@ -534,14 +540,10 @@ $(function () {
         required: true,
         digits: true, // Solo números
       },
-      cost_price: {
-        required: true,
-        number: true, // Solo números
-      },
       sell_price: {
         required: true,
         number: true, // Solo números
-        greaterThan: "#cost_price", // El precio de venta debe ser mayor que el precio de costo
+        min: 0,
       },
       sell_price_for_catalog: {
         required: false,
@@ -559,15 +561,9 @@ $(function () {
         required: "Este campo es obligatorio.",
         digits: "Por favor, introduzca solo números.",
       },
-      cost_price: {
-        required: "Este campo es obligatorio.",
-        number: "Por favor, introduzca un número válido.",
-      },
       sell_price: {
         required: "Este campo es obligatorio.",
         number: "Por favor, introduzca un número válido.",
-        greaterThan:
-          "El precio de venta debe ser mayor que el precio de costo.",
       },
     },
     submitHandler: function (form) {
@@ -583,14 +579,13 @@ $(function () {
       data.append("shop", document.getElementById("shop").value);
       data.append("product", document.getElementById("product").value);
       data.append("quantity", document.getElementById("quantity").value);
-      data.append("cost_price", document.getElementById("cost_price").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       const spfcVal = document.getElementById("sell_price_for_catalog").value;
       if (spfcVal !== "") data.append("sell_price_for_catalog", spfcVal);
       data.append("extra_info", document.getElementById("extra_info").value);
       data.append(
         "extra_log_info",
-        document.getElementById("extra_log_info").value
+        document.getElementById("extra_log_info").value,
       );
 
       if (edit_shopProducts) {
@@ -675,15 +670,6 @@ $(function () {
     },
   });
 });
-
-// Método para validar que el precio de venta sea mayor que el precio de costo
-$.validator.addMethod(
-  "greaterThan",
-  function (value, element, param) {
-    return this.optional(element) || Number(value) > Number($(param).val());
-  },
-  "El precio de venta debe ser mayor que el precio de costo."
-);
 
 function poblarListas() {
   // Poblar la lista de tiendas
@@ -841,7 +827,7 @@ function moveToAnotherShop(id) {
         const quantity = document.getElementById("swal-quantity-input").value;
         if (!shopId || !quantity || quantity <= 0) {
           Swal.showValidationMessage(
-            "Seleccione una tienda y una cantidad válida."
+            "Seleccione una tienda y una cantidad válida.",
           );
           return false;
         }
@@ -853,7 +839,7 @@ function moveToAnotherShop(id) {
         axios
           .post(
             `/business-gestion/shop-products/${id}/move-to-another-shop/`,
-            result.value
+            result.value,
           )
           .then((res) => {
             load.hidden = true;
@@ -1093,11 +1079,11 @@ $(function () {
     },
     function (start, end) {
       $("#reportrange span").html(
-        start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY")
+        start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY"),
       );
       myDateStart = start.format("YYYY-MM-DD HH:mm:ss");
       myDateEnd = end.format("YYYY-MM-DD HH:mm:ss");
       //  daterangeSellProfits(selectedStartDate,selectedEndDate);
-    }
+    },
   );
 });
