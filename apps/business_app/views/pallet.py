@@ -1,0 +1,33 @@
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets
+from rest_framework.generics import GenericAPIView
+
+from apps.business_app.models.pallet import Pallet
+from apps.business_app.serializers.pallet import PalletSerializer
+from apps.common.common_ordering_filter import CommonOrderingFilter
+from apps.common.permissions import CommonRolePermission
+
+
+class PalletViewSet(viewsets.ModelViewSet, GenericAPIView):
+    queryset = Pallet.objects.all()
+    serializer_class = PalletSerializer
+    permission_classes = [CommonRolePermission]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        CommonOrderingFilter,
+    ]
+    filterset_fields = [
+        "rack",
+        "section",
+        "number",
+    ]
+    search_fields = [
+        "section",
+    ]
+    ordering = ["rack", "section", "number"]
+    ordering_fields = [
+        "rack",
+        "section",
+        "number",
+    ]

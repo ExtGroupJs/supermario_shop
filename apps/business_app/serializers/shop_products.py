@@ -18,6 +18,7 @@ class ShopProductsSerializer(serializers.ModelSerializer):
     shop_name = serializers.CharField(read_only=True)
     product_name = serializers.CharField(read_only=True)
     model_brand = serializers.CharField(read_only=True)
+    pallet_label = serializers.CharField(source="pallet", read_only=True)
     extra_log_info = serializers.CharField(write_only=True, default=None)
 
     class Meta:
@@ -32,6 +33,8 @@ class ShopProductsSerializer(serializers.ModelSerializer):
             "product",
             "product_name",
             "model_brand",
+            "pallet",
+            "pallet_label",
             "extra_info",
             "sell_price_for_catalog",
             "created_timestamp",

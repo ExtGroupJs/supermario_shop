@@ -37,6 +37,8 @@ class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
     search_fields = [
         "name",
         "description",
+        "model__brand__name",
+        "model__name",
     ]
     ordering = ["name"]
     ordering_fields = ["name", "model_name", "description"]

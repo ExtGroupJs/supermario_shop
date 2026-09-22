@@ -367,6 +367,11 @@ $(document).ready(function () {
       },
       { data: "product_name", title: "Producto" },
       { data: "model_brand", title: "Marca - Modelo" },
+      {
+        data: "pallet_label",
+        title: "Pallet",
+        defaultContent: "-",
+      },
       { data: "quantity", title: "Cantidad" },
       { data: "sell_price", title: "Precio de Venta" },
       {
@@ -512,7 +517,11 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
         form.elements.product.value = shopProduct.product.id;
+        form.elements.pallet.value = shopProduct.pallet || "";
         $("#product").val(shopProduct.product.id).trigger("change.select2");
+        $("#pallet")
+          .val(shopProduct.pallet || "")
+          .trigger("change.select2");
         load.hidden = true;
       })
       .catch(function (error) {});
@@ -578,6 +587,10 @@ $(function () {
       let data = new FormData();
       data.append("shop", document.getElementById("shop").value);
       data.append("product", document.getElementById("product").value);
+      const palletValue = document.getElementById("pallet").value;
+      if (palletValue !== "") {
+        data.append("pallet", palletValue);
+      }
       data.append("quantity", document.getElementById("quantity").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       const spfcVal = document.getElementById("sell_price_for_catalog").value;
@@ -695,6 +708,22 @@ function poblarListas() {
       if ($product.value != null) {
         cargarProductoEspecifico($product.value);
       }
+    });
+
+  // Poblar la lista de pallets
+  var $pallet = document.getElementById("pallet");
+  $pallet.innerHTML = "";
+  $pallet.add(new Option("Seleccione un pallet", ""));
+  axios
+    .get("/business-gestion/pallets/", { params: { page_size: 1000 } })
+    .then(function (response) {
+      response.data.results.forEach(function (element) {
+        var option = new Option(
+          `${element.rack}${element.section}${element.number}`,
+          element.id,
+        );
+        $pallet.add(option);
+      });
     });
 }
 

@@ -11,6 +11,7 @@ from apps.business_app.models.input_group import (
 )
 from apps.business_app.models.input import Input
 from apps.business_app.models.shop_products import ShopProducts
+from apps.business_app.models.pallet import Pallet
 from apps.common.admin import GenericModelAdmin
 from safedelete.admin import SafeDeleteAdmin
 
@@ -57,6 +58,11 @@ class ShopProductsAdmin(SafeDeleteTimestampedAdmin):
         "deleted_by_cascade",
         "cost_price",
     }
+
+
+@admin.register(Pallet)
+class PalletAdmin(GenericModelAdmin):
+    pass
 
 
 @admin.register(Sell)
