@@ -4,6 +4,29 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def populate_pallets(apps, schema_editor):
+    Pallet = apps.get_model("business_app", "Pallet")
+
+    for rack in range(1, 3):
+        for section in "ABCDEFG":
+            for number in range(1, 7):
+                Pallet.objects.get_or_create(
+                    rack=rack,
+                    section=section,
+                    number=number,
+                )
+
+
+def unpopulate_pallets(apps, schema_editor):
+    Pallet = apps.get_model("business_app", "Pallet")
+
+    Pallet.objects.filter(
+        rack__in=[1, 2],
+        section__in=list("ABCDEFG"),
+        number__in=[1, 2, 3, 4, 5, 6],
+    ).delete()
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("business_app", "0030_alter_shopproducts_cost_price"),
@@ -45,4 +68,13 @@ class Migration(migrations.Migration):
                 verbose_name="Pallet",
             ),
         ),
+        migrations.AddConstraint(
+            model_name="pallet",
+            constraint=models.UniqueConstraint(
+                fields=("rack", "section", "number"),
+                name="unique_pallet_rack_section_number",
+            ),
+        ),
+        migrations.RunPython(populate_pallets, unpopulate_pallets),
+
     ]
