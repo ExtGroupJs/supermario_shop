@@ -11,6 +11,7 @@ const parsedResultsBody = document.getElementById("parsed-results-body");
 const createButton = document.getElementById("btn-create-sales");
 const thresholdInput = document.getElementById("similarityThreshold");
 const thresholdValue = document.getElementById("similarityValue");
+const saleTotalLabel = document.getElementById("sale-total");
 
 let parsedEntries = [];
 let selectedShopProducts = [];
@@ -18,6 +19,7 @@ let selectedShopProducts = [];
 $(function () {
   poblarTiendas();
   bindEvents();
+  renderSaleTotal();
 });
 
 function bindEvents() {
@@ -36,6 +38,10 @@ function bindEvents() {
 
   $("#shop").on("change", function () {
     localStorage.setItem("selectedShopId", this.value);
+  });
+
+  $("#discount").on("input", function () {
+    renderSaleTotal();
   });
 
   $(document).on("change", ".manual-match-select", function () {
@@ -75,10 +81,12 @@ function bindEvents() {
     if (statusCell) statusCell.innerHTML = renderStatus(entry);
 
     updateCreateButtonState();
+    renderSaleTotal();
   });
 
   $(document).on("change", ".entry-check", function () {
     updateCreateButtonState();
+    renderSaleTotal();
   });
 }
 
@@ -403,6 +411,7 @@ function renderStatus(entry) {
 function renderNoResults(message) {
   parsedResultsBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">${escapeHtml(message)}</td></tr>`;
   createButton.disabled = true;
+  renderSaleTotal();
 }
 
 function canCreateEntry(entry) {
@@ -425,6 +434,36 @@ function updateCreateButtonState() {
     document.querySelectorAll(".entry-check:checked"),
   );
   createButton.disabled = checkedEntries.length === 0;
+}
+
+function getSelectedEntries() {
+  const selectedIndexes = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  ).map((cb) => Number(cb.dataset.index));
+
+  return selectedIndexes
+    .map((index) => parsedEntries[index])
+    .filter((entry) => entry && entry.chosenMatch);
+}
+
+function calculateCurrentTotal() {
+  const selectedEntries = getSelectedEntries();
+  const grossTotal = selectedEntries.reduce((sum, entry) => {
+    const price = Number(entry?.chosenMatch?.sellPrice || 0);
+    const quantity = Number(entry?.quantity || 0);
+    return sum + price * quantity;
+  }, 0);
+
+  const discount = parseFloat(document.getElementById("discount")?.value) || 0;
+  const netTotal = Math.max(grossTotal - discount, 0);
+
+  return netTotal;
+}
+
+function renderSaleTotal() {
+  if (!saleTotalLabel) return;
+  const total = calculateCurrentTotal();
+  saleTotalLabel.textContent = `Importe total: $${total.toFixed(2)}`;
 }
 
 async function crearVentas() {
