@@ -256,7 +256,6 @@ class TestShopProductsViewSet(BaseTestClass):
 
         url = reverse("shop-products-list")
         payload = {
-            "cost_price": baker.random_gen.gen_integer(min_int=1, max_int=2),
             "sell_price": baker.random_gen.gen_integer(min_int=3, max_int=5),
             "quantity": baker.random_gen.gen_integer(min_int=1, max_int=10),
             "shop": baker.make("Shop").id,
@@ -282,7 +281,6 @@ class TestShopProductsViewSet(BaseTestClass):
 
         url = reverse("shop-products-list")
         payload = {
-            "cost_price": baker.random_gen.gen_integer(min_int=1, max_int=2),
             "sell_price": baker.random_gen.gen_integer(min_int=3, max_int=5),
             "quantity": baker.random_gen.gen_integer(min_int=1, max_int=10),
             "shop": baker.make("Shop").id,
