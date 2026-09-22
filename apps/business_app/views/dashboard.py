@@ -14,6 +14,7 @@ from django.db.models.functions import (
     TruncMonth,
     TruncQuarter,
     TruncYear,
+    Coalesce,
 )
 from django.db.models import F, ExpressionWrapper, FloatField
 
@@ -95,7 +96,7 @@ class DashboardViewSet(
                         ExpressionWrapper(
                             (
                                 F("shop_product__sell_price")
-                                - F("shop_product__cost_price")
+                                - Coalesce(F("shop_product__cost_price"), 0.0)
                             )
                             * F("quantity"),
                             output_field=FloatField(),
@@ -108,7 +109,10 @@ class DashboardViewSet(
             tmp_queryset = sell_objects.aggregate(
                 total=Sum(
                     ExpressionWrapper(
-                        (F("shop_product__sell_price") - F("shop_product__cost_price"))
+                        (
+                            F("shop_product__sell_price")
+                            - Coalesce(F("shop_product__cost_price"), 0.0)
+                        )
                         * F("quantity"),
                         output_field=FloatField(),
                     )

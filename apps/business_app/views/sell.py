@@ -3,7 +3,7 @@ from rest_framework import filters
 
 from apps.business_app.models.sell import Sell
 from django.db.models import Value, F
-from django.db.models.functions import Concat
+from django.db.models.functions import Concat, Coalesce
 
 from apps.business_app.serializers.sell import SellSerializer
 
@@ -78,7 +78,10 @@ class SellViewSet(
             id__in=[Groups.SHOP_OWNER.value, Groups.SUPER_ADMIN.value]
         ).exists():
             queryset = queryset.annotate(
-                profits=(F("shop_product__sell_price") - F("shop_product__cost_price"))
+                profits=(
+                    F("shop_product__sell_price")
+                    - Coalesce(F("shop_product__cost_price"), 0.0)
+                )
                 * F("quantity")
             ).annotate(
                 product_name=Concat(

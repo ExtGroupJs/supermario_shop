@@ -25,7 +25,8 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     quantity = models.PositiveIntegerField(verbose_name="Cantidad", default=0)
     cost_price = models.FloatField(
         verbose_name="Precio de costo",
-        validators=[validators.MinValueValidator(limit_value=0.2)],
+        null=True,
+        blank=True,
     )
     sell_price = models.FloatField(
         verbose_name="Precio de venta",
@@ -46,7 +47,7 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
 
     def clean(self):
         super().clean()
-        if self.cost_price >= self.sell_price:
+        if self.cost_price is not None and self.cost_price >= self.sell_price:
             raise ValidationError(
                 "El Precio de Costo debe ser menor que Precio de Venta."
             )
@@ -87,8 +88,9 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
         from apps.business_app.models.sell import Sell
 
         related_sells = Sell.objects.filter(shop_product=self)
+        cost_price = self.cost_price or 0
         accumulated_selled = 0
         for sell in related_sells:
-            accumulated_selled += self.cost_price * sell.quantity
-        accumulated_selled += self.cost_price * self.quantity
+            accumulated_selled += cost_price * sell.quantity
+        accumulated_selled += cost_price * self.quantity
         return accumulated_selled
