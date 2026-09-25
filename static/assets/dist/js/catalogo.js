@@ -287,8 +287,9 @@ function loadModels(id) {
   if (id) {
     params.brand = id;
   }
-  if (lockedShopId) {
-    params["product__shopproducts__shop"] = lockedShopId;
+  const shopFilter = lockedShopId || shopValue;
+  if (shopFilter) {
+    params["product__shopproducts__shop"] = shopFilter;
   }
   axios
     .get(`/business-gestion/models/catalog/`, { params })
