@@ -12,7 +12,6 @@ from apps.common.permissions import CommonRolePermission
 
 class PalletViewSet(viewsets.ModelViewSet, GenericAPIView):
     queryset = Pallet.objects.annotate(
-        shop_name=F("shop__name"),
         shop_products_count=Coalesce(
             Count("shopproducts", distinct=True),
             Value(0),
