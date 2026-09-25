@@ -4,17 +4,37 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+WHOLESALE_SHOP_NAME = "Tienda al por mayor"
+
+
 def populate_pallets(apps, schema_editor):
     Pallet = apps.get_model("business_app", "Pallet")
+    Shop = apps.get_model("business_app", "Shop")
+
+    wholesale_shop = Shop.objects.filter(name=WHOLESALE_SHOP_NAME).first()
+    if wholesale_shop is None:
+        return
 
     for rack in range(1, 3):
         for section in "ABCDEFG":
             for number in range(1, 7):
                 Pallet.objects.get_or_create(
+                    shop=wholesale_shop,
                     rack=rack,
                     section=section,
                     number=number,
                 )
+
+
+def set_wholesale_shop_for_existing_pallets(apps, schema_editor):
+    Pallet = apps.get_model("business_app", "Pallet")
+    Shop = apps.get_model("business_app", "Shop")
+
+    wholesale_shop = Shop.objects.filter(name=WHOLESALE_SHOP_NAME).first()
+    if wholesale_shop is None:
+        return
+
+    Pallet.objects.filter(shop__isnull=True).update(shop=wholesale_shop)
 
 
 def unpopulate_pallets(apps, schema_editor):
@@ -45,6 +65,14 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                (
+                    "shop",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="business_app.shop",
+                        verbose_name="Tienda",
+                    ),
+                ),
                 ("rack", models.PositiveSmallIntegerField(verbose_name="Rack")),
                 (
                     "section",
@@ -71,10 +99,11 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="pallet",
             constraint=models.UniqueConstraint(
-                fields=("rack", "section", "number"),
-                name="unique_pallet_rack_section_number",
+                fields=("shop", "rack", "section", "number"),
+                name="unique_pallet_shop_rack_section_number",
             ),
         ),
+        migrations.RunPython(set_wholesale_shop_for_existing_pallets, migrations.RunPython.noop),
         migrations.RunPython(populate_pallets, unpopulate_pallets),
 
     ]
