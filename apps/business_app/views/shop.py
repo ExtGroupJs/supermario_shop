@@ -23,6 +23,7 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     ]
     filterset_fields = [
         "catalog_url",
+        "enabled",
     ]
     search_fields = [
         "name",
