@@ -82,6 +82,18 @@ function initTable() {
     },
     columns: [
       { data: "pallet_label", title: "Pallet" },
+      {
+        data: "shop_products_count",
+        title: "ShopProducts",
+        defaultContent: null,
+        render: (data, type, row) => {
+          const count = data ?? row?.shop_products_count ?? 0;
+          if (!count) {
+            return "Vacío";
+          }
+          return count;
+        },
+      },
       { data: "rack", title: "Rack" },
       { data: "section", title: "Sección" },
       { data: "number", title: "Número" },
