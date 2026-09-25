@@ -51,9 +51,9 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     #         )
     #     return queryset
 
-    # @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
-    # def catalog(self, request):
-    #     return self.list(request)
+    @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
+    def catalog(self, request):
+        return self.list(request)
 
     # @action(
     #     detail=False,
