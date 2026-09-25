@@ -24,7 +24,6 @@ from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
 from django.db.models import F, Value, Q, Sum
 from django.db.models.functions import Concat
-from apps.business_app.models.shop import Shop
 
 
 class ShopProductsViewSet(
@@ -106,12 +105,9 @@ class ShopProductsViewSet(
             if request_user and not is_admin_or_owner
             else Q()
         )
-        if self.action in ["wholesale_catalog"]:
-            filter_by_shop &= Q(shop=Shop.objects.get(name=Shop.WHOLESALE_SHOP_NAME))
-        elif self.action in ["catalog"]:
-            filter_by_shop &= ~Q(
-                shop=Shop.objects.filter(name=Shop.WHOLESALE_SHOP_NAME).first()
-            )
+        if self.action in ["catalog", "wholesale_catalog"]:
+            # Public catalog must expose only the enabled principal shop inventory.
+            filter_by_shop &= Q(shop__enabled=True, shop__principal=True)
 
         return queryset.filter(filter_by_quantity, filter_by_shop)
 
