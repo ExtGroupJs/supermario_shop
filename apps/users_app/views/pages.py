@@ -129,6 +129,16 @@ def create_shop_products(request):
     return render(request, "shop_products/create_shop_products.html")
 
 
+@user_passes_test(is_owner)
+def pallets(request):
+    return render(request, "pallets/pallets.html")
+
+
+@user_passes_test(is_owner)
+def pallet_detail(request, pallet_id):
+    return render(request, "pallets/pallet_detail.html", {"pallet_id": pallet_id})
+
+
 def inventario(request):
     return render(request, "inventario/inventario.html")
 

@@ -4,6 +4,15 @@ from apps.business_app.models.pallet import Pallet
 
 
 class PalletSerializer(serializers.ModelSerializer):
+    shop_name = serializers.CharField(read_only=True)
+
     class Meta:
         model = Pallet
-        fields = "__all__"
+        fields = (
+            "id",
+            "shop",
+            "shop_name",
+            "rack",
+            "section",
+            "number",
+        )
