@@ -16,6 +16,18 @@ def index(request):
     return render(request, "index.html")
 
 
+def _get_catalog_context():
+    principal_shop = (
+        Shop.objects.filter(principal=True, enabled=True)
+        .exclude(catalog_url__isnull=True)
+        .exclude(catalog_url__exact="")
+        .first()
+    )
+    return {
+        "catalog_shop_url": principal_shop.catalog_url if principal_shop else "",
+    }
+
+
 @user_passes_test(is_owner)
 def usuarios(request):
     return render(request, "user/usuarios.html")
@@ -60,20 +72,11 @@ def create_products(request):
 
 
 def catalog(request):
-    return render(request, "catalogo/catalogo.html")
+    return render(request, "catalogo/catalogo.html", _get_catalog_context())
 
 
 def root_catalog(request):
-    principal_shop = (
-        Shop.objects.filter(principal=True, enabled=True)
-        .exclude(catalog_url__isnull=True)
-        .exclude(catalog_url__exact="")
-        .first()
-    )
-    context = {
-        "catalog_shop_url": principal_shop.catalog_url if principal_shop else "",
-    }
-    return render(request, "catalogo/catalogo.html", context)
+    return render(request, "catalogo/catalogo.html", _get_catalog_context())
 
 
 def catalog_by_shop(request, catalog_url):
@@ -127,6 +130,16 @@ def edit_product_image_movil(request):
 @user_passes_test(is_owner)
 def create_shop_products(request):
     return render(request, "shop_products/create_shop_products.html")
+
+
+@user_passes_test(is_owner)
+def pallets(request):
+    return render(request, "pallets/pallets.html")
+
+
+@user_passes_test(is_owner)
+def pallet_detail(request, pallet_id):
+    return render(request, "pallets/pallet_detail.html", {"pallet_id": pallet_id})
 
 
 def inventario(request):

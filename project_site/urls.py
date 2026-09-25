@@ -76,6 +76,12 @@ urlpatterns = [
         login_required(pages.create_shop_products),
         name="create_shop_products",
     ),
+    path("pallets/", login_required(pages.pallets), name="pallets"),
+    path(
+        "pallets/<int:pallet_id>/detalle/",
+        login_required(pages.pallet_detail),
+        name="pallet_detail",
+    ),
     path("shop_products/", login_required(pages.shop_products), name="shop_products"),
     path(
         "shop_products_auto/",

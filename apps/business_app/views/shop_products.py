@@ -56,6 +56,7 @@ class ShopProductsViewSet(
     ).all()
     filterset_fields = {
         "shop": ["exact"],
+        "pallet": ["exact"],
         "product": ["exact"],
         "product__model": ["exact"],
         "product__model__brand": ["exact"],

@@ -2,6 +2,11 @@ from django.db import models
 
 
 class Pallet(models.Model):
+    shop = models.ForeignKey(
+        "business_app.Shop",
+        on_delete=models.CASCADE,
+        verbose_name="Tienda",
+    )
     rack = models.PositiveSmallIntegerField(verbose_name="Rack")
     section = models.CharField(verbose_name="Sección", max_length=1)
     number = models.PositiveSmallIntegerField(verbose_name="Número")
@@ -11,8 +16,8 @@ class Pallet(models.Model):
         verbose_name_plural = "Pallets"
         constraints = [
             models.UniqueConstraint(
-                fields=["rack", "section", "number"],
-                name="unique_pallet_rack_section_number",
+                fields=["shop", "rack", "section", "number"],
+                name="unique_pallet_shop_rack_section_number",
             )
         ]
 
