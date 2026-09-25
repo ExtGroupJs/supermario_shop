@@ -7,13 +7,27 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 const palletUrl = "/business-gestion/pallets/";
 const shopUrl = "/business-gestion/shops/";
+const shopProductsApiUrl = "/business-gestion/shop-products/";
 
 let selectedId = null;
 let editPallet = false;
 let warnedMissingShop = false;
+let shopProductsOptions = [];
 
 $(function () {
   $(".select2").select2({ theme: "bootstrap4", width: "100%" });
+  $("#shop-products").on("change", renderSelectedShopProductsList);
+  $("#shop").on("change", async function () {
+    if (!editPallet) {
+      return;
+    }
+    const shopId = this.value;
+    if (!shopId) {
+      clearShopProductsSelect();
+      return;
+    }
+    await loadShopProductsForShop(shopId, selectedId);
+  });
   populateShops();
   initTable();
 });
@@ -123,6 +137,9 @@ function resetForm() {
   const form = document.getElementById("form-create-pallets");
   form.reset();
   $("#shop").val("").trigger("change");
+  clearShopProductsSelect();
+  document.getElementById("shop-products-linked-section").style.display =
+    "none";
 }
 
 function populateShops() {
@@ -176,10 +193,124 @@ function hideMissingShopWarning() {
   }
 }
 
+function clearShopProductsSelect() {
+  shopProductsOptions = [];
+  const select = document.getElementById("shop-products");
+  select.innerHTML = "";
+  $("#shop-products").val([]).trigger("change");
+  renderSelectedShopProductsList();
+}
+
+async function loadShopProductsForShop(shopId, palletId) {
+  clearShopProductsSelect();
+  const select = document.getElementById("shop-products");
+
+  try {
+    const response = await axios.get(shopProductsApiUrl, {
+      params: {
+        shop: shopId,
+      },
+    });
+
+    const rows = response.data?.results || [];
+    const selectedValues = [];
+
+    rows.forEach((item) => {
+      const optionLabel = `${item.product_name || "Producto"} - ${item.model_brand || "-"} (Cant: ${item.quantity || 0})`;
+      const option = new Option(optionLabel, item.id);
+      select.add(option);
+      if (item.pallet === palletId) {
+        selectedValues.push(String(item.id));
+      }
+    });
+
+    shopProductsOptions = rows;
+    $("#shop-products").val(selectedValues).trigger("change");
+    renderSelectedShopProductsList();
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "No se pudieron cargar los shop products",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  }
+}
+
+function renderSelectedShopProductsList() {
+  const container = document.getElementById("shop-products-selected-list");
+  const selectedValues = $("#shop-products").val() || [];
+
+  if (!selectedValues.length) {
+    container.innerHTML =
+      '<span class="text-muted">Sin shop products seleccionados</span>';
+    return;
+  }
+
+  const cards = selectedValues
+    .map((id) => {
+      const item = shopProductsOptions.find(
+        (opt) => String(opt.id) === String(id),
+      );
+      const label = item
+        ? `${item.product_name || "Producto"} - ${item.model_brand || "-"} (Cant: ${item.quantity || 0})`
+        : `ShopProduct #${id}`;
+
+      return `<span class="badge badge-light border mr-1 mb-1 p-2" style="font-size: 0.85rem;">
+        ${label}
+        <button type="button" class="btn btn-xs btn-danger ml-2" onclick="removeSelectedShopProduct('${id}')">
+          <i class="fas fa-times"></i>
+        </button>
+      </span>`;
+    })
+    .join("");
+
+  container.innerHTML = cards;
+}
+
+function removeSelectedShopProduct(id) {
+  const selectedValues = $("#shop-products").val() || [];
+  const filtered = selectedValues.filter(
+    (value) => String(value) !== String(id),
+  );
+  $("#shop-products").val(filtered).trigger("change");
+}
+
+async function syncPalletShopProducts(palletId, shopId) {
+  const selectedValues = ($("#shop-products").val() || []).map((value) =>
+    Number(value),
+  );
+
+  const currentLinkedResponse = await axios.get(shopProductsApiUrl, {
+    params: {
+      shop: shopId,
+      pallet: palletId,
+    },
+  });
+  const currentLinked = currentLinkedResponse.data?.results || [];
+  const currentLinkedIds = currentLinked.map((item) => item.id);
+
+  const toAssign = selectedValues.filter(
+    (id) => !currentLinkedIds.includes(id),
+  );
+  const toUnassign = currentLinkedIds.filter(
+    (id) => !selectedValues.includes(id),
+  );
+
+  const assignRequests = toAssign.map((id) =>
+    axios.patch(`${shopProductsApiUrl}${id}/`, { pallet: palletId }),
+  );
+  const unassignRequests = toUnassign.map((id) =>
+    axios.patch(`${shopProductsApiUrl}${id}/`, { pallet: null }),
+  );
+
+  await Promise.all([...assignRequests, ...unassignRequests]);
+}
+
 function editPalletById(id) {
   axios
     .get(`${palletUrl}${id}/`)
-    .then((response) => {
+    .then(async (response) => {
       const pallet = response.data;
       selectedId = pallet.id;
       editPallet = true;
@@ -188,6 +319,8 @@ function editPalletById(id) {
       document.getElementById("section").value = pallet.section;
       document.getElementById("number").value = pallet.number;
       $("#shop").val(pallet.shop).trigger("change");
+      document.getElementById("shop-products-linked-section").style.display =
+        "block";
 
       $("#modal-crear-pallets .modal-title").text(
         `Editar Pallet ${pallet.rack}${pallet.section}${pallet.number}`,
@@ -270,7 +403,12 @@ $("#form-create-pallets").on("submit", function (event) {
     : axios.post(palletUrl, payload);
 
   request
-    .then(() => {
+    .then(async (response) => {
+      const palletId = editPallet ? selectedId : response?.data?.id;
+      if (editPallet && palletId) {
+        await syncPalletShopProducts(palletId, payload.shop);
+      }
+
       Swal.fire({
         icon: "success",
         title: editPallet ? "Pallet actualizado" : "Pallet creado",

@@ -74,10 +74,7 @@ function initShopProductsTable(palletId) {
     columns: [
       { data: "product_name", title: "Producto" },
       { data: "model_brand", title: "Marca / Modelo" },
-      { data: "shop_name", title: "Tienda" },
       { data: "quantity", title: "Cantidad" },
-      { data: "sell_price", title: "Precio Venta" },
-      { data: "wholesale_price", title: "Precio Mayor" },
     ],
   });
 }
