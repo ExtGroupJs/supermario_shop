@@ -10,6 +10,7 @@ const shopUrl = "/business-gestion/shops/";
 
 let selectedId = null;
 let editPallet = false;
+let warnedMissingShop = false;
 
 $(function () {
   $(".select2").select2({ theme: "bootstrap4", width: "100%" });
@@ -40,6 +41,19 @@ function initTable() {
     serverSide: true,
     processing: true,
     ajax: function (data, callback) {
+      const selectedShopId = localStorage.getItem("selectedShopId");
+
+      if (!selectedShopId) {
+        showMissingShopWarning();
+        callback({
+          recordsTotal: 0,
+          recordsFiltered: 0,
+          data: [],
+        });
+        return;
+      }
+
+      hideMissingShopWarning();
       let dir = "";
       if (data.order[0].dir === "desc") {
         dir = "-";
@@ -48,6 +62,7 @@ function initTable() {
       axios
         .get(palletUrl, {
           params: {
+            shop: selectedShopId,
             page_size: data.length,
             page: data.start / data.length + 1,
             search: data.search.value,
@@ -66,7 +81,7 @@ function initTable() {
         });
     },
     columns: [
-      { data: "shop_name", title: "Tienda" },
+      { data: "pallet_label", title: "Pallet" },
       { data: "rack", title: "Rack" },
       { data: "section", title: "Sección" },
       { data: "number", title: "Número" },
@@ -100,6 +115,7 @@ function resetForm() {
 
 function populateShops() {
   const select = document.getElementById("shop");
+  const selectedShopId = localStorage.getItem("selectedShopId");
   select.innerHTML = "<option value=''>Seleccione una tienda</option>";
 
   axios
@@ -109,6 +125,9 @@ function populateShops() {
         const option = new Option(shop.name, shop.id);
         select.add(option);
       });
+      if (selectedShopId) {
+        $("#shop").val(selectedShopId).trigger("change");
+      }
       $("#shop").trigger("change");
     })
     .catch(() => {
@@ -119,6 +138,30 @@ function populateShops() {
         showConfirmButton: false,
       });
     });
+}
+
+function showMissingShopWarning() {
+  const warning = document.getElementById("shop-selection-warning");
+  if (warning) {
+    warning.style.display = "block";
+  }
+  if (!warnedMissingShop) {
+    warnedMissingShop = true;
+    Swal.fire({
+      icon: "warning",
+      title: "Debe seleccionar una tienda",
+      text: "Seleccione una tienda en el selector global para listar los pallets.",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  }
+}
+
+function hideMissingShopWarning() {
+  const warning = document.getElementById("shop-selection-warning");
+  if (warning) {
+    warning.style.display = "none";
+  }
 }
 
 function editPalletById(id) {
