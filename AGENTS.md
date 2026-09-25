@@ -8,6 +8,8 @@ Django 5.1.1 + DRF 3.15.2 auto parts shop (Geely vehicles). Python 3.11. Session
 
 This repo uses codebase-memory-mcp (local-first MCP server). A committed index snapshot lives in `.codebase-memory/graph.db.zst`; if it is stale or missing, run `codebase-memory-mcp cli index_repository --repo-path "$PWD" --mode full --persistence true` (or ask the user to run it in OpenCode).
 
+ALWAYS use ENGLISH language for coding, including docstrings
+
 ALWAYS prefer graph tools over grep/glob/file-search for structural questions:
 
 1. `search_graph` — find functions, classes, routes, variables by pattern
