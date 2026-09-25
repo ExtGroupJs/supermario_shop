@@ -55,9 +55,8 @@ class Shop(models.Model):
                 Shop.objects.filter(principal=True).exclude(pk=self.pk).exists()
             )
             if another_principal_exists:
-                raise ValidationError(
-                    {"principal": "Solo puede existir una tienda principal."}
-                )
+                Shop.objects.filter(principal=True).exclude(pk=self.pk).update(principal=False)
+
 
     def save(self, *args, **kwargs):
         self.full_clean()
