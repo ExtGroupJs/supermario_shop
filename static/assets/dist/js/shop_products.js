@@ -484,6 +484,7 @@ let selected_id;
 $("#modal-crear-shop-products").on("hide.bs.modal", (event) => {
   const form = event.currentTarget.querySelector("form");
   form.reset();
+  $("#pallet").val("").trigger("change.select2");
   edit_shopProducts = false;
   const elements = [...form.elements];
   elements.forEach((elem) => elem.classList.remove("is-invalid"));
@@ -527,6 +528,8 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
       .catch(function (error) {});
   } else {
     modal.find(".modal-title").text("Crear Entrada de Producto");
+    form.elements.pallet.value = "";
+    $("#pallet").val("").trigger("change.select2");
     let selectedShopId = localStorage.getItem("selectedShopId");
     if (selectedShopId) {
       form.elements.shop.value = selectedShopId;
