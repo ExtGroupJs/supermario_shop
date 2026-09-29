@@ -2,6 +2,7 @@ from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 from apps.business_app.models.brand import Brand
 from apps.business_app.serializers.brand import BrandSerializer
+from apps.business_app.utils.catalog_shop import resolve_catalog_shop_id
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
@@ -9,6 +10,8 @@ from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.permissions import CommonRolePermission
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
+
+SHOP_FILTER_PARAM = "model__product__shopproducts__shop"
 
 
 class BrandViewSet(viewsets.ModelViewSet, GenericAPIView):
@@ -21,7 +24,7 @@ class BrandViewSet(viewsets.ModelViewSet, GenericAPIView):
         CommonOrderingFilter,
     ]
     filterset_fields = [
-        "model__product__shopproducts__shop",
+        SHOP_FILTER_PARAM,
     ]
 
     search_fields = [
@@ -30,8 +33,13 @@ class BrandViewSet(viewsets.ModelViewSet, GenericAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.request.query_params.get("model__product__shopproducts__shop"):
-            queryset = queryset.distinct()
+        if self.action == "catalog":
+            shop_id = resolve_catalog_shop_id(self.request, SHOP_FILTER_PARAM)
+            if shop_id is None:
+                return queryset.none()
+            queryset = queryset.filter(
+                model__product__shopproducts__shop=shop_id
+            ).distinct()
         return queryset
 
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])

@@ -35,7 +35,9 @@ class TestModelCatalogViewSet(BaseTestClass):
     def test_catalog_returns_only_models_of_the_given_shop(self):
         """Only models with inventory in the requested shop are returned."""
         model_in_shop = baker.make(Model, brand=self.brand, name="Model In Shop")
-        model_in_other_shop = baker.make(Model, brand=self.brand, name="Model Other Shop")
+        model_in_other_shop = baker.make(
+            Model, brand=self.brand, name="Model Other Shop"
+        )
         self._make_shop_product(model_in_shop, self.shop)
         self._make_shop_product(model_in_other_shop, self.other_shop)
 
@@ -76,16 +78,39 @@ class TestModelCatalogViewSet(BaseTestClass):
             [model["name"] for model in response.data["results"]],
         )
 
-    def test_catalog_without_shop_param_returns_every_model(self):
-        """The shop filter is optional: without it the catalog is not restricted."""
-        baker.make(Model, brand=self.brand, name="Model Without Shop")
+    def test_catalog_without_shop_param_falls_back_to_principal_shop(self):
+        """Without the shop param the catalog falls back to the principal shop."""
+        self.shop.principal = True
+        self.shop.save()
+        model_in_principal = baker.make(Model, brand=self.brand, name="Model In Shop")
+        self._make_shop_product(model_in_principal, self.shop)
+        self._make_shop_product(
+            baker.make(Model, brand=self.brand, name="Model In Other Shop"),
+            self.other_shop,
+        )
 
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            "Model Without Shop", [model["name"] for model in response.data["results"]]
-        )
+        returned_names = [model["name"] for model in response.data["results"]]
+        self.assertEqual(returned_names, ["Model In Shop"])
+
+    def test_catalog_without_shop_param_and_without_any_shop_returns_empty(self):
+        """With no shop at all the catalog is empty rather than unrestricted."""
+        ShopProducts.objects.all()._raw_delete(ShopProducts.objects.db)
+        Shop.objects.all().delete()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 0)
+
+    def test_catalog_with_invalid_shop_param_returns_400(self):
+        """A non numeric shop param is rejected instead of raising a 500."""
+        response = self.client.get(self.url, {SHOP_FILTER_PARAM: "abc"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(SHOP_FILTER_PARAM, response.data)
 
     def test_catalog_combines_shop_and_brand_filters(self):
         """The brand filter is applied together with the shop filter."""

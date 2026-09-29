@@ -1,12 +1,12 @@
 __all__ = [
-	"Product",
-	"Shop",
-	"ShopProducts",
-	"Sell",
-	"SellGroup",
-	"Model",
-	"Brand",
-	"Pallet",
+    "Product",
+    "Shop",
+    "ShopProducts",
+    "Sell",
+    "SellGroup",
+    "Model",
+    "Brand",
+    "Pallet",
 ]
 from .product import Product
 from .shop import Shop
