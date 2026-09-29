@@ -2,7 +2,10 @@ from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 from apps.business_app.models.brand import Brand
 from apps.business_app.serializers.brand import BrandSerializer
-from apps.business_app.utils.catalog_shop import resolve_catalog_shop_id
+from apps.business_app.utils.catalog_shop import (
+    brand_ids_in_stock,
+    resolve_catalog_shop_id,
+)
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
@@ -37,9 +40,8 @@ class BrandViewSet(viewsets.ModelViewSet, GenericAPIView):
             shop_id = resolve_catalog_shop_id(self.request, SHOP_FILTER_PARAM)
             if shop_id is None:
                 return queryset.none()
-            queryset = queryset.filter(
-                model__product__shopproducts__shop=shop_id
-            ).distinct()
+            # Only brands with something actually sellable in the shop.
+            queryset = queryset.filter(id__in=brand_ids_in_stock(shop_id))
         return queryset
 
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])

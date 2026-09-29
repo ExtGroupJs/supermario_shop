@@ -2,9 +2,11 @@ from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 
 from apps.business_app.models.model import Model
-from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.model import ModelSerializer, ReadModelSerializer
-from apps.business_app.utils.catalog_shop import resolve_catalog_shop_id
+from apps.business_app.utils.catalog_shop import (
+    model_ids_in_stock,
+    resolve_catalog_shop_id,
+)
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.common.common_ordering_filter import CommonOrderingFilter
@@ -65,17 +67,13 @@ class ModelViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
         A subquery over `ShopProducts` is used instead of the
         `product__shopproducts__shop` ORM join because that join does not honour
         the soft deletes of `Product` and `ShopProducts`, so it would return
-        models whose only shop product has been soft deleted.
+        models whose only shop product has been soft deleted. It also drops the
+        rows with no stock left, so exhausted products leave the catalog.
         """
         shop_id = resolve_catalog_shop_id(self.request, SHOP_FILTER_PARAM)
         if shop_id is None:
             return queryset.none()
-        models_in_shop = (
-            ShopProducts.objects.filter(shop_id=shop_id)
-            .filter(product__deleted__isnull=True)
-            .values("product__model_id")
-        )
-        return queryset.filter(id__in=models_in_shop)
+        return queryset.filter(id__in=model_ids_in_stock(shop_id))
 
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])
     def catalog(self, request):

@@ -106,7 +106,11 @@ class ShopProductsViewSet(
             else Q()
         )
         if self.action in ["catalog", "wholesale_catalog"]:
-            # Public catalog must expose only the enabled principal shop inventory.
+            # Public catalog must expose only the enabled principal shop
+            # inventory, and never the rows already sold out. This branch is
+            # also reached by admins, who bypass the stock filter on the
+            # management endpoints but must not see empty items published.
+            filter_by_quantity = Q(quantity__gt=0)
             filter_by_shop &= Q(shop__enabled=True, shop__principal=True)
 
         return queryset.filter(filter_by_quantity, filter_by_shop)

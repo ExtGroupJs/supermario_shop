@@ -28,7 +28,7 @@ class TestBrandCatalogViewSet(BaseTestClass):
         ShopProducts.objects.all()._raw_delete(ShopProducts.objects.db)
         Shop.objects.all().delete()
 
-    def _seed_shop_brand(self, *, principal, enabled, name):
+    def _seed_shop_brand(self, *, principal, enabled, name, quantity=5):
         """Create an enabled shop owning a brand through its model/product."""
         shop = baker.make(Shop, principal=principal, enabled=enabled, name=name)
         brand = baker.make(Brand, name=f"brand-{name}")
@@ -38,6 +38,7 @@ class TestBrandCatalogViewSet(BaseTestClass):
             ShopProducts,
             shop=shop,
             product=product,
+            quantity=quantity,
             sell_price=10,
             wholesale_price=10,
         )
@@ -110,6 +111,61 @@ class TestBrandCatalogViewSet(BaseTestClass):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn(SHOP_FILTER_PARAM, response.data)
+
+    def test_catalog_excludes_brand_whose_only_product_is_out_of_stock(self):
+        self._clear_shops()
+        self._seed_shop_brand(principal=True, enabled=True, name="Principal")
+        self._seed_shop_brand(
+            principal=False, enabled=True, name="SoldOut", quantity=0
+        )
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(
+            [brand["name"] for brand in response.data["results"]],
+            ["brand-Principal"],
+        )
+
+    def test_catalog_keeps_brand_with_stock_in_another_product(self):
+        """A brand stays in the catalog while any of its products has stock."""
+        self._clear_shops()
+        shop = baker.make(Shop, principal=True, enabled=True, name="Principal")
+        brand = baker.make(Brand, name="brand-Mixed")
+        model = baker.make(Model, brand=brand, name="model-Mixed")
+        baker.make(
+            ShopProducts,
+            shop=shop,
+            product=baker.make(Product, model=model, name="product-SoldOut"),
+            quantity=0,
+            sell_price=10,
+            wholesale_price=10,
+        )
+        baker.make(
+            ShopProducts,
+            shop=shop,
+            product=baker.make(Product, model=model, name="product-InStock"),
+            quantity=3,
+            sell_price=10,
+            wholesale_price=10,
+        )
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(self._ids(response), {brand.id})
+
+    def test_catalog_excludes_brand_whose_product_is_soft_deleted(self):
+        self._clear_shops()
+        shop, _ = self._seed_shop_brand(
+            principal=True, enabled=True, name="Deleted"
+        )
+        ShopProducts.objects.filter(shop=shop).first().product.delete()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.data["count"], 0)
 
     def test_list_action_is_not_restricted_to_a_shop(self):
         """The catalog fallback only applies to the catalog action."""

@@ -1,4 +1,46 @@
+from apps.business_app.models.model import Model
 from apps.business_app.models.shop import Shop
+from apps.business_app.models.shop_products import ShopProducts
+
+
+def in_stock_shop_products(shop_id):
+    """
+    Return a queryset of the `ShopProducts` rows that are actually sellable in
+    the given shop, i.e. with stock left and not soft deleted.
+
+    The soft delete of `Product` is honoured explicitly because a subquery on
+    `ShopProducts` does not apply the `SOFT_DELETE_CASCADE` policy of
+    `Product` on its own. Rows whose product was soft deleted must not keep a
+    brand or a model in the public catalog.
+    """
+    return (
+        ShopProducts.objects.filter(shop_id=shop_id, quantity__gt=0)
+        .filter(product__deleted__isnull=True)
+    )
+
+
+def product_ids_in_stock(shop_id):
+    """Ids of the products with stock in the given shop."""
+    return in_stock_shop_products(shop_id).values("product_id")
+
+
+def model_ids_in_stock(shop_id):
+    """Ids of the models having at least one product with stock in the shop."""
+    return in_stock_shop_products(shop_id).values("product__model_id")
+
+
+def brand_ids_in_stock(shop_id):
+    """
+    Ids of the brands having at least one model with stock in the shop.
+
+    `Brand` is reached through `Model` -> `Product` -> `ShopProducts`, so the
+    ids are collected from the models and then resolved to their brand.
+    """
+    return (
+        Model.objects.filter(id__in=model_ids_in_stock(shop_id))
+        .values("brand_id")
+        .distinct()
+    )
 
 
 def get_fallback_catalog_shop():
