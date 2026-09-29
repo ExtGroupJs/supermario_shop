@@ -572,7 +572,7 @@ function verificarGroups(numeros, verificarTodos = false) {
 function poblar_tienda() {
   var $globalShops = document.getElementById("globalShops");
   var selectedShopId = localStorage.getItem("selectedShopId");
-  axios.get("/business-gestion/shops/").then(function (response) {
+  axios.get("/business-gestion/shops/", { params: { enabled: true } }).then(function (response) {
     response.data.results.forEach(function (element) {
       var option = new Option(element.name, element.id);
       $globalShops.add(option);

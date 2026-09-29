@@ -76,5 +76,4 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(populate_pallets, unpopulate_pallets),
-
     ]

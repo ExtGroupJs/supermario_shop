@@ -21,13 +21,13 @@ class TestModelCatalogViewSet(BaseTestClass):
         self.shop = baker.make(Shop, principal=False, enabled=True)
         self.other_shop = baker.make(Shop, principal=False, enabled=True)
 
-    def _make_shop_product(self, model, shop):
+    def _make_shop_product(self, model, shop, quantity=1):
         """Create a product of the given model and put it in the given shop."""
         return baker.make(
             ShopProducts,
             shop=shop,
             product=baker.make(Product, model=model),
-            quantity=1,
+            quantity=quantity,
             cost_price=1,
             sell_price=5,
         )
@@ -35,7 +35,9 @@ class TestModelCatalogViewSet(BaseTestClass):
     def test_catalog_returns_only_models_of_the_given_shop(self):
         """Only models with inventory in the requested shop are returned."""
         model_in_shop = baker.make(Model, brand=self.brand, name="Model In Shop")
-        model_in_other_shop = baker.make(Model, brand=self.brand, name="Model Other Shop")
+        model_in_other_shop = baker.make(
+            Model, brand=self.brand, name="Model Other Shop"
+        )
         self._make_shop_product(model_in_shop, self.shop)
         self._make_shop_product(model_in_other_shop, self.other_shop)
 
@@ -76,16 +78,64 @@ class TestModelCatalogViewSet(BaseTestClass):
             [model["name"] for model in response.data["results"]],
         )
 
-    def test_catalog_without_shop_param_returns_every_model(self):
-        """The shop filter is optional: without it the catalog is not restricted."""
-        baker.make(Model, brand=self.brand, name="Model Without Shop")
+    def test_catalog_without_shop_param_falls_back_to_principal_shop(self):
+        """Without the shop param the catalog falls back to the principal shop."""
+        self.shop.principal = True
+        self.shop.save()
+        model_in_principal = baker.make(Model, brand=self.brand, name="Model In Shop")
+        self._make_shop_product(model_in_principal, self.shop)
+        self._make_shop_product(
+            baker.make(Model, brand=self.brand, name="Model In Other Shop"),
+            self.other_shop,
+        )
 
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            "Model Without Shop", [model["name"] for model in response.data["results"]]
-        )
+        returned_names = [model["name"] for model in response.data["results"]]
+        self.assertEqual(returned_names, ["Model In Shop"])
+
+    def test_catalog_without_shop_param_and_without_any_shop_returns_empty(self):
+        """With no shop at all the catalog is empty rather than unrestricted."""
+        ShopProducts.objects.all()._raw_delete(ShopProducts.objects.db)
+        Shop.objects.all().delete()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 0)
+
+    def test_catalog_with_invalid_shop_param_returns_400(self):
+        """A non numeric shop param is rejected instead of raising a 500."""
+        response = self.client.get(self.url, {SHOP_FILTER_PARAM: "abc"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(SHOP_FILTER_PARAM, response.data)
+
+    def test_catalog_excludes_models_with_no_stock_left(self):
+        """A model whose only shop product ran out of stock leaves the catalog."""
+        sold_out = baker.make(Model, brand=self.brand, name="Model Sold Out")
+        in_stock = baker.make(Model, brand=self.brand, name="Model In Stock")
+        self._make_shop_product(sold_out, self.shop, quantity=0)
+        self._make_shop_product(in_stock, self.shop, quantity=4)
+
+        response = self.client.get(self.url, {SHOP_FILTER_PARAM: self.shop.id})
+
+        self.assertEqual(response.status_code, 200)
+        returned_names = [model["name"] for model in response.data["results"]]
+        self.assertEqual(returned_names, ["Model In Stock"])
+
+    def test_catalog_keeps_model_with_stock_in_another_product(self):
+        """A model stays in the catalog while any of its products has stock."""
+        model = baker.make(Model, brand=self.brand, name="Model Mixed")
+        self._make_shop_product(model, self.shop, quantity=0)
+        self._make_shop_product(model, self.shop, quantity=2)
+
+        response = self.client.get(self.url, {SHOP_FILTER_PARAM: self.shop.id})
+
+        self.assertEqual(response.status_code, 200)
+        returned_names = [model["name"] for model in response.data["results"]]
+        self.assertEqual(returned_names, ["Model Mixed"])
 
     def test_catalog_combines_shop_and_brand_filters(self):
         """The brand filter is applied together with the shop filter."""
