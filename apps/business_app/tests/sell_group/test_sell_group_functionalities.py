@@ -3,7 +3,9 @@ from django.urls import reverse
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
+from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
+from apps.clients_app.models.client import Client
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
@@ -497,3 +499,125 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         self.assertEqual(Sell.objects.filter(sell_group=first_group).count(), 0)
         self.assertEqual(Sell.objects.filter(sell_group=second_group).count(), 1)
+
+    def _make_sell_payload(self, shop="keep", **extra):
+        """Builds the minimum valid payload of one sell to reuse across client tests.
+
+        ``shop="keep"`` lets model_bakery randomize the shop, so tests that do not care
+        about the shop are not coupled to the seller one.
+        """
+        shop_kwarg = {} if shop == "keep" else {"shop": shop}
+        shop_product = baker.make(
+            ShopProducts,
+            **shop_kwarg,
+            cost_price=1,
+            sell_price=3,
+            quantity=baker.random_gen.gen_integer(min_int=2, max_int=10),
+        )
+        payload = {
+            "discount": 0,
+            "extra_info": "",
+            "payment_method": "U",
+            "sells": [
+                {
+                    "shop_product": shop_product.id,
+                    "quantity": 1,
+                },
+            ],
+        }
+        payload.update(extra)
+        self.sold_shop_product = shop_product
+        return payload
+
+    def test_create_sell_group_with_client_phone_creates_client(self):
+        """Al enviar client_name y client_phone se crea el Client y se asigna al SellGroup."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+        client_name = self.faker.name()
+        client_phone = f"58{self.faker.random_int(min=1000000, max=9999999)}"
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(
+            url,
+            data=self._make_sell_payload(
+                shop=self.user.shop,
+                client_name=client_name,
+                client_phone=client_phone,
+            ),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_client = Client.objects.get(phone=client_phone)
+        self.assertEqual(created_client.name, client_name)
+        self.assertEqual(created_client.shop, self.sold_shop_product.shop)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.client, created_client)
+
+        # client_name / client_phone are write only, so they must not leak in responses
+        self.assertNotIn("client_name", response.json())
+        self.assertNotIn("client_phone", response.json())
+
+    def test_create_sell_group_with_existing_client_phone_updates_its_name(self):
+        """Si el teléfono ya existe se reutiliza el Client y solo se actualiza el nombre."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+        old_name = self.faker.name()
+        new_name = self.faker.name()
+        client_phone = f"58{self.faker.random_int(min=1000000, max=9999999)}"
+        existing_client = baker.make(Client, name=old_name, phone=client_phone)
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(
+            url,
+            data=self._make_sell_payload(
+                client_name=new_name, client_phone=client_phone
+            ),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(Client.objects.filter(phone=client_phone).count(), 1)
+        existing_client.refresh_from_db()
+        self.assertEqual(existing_client.name, new_name)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.client, existing_client)
+
+    def test_create_sell_group_without_client_fields_keeps_client_empty(self):
+        """Sin client_name ni client_phone el SellGroup se crea sin client (retrocompatible)."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(url, data=self._make_sell_payload(), format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertIsNone(created_group.client)
+        self.assertEqual(Client.objects.count(), 0)
+
+    def test_create_sell_group_client_belongs_to_the_shop_of_the_sold_product(self):
+        """El Client se crea en el shop del primer shop_product, no en el del vendedor."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+        other_shop = baker.make(Shop, name=self.faker.unique.company())
+        self.assertNotEqual(other_shop, self.user.shop)
+
+        client_phone = f"58{self.faker.random_int(min=1000000, max=9999999)}"
+        payload = self._make_sell_payload(
+            shop=other_shop,
+            client_name=self.faker.name(),
+            client_phone=client_phone,
+        )
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_client = Client.objects.get(phone=client_phone)
+        self.assertEqual(created_client.shop, other_shop)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.client, created_client)
