@@ -1,6 +1,7 @@
 import pytest
 from decimal import Decimal
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from apps.business_app.models.sell import Sell
@@ -130,3 +131,112 @@ class TestSellViewSetFunctionalities(BaseTestClass):
             item for item in response.json()["results"] if item["id"] == sell.id
         )
         self.assertEqual(data["client_name"], "")
+
+    def _make_group_with_sell(self, total, discount=0, extra_info=""):
+        sell_group = baker.make(
+            SellGroup, total=total, discount=discount, extra_info=extra_info
+        )
+        sell = baker.make(
+            Sell,
+            sell_group=sell_group,
+            shop_product=baker.make(
+                ShopProducts,
+                cost_price=1,
+                sell_price=Decimal("10.00"),
+                quantity=50,
+            ),
+            quantity=3,
+        )
+        return sell_group, sell
+
+    def test_destroy_sell_appends_cancellation_note_to_its_group(self):
+        """Al borrar una venta, su grupo queda anotado con BORRADO producto fecha."""
+        sell_group, sell = self._make_group_with_sell(
+            total=Decimal("30.00"), extra_info="Entrega en la tarde"
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-products-detail", kwargs={"pk": sell.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Sell.objects.filter(id=sell.id).exists())
+
+        sell_group.refresh_from_db()
+        product = sell.shop_product.product.__str__()
+        today = timezone.now().strftime("%d-%b-%Y")
+        self.assertEqual(
+            sell_group.extra_info,
+            f"Entrega en la tarde\nBORRADO {product} {today}",
+        )
+
+    def test_destroy_sell_reduces_the_group_total_by_the_removed_amount(self):
+        """El total del grupo descuenta lo que aportaba la venta borrada."""
+        sell_group, sell = self._make_group_with_sell(total=Decimal("30.00"))
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-products-detail", kwargs={"pk": sell.id})
+        self.client.delete(url)
+
+        sell_group.refresh_from_db()
+        # 3 units x 10.00 sell price were removed out of a 30.00 group total.
+        self.assertEqual(sell_group.total, Decimal("0.00"))
+
+    def test_destroy_sell_never_leaves_the_group_total_negative(self):
+        """Un total desincronizado no puede dejar al grupo en negativo."""
+        sell_group, sell = self._make_group_with_sell(total=Decimal("5.00"))
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-products-detail", kwargs={"pk": sell.id})
+        self.client.delete(url)
+
+        sell_group.refresh_from_db()
+        self.assertEqual(sell_group.total, Decimal("0.00"))
+
+    def test_destroying_every_sell_of_a_group_keeps_one_note_per_line(self):
+        """Cada baja agrega su propio renglón, sin pisar las anteriores."""
+        sell_group, first_sell = self._make_group_with_sell(
+            total=Decimal("60.00"), extra_info="Nota inicial"
+        )
+        second_sell = baker.make(
+            Sell,
+            sell_group=sell_group,
+            shop_product=baker.make(
+                ShopProducts, cost_price=1, sell_price=Decimal("10.00"), quantity=50
+            ),
+            quantity=3,
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        for sell in (first_sell, second_sell):
+            url = reverse("sell-products-detail", kwargs={"pk": sell.id})
+            self.client.delete(url)
+
+        sell_group.refresh_from_db()
+        lines = sell_group.extra_info.split("\n")
+        self.assertEqual(len(lines), 3)
+        self.assertEqual(lines[0], "Nota inicial")
+        self.assertTrue(lines[1].startswith("BORRADO "))
+        self.assertTrue(lines[2].startswith("BORRADO "))
+        self.assertEqual(sell_group.total, Decimal("0.00"))
+
+    def test_destroy_sell_without_group_does_not_break(self):
+        """Una venta sin grupo se borra sin intentar anotar nada."""
+        sell = baker.make(
+            Sell,
+            sell_group=None,
+            shop_product=baker.make(
+                ShopProducts, cost_price=1, sell_price=Decimal("10.00"), quantity=50
+            ),
+            quantity=2,
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-products-detail", kwargs={"pk": sell.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Sell.objects.filter(id=sell.id).exists())
