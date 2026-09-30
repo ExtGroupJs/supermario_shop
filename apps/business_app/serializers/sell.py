@@ -13,6 +13,19 @@ class SellSerializer(serializers.ModelSerializer):
     discounts = serializers.FloatField(
         read_only=True, source="sell_group.discount", default=0
     )
+    # Group level data used to build the sales table group header.
+    client_name = serializers.CharField(
+        read_only=True, source="sell_group.client.name", default=""
+    )
+    client_phone = serializers.CharField(
+        read_only=True, source="sell_group.client.phone", default=""
+    )
+    group_total = serializers.DecimalField(
+        read_only=True, source="sell_group.total", max_digits=10, decimal_places=2
+    )
+    group_extra_info = serializers.CharField(
+        read_only=True, source="sell_group.extra_info", default=""
+    )
 
     class Meta:
         model = Sell
@@ -29,6 +42,10 @@ class SellSerializer(serializers.ModelSerializer):
             "product_name",
             "sell_group",
             "discounts",
+            "client_name",
+            "client_phone",
+            "group_total",
+            "group_extra_info",
         )
         read_only_fields = (
             "id",

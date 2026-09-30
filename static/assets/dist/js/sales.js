@@ -109,9 +109,26 @@ $(document).ready(function () {
     rowGroup: {
       dataSrc: "sell_group",
       startRender: function (rows, group) {
-        // Obtener el descuento de la primera fila del grupo
-        const discount = rows.data()[0].discounts; // Asegúrate de que "discounts" esté en tus datos
-        return "Grupo de Venta: " + group + " | Descuento: " + " $" + discount;
+        // Group level data is the same on every row of the group, so the first one
+        // carries everything needed to build the header.
+        const first = rows.data()[0];
+        const discount = Number(first.discounts || 0);
+        const total = Number(first.group_total || 0);
+        const clientName = (first.client_name || "").trim();
+        const clientLabel = clientName
+          ? `Venta ${group} (${clientName}):`
+          : `Venta ${group}:`;
+
+        let header = `${clientLabel} Importe: $${total.toFixed(2)}`;
+        if (discount > 0) {
+          // The net amount only makes sense once the discount is taken off the gross.
+          header += ` ($${(total - discount).toFixed(2)}) | Descuento: $${discount.toFixed(2)}`;
+        }
+        const note = (first.group_extra_info || "").trim();
+        if (note) {
+          header += ` | Nota: ${note}`;
+        }
+        return header;
       },
     },
     columnDefs: [],
