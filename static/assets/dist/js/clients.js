@@ -360,7 +360,7 @@ function poblarListas() {
 
   // Poblar la lista de tiendas
   var $shop = document.getElementById("shop");
-  axios.get("/business-gestion/shops/").then(function (response) {
+  axios.get("/business-gestion/shops/", { params: { enabled: true } }).then(function (response) {
     response.data.results.forEach(function (element) {
       var option = new Option(element.name, element.id);
       $shop.add(option);

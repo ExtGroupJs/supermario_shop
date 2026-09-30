@@ -12,7 +12,6 @@ const load = document.getElementById("load");
 const productSelect = document.getElementById("product-select");
 const btnTakePhoto = document.getElementById("btn-take-photo");
 const btnRotate = document.getElementById("btn-rotate");
-const btnRetake = document.getElementById("btn-retake");
 const btnUpload = document.getElementById("btn-upload");
 const cameraInput = document.getElementById("camera-input");
 const galleryInput = document.getElementById("gallery-input");
@@ -22,18 +21,18 @@ const productInfoCard = document.getElementById("product-info-card");
 const editorCard = document.getElementById("editor-card");
 const currentImage = document.getElementById("current-image");
 
+const defaultProductImage = "/static_output/assets/dist/img/producto-sin-imagen.jpg";
+
 let allProducts = [];
 let currentProduct = null;
 let cropper = null;
 let webpReady = false;
+let cameraStream = null;
 const isLikelyMobile = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent || "");
 
 $(function () {
   $("#btn-take-photo").on("click", abrirSelectorImagen);
   $("#btn-rotate").on("click", function () { if (cropper) cropper.rotate(90); });
-  $("#btn-retake").on("click", function () {
-    abrirSelectorImagen();
-  });
   $("#btn-upload").on("click", subirFoto);
 
   cameraInput.addEventListener("change", handleFileSelected);
@@ -70,24 +69,27 @@ function abrirSelectorImagen() {
   });
 }
 
-function abrirEntradaImagen(preferCamera) {
-  if (preferCamera && isLikelyMobile) {
-    if (typeof cameraInput.showPicker === "function") {
-      cameraInput.showPicker();
+async function abrirEntradaImagen(preferCamera) {
+  if (preferCamera) {
+    const cameraGranted = await solicitarPermisoCamara();
+    if (cameraGranted) {
+      if (typeof cameraInput.showPicker === "function") {
+        cameraInput.showPicker();
+        return;
+      }
+      cameraInput.click();
       return;
     }
-    cameraInput.click();
-    return;
-  }
 
-  if (preferCamera && !isLikelyMobile) {
-    Swal.fire({
-      icon: "info",
-      title: "Camara no disponible",
-      text: "En escritorio se abrira el selector de archivos.",
-      timer: 1300,
-      showConfirmButton: false,
-    });
+    if (!isLikelyMobile) {
+      Swal.fire({
+        icon: "info",
+        title: "Camara no disponible",
+        text: "No se pudo acceder a la cámara; se abrirá el selector de archivos.",
+        timer: 1700,
+        showConfirmButton: false,
+      });
+    }
   }
 
   if (typeof galleryInput.showPicker === "function") {
@@ -95,6 +97,37 @@ function abrirEntradaImagen(preferCamera) {
     return;
   }
   galleryInput.click();
+}
+
+async function solicitarPermisoCamara() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    return false;
+  }
+
+  try {
+    detenerCamara();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+      audio: false,
+    });
+    cameraStream = stream;
+    return true;
+  } catch (error) {
+    console.warn("No se pudo acceder a la cámara:", error);
+    detenerCamara();
+    return false;
+  }
+}
+
+function detenerCamara() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+  }
 }
 
 function setVisible(element, visible) {
@@ -210,8 +243,13 @@ function onProductSelected(event) {
   document.getElementById("product-info-model").textContent = currentProduct.model_name || "";
   document.getElementById("product-info-status").textContent = currentProduct.image ? "Ya tiene foto" : "Sin foto";
 
-  currentImage.src = currentProduct.image || "";
-  currentImage.classList.toggle("photo-preview--empty", !currentProduct.image);
+  const imageSrc = currentProduct.image || defaultProductImage;
+  currentImage.onerror = function () {
+    this.onerror = null;
+    this.src = defaultProductImage;
+  };
+  currentImage.src = imageSrc;
+  currentImage.classList.toggle("photo-preview--empty", false);
 
   setVisible(productInfoCard, true);
   resetEditor();
@@ -225,6 +263,7 @@ function onProductSelected(event) {
 function handleFileSelected(event) {
   const file = event.target.files && event.target.files[0];
   event.target.value = "";
+  detenerCamara();
   if (!file) return;
 
   // Si aun no hay producto seleccionado, tomar el primer pendiente (el mas
@@ -265,12 +304,18 @@ function cargarImagenEditor(dataUrl) {
     setVisible(editorCard, true);
     cropper = new Cropper(cropImage, {
       viewMode: 1,
-      aspectRatio: 1,
-      autoCropArea: 1,
+      aspectRatio: NaN,
+      autoCropArea: 0.9,
       responsive: true,
       background: false,
       modal: true,
       guides: true,
+      center: true,
+      highlight: true,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
+      dragMode: "move",
       ready: function () {
         webpReady = true;
         btnUpload.disabled = false;

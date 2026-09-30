@@ -148,7 +148,7 @@ function populateShops() {
   select.innerHTML = "<option value=''>Seleccione una tienda</option>";
 
   axios
-    .get(shopUrl, { params: { page_size: 1000 } })
+    .get(shopUrl, { params: { enabled: true, page_size: 1000 } })
     .then((response) => {
       response.data.results.forEach((shop) => {
         const option = new Option(shop.name, shop.id);
