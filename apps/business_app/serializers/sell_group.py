@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
@@ -6,6 +8,8 @@ from rest_framework import serializers
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.serializers.sell import SellSerializer
 from apps.clients_app.models.client import Client
+
+two_decimals = Decimal("0.01")
 
 
 class SellGroupSerializer(serializers.ModelSerializer):
@@ -38,6 +42,66 @@ class SellGroupSerializer(serializers.ModelSerializer):
 
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p")
+
+    def _report_lines(self, sell_group):
+        """
+        Describe a sell group the same way the receipt printed right after a sale.
+
+        Kept as plain text lines so the report can be copied to the clipboard as it
+        is, and the rows can be assembled server side, where the sell data needed to
+        build it is actually available.
+        """
+        payment_method = (
+            "Zelle"
+            if sell_group.payment_method == SellGroup.PAYMENT_METODS.ZELLE
+            else "USD"
+        )
+        client_name = sell_group.client.name if sell_group.client else ""
+        date_str = sell_group.for_date.astimezone(
+            timezone.get_current_timezone()
+        ).strftime("%d-%b-%Y %I:%M %p")
+
+        lines = [
+            "COMPROBANTE DE VENTA",
+            f"Nro: {sell_group.id}",
+            f"Fecha: {date_str}",
+            f"Cliente: {client_name}",
+            f"Metodo de pago: {payment_method}",
+            "------------------------------",
+            "PRODUCTOS:",
+        ]
+
+        for index, sell in enumerate(sell_group.sells.all(), start=1):
+            # The sells are read straight from the model, so the price and the
+            # product name have to be resolved here instead of being read off the
+            # annotations the sells listing adds in its queryset.
+            unit_price = Decimal(str(sell.shop_product.sell_price or 0))
+            quantity = sell.quantity
+            subtotal = unit_price * quantity
+            product_name = sell.shop_product.product.__str__()
+            lines += [
+                f"{index}. {product_name}",
+                f"   Cantidad: {quantity}",
+                f"   Precio: ${unit_price.quantize(two_decimals)}",
+                f"   Subtotal: ${subtotal.quantize(two_decimals)}",
+            ]
+
+        discount = Decimal(sell_group.discount)
+        total = Decimal(sell_group.total or 0)
+        net_total = max(total - discount, Decimal("0.00"))
+
+        lines += [
+            "------------------------------",
+            f"Subtotal: ${total.quantize(two_decimals)}",
+            f"Descuento: ${discount.quantize(two_decimals)}",
+            f"Total: ${net_total.quantize(two_decimals)}",
+            f"Notas: {sell_group.extra_info or ''}",
+        ]
+        return lines
+
+    def get_report(self, sell_group):
+        """Plain text receipt of a sell group, ready to be copied to the clipboard."""
+        return "\n".join(self._report_lines(sell_group))
 
     def validate_sells(self, value: list):
         if len(value) < 1:

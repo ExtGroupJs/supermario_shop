@@ -128,7 +128,16 @@ $(document).ready(function () {
         if (note) {
           header += ` | Nota: ${note}`;
         }
-        return header;
+        // The label is escaped and kept apart from the button markup; the flex
+        // wrapper pushes the button to the right edge of the full width group row.
+        return `
+          <div class="d-flex justify-content-between align-items-center w-100">
+            <span class="flex-grow-1 mr-2">${escapeHtml(header)}</span>
+            <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" onclick="generarInformeVenta(${group})">
+              <i class="nav-icon fas fa-file-invoice"></i> Generar informe
+            </button>
+          </div>
+        `;
       },
     },
     columnDefs: [],
@@ -190,4 +199,112 @@ function function_delete(id, name, quantity, date, seller) {
         });
     }
   });
+}
+
+let urlSellGroup = "/business-gestion/sell-groups/";
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.innerText = text == null ? "" : String(text);
+  return div.innerHTML;
+}
+
+// Generar el comprobante de un grupo de ventas
+function generarInformeVenta(sellGroupId) {
+  const reportButton = event.target.closest("button");
+  const originalHtml = reportButton ? reportButton.innerHTML : "";
+  if (reportButton) {
+    reportButton.disabled = true;
+    reportButton.innerHTML =
+      '<i class="nav-icon fas fa-spinner fa-spin"></i> Generando...';
+  }
+
+  axios
+    .get(`${urlSellGroup}${sellGroupId}/report/`)
+    .then(async (response) => {
+      const reportText = (response.data?.report || "").trim();
+      if (!reportText) {
+        throw new Error("El informe esta vacio");
+      }
+
+      const result = await Swal.fire({
+        icon: "success",
+        title: `Comprobante de la venta ${sellGroupId}`,
+        html: buildInformeHtml(reportText),
+        width: 700,
+        showDenyButton: true,
+        confirmButtonText: "Copiar comprobante",
+        denyButtonText: "Cerrar",
+        didOpen: () => {
+          const comprobante = document.getElementById("sale-comprobante");
+          if (comprobante) {
+            comprobante.scrollTop = 0;
+          }
+        },
+      });
+
+      if (result.isConfirmed) {
+        const copied = await copiarComprobante(reportText);
+        if (copied) {
+          await Swal.fire({
+            icon: "success",
+            title: "Comprobante copiado",
+            text: "El comprobante se copio al portapapeles.",
+          });
+        } else {
+          await Swal.fire({
+            icon: "error",
+            title: "No se pudo copiar",
+            text: "No fue posible copiar el comprobante automaticamente.",
+          });
+        }
+      }
+    })
+    .catch((error) => {
+      Swal.fire({
+        icon: "error",
+        title: "Error generando el informe",
+        text:
+          "No fue posible generar el comprobante: " +
+          (error.response?.data?.detail || error.message),
+      });
+    })
+    .finally(() => {
+      if (reportButton) {
+        reportButton.disabled = false;
+        reportButton.innerHTML = originalHtml;
+      }
+    });
+}
+
+function buildInformeHtml(reportText) {
+  return `
+    <div id="sale-comprobante" style="text-align:left;max-height:360px;overflow:auto;">
+      <pre style="white-space:pre-wrap;font-family:monospace;margin:0;">${escapeHtml(reportText)}</pre>
+    </div>
+  `;
+}
+
+async function copiarComprobante(text) {
+  const content = (text || "").trim();
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(content);
+      return true;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = content;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const successful = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return successful;
+  } catch (error) {
+    return false;
+  }
 }

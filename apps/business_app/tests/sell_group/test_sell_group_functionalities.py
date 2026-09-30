@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 
+from apps.business_app.models.product import Product
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop import Shop
@@ -651,3 +652,111 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         created_group = SellGroup.objects.get(id=response.json()["id"])
         self.assertEqual(created_group.total, Decimal("0.00"))
+
+    def _make_group_for_report(self, **kwargs):
+        """Sell group with one sell, ready to be reported."""
+        sell_group = baker.make(SellGroup, **kwargs)
+        baker.make(
+            Sell,
+            sell_group=sell_group,
+            shop_product=baker.make(
+                ShopProducts,
+                product=baker.make(Product, name="Filtro de Aire"),
+                cost_price=1,
+                sell_price=Decimal("10.00"),
+                quantity=50,
+            ),
+            quantity=3,
+        )
+        return sell_group
+
+    def test_report_renders_the_receipt_lines_of_the_sell_group(self):
+        """El informe reproduce el comprobante que se genera al crear la venta."""
+        sell_group = self._make_group_for_report(
+            total=Decimal("30.00"),
+            discount=5,
+            extra_info="Entrega en la tarde",
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        report = response.json()["report"]
+        lines = report.split("\n")
+        self.assertEqual(lines[0], "COMPROBANTE DE VENTA")
+        self.assertIn(f"Nro: {sell_group.id}", report)
+        self.assertIn("Metodo de pago: Zelle", report)
+        self.assertIn("1. Filtro de Aire", report)
+        self.assertIn("   Cantidad: 3", report)
+        self.assertIn("   Precio: $10.00", report)
+        self.assertIn("   Subtotal: $30.00", report)
+        self.assertIn("Subtotal: $30.00", report)
+        self.assertIn("Descuento: $5.00", report)
+        self.assertIn("Total: $25.00", report)
+        self.assertIn("Notas: Entrega en la tarde", report)
+
+    def test_report_shows_the_client_name_without_the_shop(self):
+        """El comprobante muestra el nombre del cliente, no el __str__ con la tienda."""
+        client = baker.make(Client, name="Juan Perez", phone="5841111111")
+        sell_group = self._make_group_for_report(
+            total=Decimal("30.00"), client=client
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        report = self.client.get(url).json()["report"]
+        self.assertIn("Cliente: Juan Perez\n", report)
+
+    def test_report_of_a_group_without_client_leaves_the_line_empty(self):
+        """Un grupo sin cliente no rompe el informe."""
+        sell_group = self._make_group_for_report(total=Decimal("30.00"), client=None)
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        report = self.client.get(url).json()["report"]
+        self.assertIn("Cliente: \n", report)
+
+    def test_report_of_a_group_without_sells_has_an_empty_products_block(self):
+        """Un grupo sin ventas informa cero en vez de reventar."""
+        sell_group = baker.make(SellGroup, total=Decimal("0.00"))
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        report = response.json()["report"]
+        self.assertIn("PRODUCTOS:\n", report)
+        self.assertIn("Total: $0.00", report)
+
+    def test_report_never_reports_a_negative_total(self):
+        """Un descuento mayor que el total se recorta en cero."""
+        sell_group = self._make_group_for_report(
+            total=Decimal("10.00"), discount=50
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        report = self.client.get(url).json()["report"]
+        self.assertIn("Total: $0.00", report)
+
+    def test_report_endpoint_follows_the_same_permissions_as_the_sell_group_list(self):
+        """
+        El informe no abre permisos nuevos: el action hereda los del viewset, asi que
+        SHOP_SELLER (que ya puede ver el listado) tambien puede generar el comprobante.
+        """
+        sell_group = self._make_group_for_report(total=Decimal("30.00"))
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
+        self._test_permissions(
+            url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
+        )
