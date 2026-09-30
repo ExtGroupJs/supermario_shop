@@ -30,6 +30,7 @@ class SellGroupSerializer(serializers.ModelSerializer):
             "for_date",
             "sells",
             "client",
+            "total",
             "client_name",
             "client_phone",
         )

@@ -11,6 +11,7 @@ from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
 from model_bakery import baker
 from datetime import datetime, timedelta
+from decimal import Decimal
 from freezegun import freeze_time
 
 from rest_framework import status
@@ -621,3 +622,32 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         created_group = SellGroup.objects.get(id=response.json()["id"])
         self.assertEqual(created_group.client, created_client)
+
+    def test_create_sell_group_stores_the_total_sent_by_the_view(self):
+        """El total enviado por la vista (suma de importes) se guarda en SellGroup.total."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(
+            url,
+            data=self._make_sell_payload(total="125.50"),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.total, Decimal("125.50"))
+        self.assertEqual(response.json()["total"], "125.50")
+
+    def test_create_sell_group_total_defaults_to_zero_when_not_sent(self):
+        """Si la vista no manda total, el grupo se crea con 0.00."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(url, data=self._make_sell_payload(), format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.total, Decimal("0.00"))

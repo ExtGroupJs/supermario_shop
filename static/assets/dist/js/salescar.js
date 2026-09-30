@@ -262,6 +262,7 @@ $("#crearVenta").on("click", function () {
 
   const descuento = parseInt($("#descuento").val()) || 0;
   const extraInfo = $("#extra_info").val() || "";
+  const total = Number(importe_total) || 0;
   const clientName = ($("#client").val() || "").trim();
   const clientPhone = ($("#client_phone").val() || "").trim();
   const paymentMethod = $("#payment_method").val();
@@ -282,6 +283,7 @@ $("#crearVenta").on("click", function () {
     extra_info: extraInfo,
     payment_method: paymentMethod,
     seller: sellerId,
+    total: total,
     client_name: clientName,
     client_phone: clientPhone,
     sells: productosSeleccionados.map((item) => ({

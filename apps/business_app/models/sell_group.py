@@ -40,6 +40,12 @@ class SellGroup(BaseModel):
         blank=True,
         default=None,
     )
+    total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name=_("Total"),
+    )
     for_date = models.DateTimeField(
         verbose_name=_("For date timestamp"), default=timezone.now
     )
