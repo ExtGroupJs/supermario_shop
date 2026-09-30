@@ -1,14 +1,18 @@
 import pytest
 from django.urls import reverse
 
+from apps.business_app.models.product import Product
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
+from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
+from apps.clients_app.models.client import Client
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.common.models.generic_log import GenericLog
 from apps.users_app.models.groups import Groups
 from model_bakery import baker
 from datetime import datetime, timedelta
+from decimal import Decimal
 from freezegun import freeze_time
 
 from rest_framework import status
@@ -497,3 +501,262 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         self.assertEqual(Sell.objects.filter(sell_group=first_group).count(), 0)
         self.assertEqual(Sell.objects.filter(sell_group=second_group).count(), 1)
+
+    def _make_sell_payload(self, shop="keep", **extra):
+        """Builds the minimum valid payload of one sell to reuse across client tests.
+
+        ``shop="keep"`` lets model_bakery randomize the shop, so tests that do not care
+        about the shop are not coupled to the seller one.
+        """
+        shop_kwarg = {} if shop == "keep" else {"shop": shop}
+        shop_product = baker.make(
+            ShopProducts,
+            **shop_kwarg,
+            cost_price=1,
+            sell_price=3,
+            quantity=baker.random_gen.gen_integer(min_int=2, max_int=10),
+        )
+        payload = {
+            "discount": 0,
+            "extra_info": "",
+            "payment_method": "U",
+            "sells": [
+                {
+                    "shop_product": shop_product.id,
+                    "quantity": 1,
+                },
+            ],
+        }
+        payload.update(extra)
+        self.sold_shop_product = shop_product
+        return payload
+
+    def test_create_sell_group_with_client_phone_creates_client(self):
+        """Al enviar client_name y client_phone se crea el Client y se asigna al SellGroup."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+        client_name = self.faker.name()
+        client_phone = f"58{self.faker.random_int(min=1000000, max=9999999)}"
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(
+            url,
+            data=self._make_sell_payload(
+                shop=self.user.shop,
+                client_name=client_name,
+                client_phone=client_phone,
+            ),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_client = Client.objects.get(phone=client_phone)
+        self.assertEqual(created_client.name, client_name)
+        self.assertEqual(created_client.shop, self.sold_shop_product.shop)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.client, created_client)
+
+        # client_name / client_phone are write only, so they must not leak in responses
+        self.assertNotIn("client_name", response.json())
+        self.assertNotIn("client_phone", response.json())
+
+    def test_create_sell_group_with_existing_client_phone_updates_its_name(self):
+        """Si el teléfono ya existe se reutiliza el Client y solo se actualiza el nombre."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+        old_name = self.faker.name()
+        new_name = self.faker.name()
+        client_phone = f"58{self.faker.random_int(min=1000000, max=9999999)}"
+        existing_client = baker.make(Client, name=old_name, phone=client_phone)
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(
+            url,
+            data=self._make_sell_payload(
+                client_name=new_name, client_phone=client_phone
+            ),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(Client.objects.filter(phone=client_phone).count(), 1)
+        existing_client.refresh_from_db()
+        self.assertEqual(existing_client.name, new_name)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.client, existing_client)
+
+    def test_create_sell_group_without_client_fields_keeps_client_empty(self):
+        """Sin client_name ni client_phone el SellGroup se crea sin client (retrocompatible)."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(url, data=self._make_sell_payload(), format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertIsNone(created_group.client)
+        self.assertEqual(Client.objects.count(), 0)
+
+    def test_create_sell_group_client_belongs_to_the_shop_of_the_sold_product(self):
+        """El Client se crea en el shop del primer shop_product, no en el del vendedor."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+        other_shop = baker.make(Shop, name=self.faker.unique.company())
+        self.assertNotEqual(other_shop, self.user.shop)
+
+        client_phone = f"58{self.faker.random_int(min=1000000, max=9999999)}"
+        payload = self._make_sell_payload(
+            shop=other_shop,
+            client_name=self.faker.name(),
+            client_phone=client_phone,
+        )
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_client = Client.objects.get(phone=client_phone)
+        self.assertEqual(created_client.shop, other_shop)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.client, created_client)
+
+    def test_create_sell_group_stores_the_total_sent_by_the_view(self):
+        """El total enviado por la vista (suma de importes) se guarda en SellGroup.total."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(
+            url,
+            data=self._make_sell_payload(total="125.50"),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.total, Decimal("125.50"))
+        self.assertEqual(response.json()["total"], "125.50")
+
+    def test_create_sell_group_total_defaults_to_zero_when_not_sent(self):
+        """Si la vista no manda total, el grupo se crea con 0.00."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(url, data=self._make_sell_payload(), format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.total, Decimal("0.00"))
+
+    def _make_group_for_report(self, **kwargs):
+        """Sell group with one sell, ready to be reported."""
+        sell_group = baker.make(SellGroup, **kwargs)
+        baker.make(
+            Sell,
+            sell_group=sell_group,
+            shop_product=baker.make(
+                ShopProducts,
+                product=baker.make(Product, name="Filtro de Aire"),
+                cost_price=1,
+                sell_price=Decimal("10.00"),
+                quantity=50,
+            ),
+            quantity=3,
+        )
+        return sell_group
+
+    def test_report_renders_the_receipt_lines_of_the_sell_group(self):
+        """El informe reproduce el comprobante que se genera al crear la venta."""
+        sell_group = self._make_group_for_report(
+            total=Decimal("30.00"),
+            discount=5,
+            extra_info="Entrega en la tarde",
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        report = response.json()["report"]
+        lines = report.split("\n")
+        self.assertEqual(lines[0], "COMPROBANTE DE VENTA")
+        self.assertIn(f"Nro: {sell_group.id}", report)
+        self.assertIn("Metodo de pago: Zelle", report)
+        self.assertIn("1. Filtro de Aire", report)
+        self.assertIn("   Cantidad: 3", report)
+        self.assertIn("   Precio: $10.00", report)
+        self.assertIn("   Subtotal: $30.00", report)
+        self.assertIn("Subtotal: $30.00", report)
+        self.assertIn("Descuento: $5.00", report)
+        self.assertIn("Total: $25.00", report)
+        self.assertIn("Notas: Entrega en la tarde", report)
+
+    def test_report_shows_the_client_name_without_the_shop(self):
+        """El comprobante muestra el nombre del cliente, no el __str__ con la tienda."""
+        client = baker.make(Client, name="Juan Perez", phone="5841111111")
+        sell_group = self._make_group_for_report(
+            total=Decimal("30.00"), client=client
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        report = self.client.get(url).json()["report"]
+        self.assertIn("Cliente: Juan Perez\n", report)
+
+    def test_report_of_a_group_without_client_leaves_the_line_empty(self):
+        """Un grupo sin cliente no rompe el informe."""
+        sell_group = self._make_group_for_report(total=Decimal("30.00"), client=None)
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        report = self.client.get(url).json()["report"]
+        self.assertIn("Cliente: \n", report)
+
+    def test_report_of_a_group_without_sells_has_an_empty_products_block(self):
+        """Un grupo sin ventas informa cero en vez de reventar."""
+        sell_group = baker.make(SellGroup, total=Decimal("0.00"))
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        report = response.json()["report"]
+        self.assertIn("PRODUCTOS:\n", report)
+        self.assertIn("Total: $0.00", report)
+
+    def test_report_never_reports_a_negative_total(self):
+        """Un descuento mayor que el total se recorta en cero."""
+        sell_group = self._make_group_for_report(
+            total=Decimal("10.00"), discount=50
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+        report = self.client.get(url).json()["report"]
+        self.assertIn("Total: $0.00", report)
+
+    def test_report_endpoint_follows_the_same_permissions_as_the_sell_group_list(self):
+        """
+        El informe no abre permisos nuevos: el action hereda los del viewset, asi que
+        SHOP_SELLER (que ya puede ver el listado) tambien puede generar el comprobante.
+        """
+        sell_group = self._make_group_for_report(total=Decimal("30.00"))
+        url = reverse("sell-groups-report", kwargs={"pk": sell_group.id})
+
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
+        self._test_permissions(
+            url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
+        )

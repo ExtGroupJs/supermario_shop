@@ -262,7 +262,9 @@ $("#crearVenta").on("click", function () {
 
   const descuento = parseInt($("#descuento").val()) || 0;
   const extraInfo = $("#extra_info").val() || "";
+  const total = Number(importe_total) || 0;
   const clientName = ($("#client").val() || "").trim();
+  const clientPhone = ($("#client_phone").val() || "").trim();
   const paymentMethod = $("#payment_method").val();
   const sellerId = localStorage.getItem("id");
 
@@ -281,6 +283,9 @@ $("#crearVenta").on("click", function () {
     extra_info: extraInfo,
     payment_method: paymentMethod,
     seller: sellerId,
+    total: total,
+    client_name: clientName,
+    client_phone: clientPhone,
     sells: productosSeleccionados.map((item) => ({
       shop_product: item.id,
       quantity: item.cantidad,
@@ -336,6 +341,7 @@ $("#crearVenta").on("click", function () {
       $("#descuento").val("");
       $("#extra_info").val("");
       $("#client").val("");
+      $("#client_phone").val("");
       $("#payment_method").val("U"); // Restablecer a USD por defecto
     })
     .catch((error) => {

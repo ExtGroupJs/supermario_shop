@@ -15,6 +15,7 @@ from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import action
 
 
 class SellGroupViewSet(
@@ -77,6 +78,18 @@ class SellGroupViewSet(
             sell.delete()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["GET"], url_path="report")
+    def report(self, request, pk=None):
+        """
+        Plain text receipt of a sell group, the same one printed when the sale is made.
+
+        The lines are rendered by the serializer because the sells listing annotations
+        (sell price, product name) only exist in that endpoint queryset, so the report
+        cannot be rebuilt from the group payload alone.
+        """
+        sell_group = self.get_object()
+        return Response({"report": self.get_serializer(sell_group).get_report(sell_group)})
 
 
 class PaymentMethodsViewSet(EnumsMixin):
