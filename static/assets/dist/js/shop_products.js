@@ -396,6 +396,9 @@ $(document).ready(function () {
         data: "id",
         title: "Acciones",
         render: (data, type, row) => {
+          const productId = row.product?.id ?? row.product ?? row.product_id ?? "";
+          const productName = row.product_name || row.product || "Producto";
+
           return `<div class="btn-group">
            <button type="button" title="Agregar Cantidad" class="btn bg-olive" onclick="agregarCantidad('${row.id}','${row.quantity}')">
                 <i class="fas fa-plus"></i>
@@ -406,6 +409,9 @@ $(document).ready(function () {
             <button type="button" title="Marcar como New" class="btn bg-olive" onclick="marcarComoNew('${row.id}')">
                <i class="nav-icon fas fa-clipboard-check"></i>
               </button>
+            <button type="button" title="Editar Producto" class="btn bg-olive" data-toggle="modal" data-target="#modal-crear-products" data-product-id="${productId}" data-product-name="${productName}" data-type="edit-product">
+                      <i class="fas fa-box-open"></i>
+                    </button>
             <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
                       <i class="fas fa-edit"></i>
                     </button>                  
@@ -480,6 +486,143 @@ $(document).ready(function () {
 // Otras funciones existentes...
 
 let selected_id;
+let productEditId = null;
+
+$(document).on("click", "[data-type='edit-product']", function (event) {
+  event.preventDefault();
+  const productId = $(this).data("product-id");
+  const productName = $(this).data("product-name") || "Producto";
+
+  if (!productId) {
+    return;
+  }
+
+  abrirModalEditarProducto(productId, productName);
+});
+
+function poblarModelosProductoModal(selectedModelId = "") {
+  const $model = document.getElementById("product-modal-model");
+  if (!$model) return Promise.resolve();
+
+  $model.innerHTML = "";
+  return axios.get("/business-gestion/models/").then(function (response) {
+    response.data.results.forEach(function (element) {
+      const option = new Option(element.__str__, element.id);
+      $model.add(option);
+    });
+
+    if (selectedModelId) {
+      $model.value = String(selectedModelId);
+      $("#product-modal-model").trigger("change.select2");
+    }
+  });
+}
+
+function abrirModalEditarProducto(productId, productName) {
+  const modal = $("#modal-crear-products");
+  const form = document.getElementById("form-create-products");
+  const productForm = document.getElementById("form-create-products");
+
+  productEditId = productId;
+  modal.find(".modal-title").text("Editar Producto " + (productName || "Producto"));
+  form.reset();
+
+  load.hidden = false;
+
+  axios
+    .get(`/business-gestion/products/${productId}/`)
+    .then(function (response) {
+      const product = response.data;
+      const selectedModelId = product.model || "";
+      productForm.elements.name.value = product.name || "";
+      productForm.elements.description.value = product.description || "";
+      productForm.elements.model.value = selectedModelId;
+
+      return poblarModelosProductoModal(selectedModelId).then(function () {
+        if (product.image) {
+          document.getElementById("product-modal-image-preview").src = product.image;
+        }
+        load.hidden = true;
+        modal.modal("show");
+      });
+    })
+    .catch(function () {
+      load.hidden = true;
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo cargar la información del producto.",
+      });
+    });
+}
+
+$("#modal-crear-products").on("hide.bs.modal", (event) => {
+  const form = event.currentTarget.querySelector("form");
+  if (form) form.reset();
+  productEditId = null;
+  const elements = [...(form?.elements || [])];
+  elements.forEach((elem) => elem.classList.remove("is-invalid"));
+  const preview = document.getElementById("product-modal-image-preview");
+  if (preview) {
+    preview.src = "";
+  }
+});
+
+$(document).on("submit", "#form-create-products", function (event) {
+  event.preventDefault();
+
+  const form = document.getElementById("form-create-products");
+  const csrfToken = document.cookie
+    .split(";")
+    .find((c) => c.trim().startsWith("csrftoken="))
+    ?.split("=")[1];
+  axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
+
+  const data = new FormData();
+  data.append("name", form.elements.name.value);
+  data.append("description", form.elements.description.value);
+  data.append("model", form.elements.model.value);
+
+  const imageFile = document.getElementById("product-modal-image").files[0];
+  if (imageFile) {
+    data.append("image", imageFile);
+  }
+
+  load.hidden = false;
+
+  const request = productEditId
+    ? axios.patch(`/business-gestion/products/${productEditId}/`, data)
+    : axios.post("/business-gestion/products/", data);
+
+  request
+    .then((response) => {
+      load.hidden = true;
+      Swal.fire({
+        icon: "success",
+        title: productEditId ? "Producto actualizado con éxito" : "Producto creado con éxito",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      $("#modal-crear-products").modal("hide");
+      $("#tabla-de-Datos").DataTable().ajax.reload();
+    })
+    .catch((error) => {
+      load.hidden = true;
+      let dict = error.response?.data || {};
+      let textError = "Revise los siguientes campos: ";
+      for (const key in dict) {
+        textError = textError + ", " + key;
+      }
+
+      Swal.fire({
+        icon: "error",
+        title: "Error al guardar el Producto",
+        text: textError,
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    });
+});
 
 $("#modal-crear-shop-products").on("hide.bs.modal", (event) => {
   const form = event.currentTarget.querySelector("form");
@@ -690,12 +833,14 @@ $(function () {
 function poblarListas() {
   // Poblar la lista de tiendas
   var $shop = document.getElementById("shop");
-  axios.get("/business-gestion/shops/").then(function (response) {
-    response.data.results.forEach(function (element) {
-      var option = new Option(element.name, element.id);
-      $shop.add(option);
+  axios
+    .get("/business-gestion/shops/", { params: { enabled: true } })
+    .then(function (response) {
+      response.data.results.forEach(function (element) {
+        var option = new Option(element.name, element.id);
+        $shop.add(option);
+      });
     });
-  });
 
   // Poblar la lista de productos
   var $product = document.getElementById("product");
@@ -826,9 +971,11 @@ function moveToAnotherShop(id) {
   load.hidden = false;
   // Obtener la tienda seleccionada globalmente
   const selectedShopId = localStorage.getItem("selectedShopId");
-  axios.get("/business-gestion/shops/").then(function (response) {
-    const shops = response.data.results;
-    // Filtrar la tienda de origen (si existe)
+  axios
+    .get("/business-gestion/shops/", { params: { enabled: true } })
+    .then(function (response) {
+      const shops = response.data.results;
+      // Filtrar la tienda de origen (si existe)
     const filteredShops = selectedShopId
       ? shops.filter((shop) => String(shop.id) !== String(selectedShopId))
       : shops;

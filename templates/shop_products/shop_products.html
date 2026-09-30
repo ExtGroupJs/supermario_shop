@@ -215,6 +215,66 @@
 <!-- /.modal-dialog -->
 </div>
 <!-- /.modal -->
+
+<div class="modal fade" id="modal-crear-products" data-backdrop="static" tabindex="-1" role="dialog"
+  aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Adicionar Producto</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <form id="form-create-products">
+        <div class="card-body">
+          <div class="form-group">
+            <label for="name">Nombre</label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="Entre el nombre" required>
+          </div>
+
+          <div class="row">
+            <div class="form-group col-sm-6">
+              <label for="product-modal-image">Imagen</label>
+              <div class="input-group">
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input" id="product-modal-image" name="image"
+                    accept="image/jpeg, image/png, image/gif, image/jfif, image/webp, .jfif, .webp">
+                  <label class="custom-file-label" for="product-modal-image"></label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group col-sm-6">
+              <label for="product-modal-model">Modelo</label>
+              <select class="form-control select2" id="product-modal-model" name="model" tabindex="-1"></select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Descripción</label>
+            <textarea class="form-control" rows="3" id="description" name="description"
+              placeholder="Ingrese la descripción" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Previsualización</label>
+            <div class="text-center">
+              <img id="product-modal-image-preview" src="" alt="Previsualización" class="img-fluid" style="max-width: 220px; max-height: 220px; display: block; margin: 0 auto;">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-primary">Enviar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="modal-logs" tabindex="-1" role="dialog" aria-labelledby="modal-logs-label" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -273,7 +333,16 @@
 <script src="{% static 'assets/plugins/inputmask/jquery.inputmask.min.js' %}"></script>
 <script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
 <script>
-  $('.select2').select2({ dropdownParent: $('#modal-crear-shop-products'), theme: 'bootstrap4' })
-  
+  $('.select2').not('#product-modal-model').select2({
+    dropdownParent: $('#modal-crear-shop-products'),
+    theme: 'bootstrap4'
+  });
+
+  $('#product-modal-model').select2({
+    dropdownParent: $('#modal-crear-products'),
+    theme: 'bootstrap4'
+  });
+
+  bsCustomFileInput.init();
 </script>
 {% endblock %}

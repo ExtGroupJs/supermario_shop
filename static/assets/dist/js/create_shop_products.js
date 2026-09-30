@@ -112,7 +112,7 @@ function poblarListas() {
   let selectedShopId = localStorage.getItem("selectedShopId");
   // Poblar la lista de tiendas
   var $shop = document.getElementById("shop");
-  axios.get("/business-gestion/shops/").then(function (response) {
+  axios.get("/business-gestion/shops/", { params: { enabled: true } }).then(function (response) {
     response.data.results.forEach(function (element) {
       // Si hay una tienda seleccionada, la seleccionamos en el dropdown
       if (selectedShopId && element.id == selectedShopId) {

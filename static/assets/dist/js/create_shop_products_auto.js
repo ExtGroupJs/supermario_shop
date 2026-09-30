@@ -108,7 +108,7 @@ function poblarTiendas() {
   shopSelect.innerHTML = "";
 
   axios
-    .get("/business-gestion/shops/")
+    .get("/business-gestion/shops/", { params: { enabled: true } })
     .then(function (response) {
       const shops = response.data.results || response.data || [];
 

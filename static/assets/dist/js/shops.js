@@ -51,6 +51,7 @@ $(document).ready(function () {
         axios
           .get(`${url}`, {
             params: {
+              include_inactive: true,
               page_size: data.length,
               page: data.start / data.length + 1,
               search: data.search.value,

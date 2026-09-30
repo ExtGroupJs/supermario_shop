@@ -463,9 +463,11 @@ function mostrarUserConfig(id) {
           .join("");
 
         // Obtener las tiendas del endpoint
-        return axios.get("/business-gestion/shops/").then((shopsResponse) => {
-          const tiendas = shopsResponse.data.results;
-          const opcionesTiendas = tiendas
+        return axios
+          .get("/business-gestion/shops/", { params: { enabled: true } })
+          .then((shopsResponse) => {
+            const tiendas = shopsResponse.data.results;
+            const opcionesTiendas = tiendas
             .map((shop) => {
               const isSelected = tiendaActual === shop.id ? "selected" : "";
               return `<option value="${shop.id}" ${isSelected}>${shop.name}</option>`;
