@@ -9,6 +9,10 @@ const palletUrl = "/business-gestion/pallets/";
 const shopUrl = "/business-gestion/shops/";
 const shopProductsApiUrl = "/business-gestion/shop-products/";
 
+// Pallet label format: rack + section + number, e.g. "3A12". Groups are optional
+// so partial labels ("3A", "A12", "3") are also supported.
+const palletLabelPattern = /^(\d*)([A-Za-z]?)(\d*)$/;
+
 let selectedId = null;
 let editPallet = false;
 let warnedMissingShop = false;
@@ -73,26 +77,14 @@ function initTable() {
         dir = "-";
       }
 
-      axios
-        .get(palletUrl, {
-          params: {
-            shop: selectedShopId,
-            page_size: data.length,
-            page: data.start / data.length + 1,
-            search: data.search.value,
-            ordering: dir + data.columns[data.order[0].column].data,
-          },
-        })
-        .then((res) => {
-          callback({
-            recordsTotal: res.data.count,
-            recordsFiltered: res.data.count,
-            data: res.data.results,
-          });
-        })
-        .catch((error) => {
-          alert(error);
-        });
+      fetchPallets({
+        shop: selectedShopId,
+        pageSize: data.length,
+        page: data.start / data.length + 1,
+        search: data.search.value,
+        ordering: dir + data.columns[data.order[0].column].data,
+        callback,
+      });
     },
     columns: [
       { data: "pallet_label", title: "Pallet" },
@@ -131,6 +123,108 @@ function initTable() {
       },
     ],
   });
+}
+
+/**
+ * Splits a pallet label ("3A12" -> rack 3, section A, number 12) into the
+ * filters supported by the API. Any group may be empty so partial labels such
+ * as "3A", "A12" or "12" are also understood.
+ * Returns null when the term is not a pallet label (e.g. a shop name), so the
+ * caller can fall back to the plain `search` parameter.
+ */
+function parsePalletLabelSearch(value) {
+  const term = String(value || "").trim();
+  const match = term.match(palletLabelPattern);
+  if (!match) {
+    return null;
+  }
+
+  const [, rack, section, number] = match;
+  if (!rack && !section && !number) {
+    return null;
+  }
+
+  return {
+    rack: rack || "",
+    section: section ? section.toUpperCase() : "",
+    number: number || "",
+  };
+}
+
+/**
+ * Builds the candidate query param sets for a search term, in priority order.
+ * A label with its section letter is unambiguous; a digits-only term can refer
+ * either to the rack or to the pallet number, so both are tried.
+ */
+function buildPalletSearchParams(term) {
+  const labelSearch = parsePalletLabelSearch(term);
+
+  if (!labelSearch) {
+    return [{ search: term }];
+  }
+
+  const { rack, section, number } = labelSearch;
+  const filters = [];
+
+  if (section) {
+    filters.push({
+      ...(rack ? { rack } : {}),
+      section,
+      ...(number ? { number } : {}),
+    });
+    return filters;
+  }
+
+  if (rack) {
+    filters.push({ rack }, { number: rack });
+  }
+  if (number) {
+    filters.push({ number }, { rack: number });
+  }
+
+  return filters;
+}
+
+async function requestPalletPage(params) {
+  const response = await axios.get(palletUrl, { params });
+
+  return {
+    recordsTotal: response.data.count,
+    recordsFiltered: response.data.count,
+    data: response.data.results,
+  };
+}
+
+async function fetchPallets({ shop, pageSize, page, search, ordering, callback }) {
+  const baseParams = {
+    shop,
+    page_size: pageSize,
+    page,
+    // "pallet_label" is not a model field, order by its parts instead.
+    ordering:
+      ordering === "pallet_label" || ordering === "-pallet_label"
+        ? `${ordering.startsWith("-") ? "-" : ""}rack,section,number`
+        : ordering,
+  };
+
+  const candidates = buildPalletSearchParams(search);
+  let emptyResult = { recordsTotal: 0, recordsFiltered: 0, data: [] };
+
+  for (const filters of candidates) {
+    try {
+      const result = await requestPalletPage({ ...baseParams, ...filters });
+      if (result.data.length) {
+        callback(result);
+        return;
+      }
+      emptyResult = result;
+    } catch (error) {
+      alert(error);
+      return;
+    }
+  }
+
+  callback(emptyResult);
 }
 
 function resetForm() {
