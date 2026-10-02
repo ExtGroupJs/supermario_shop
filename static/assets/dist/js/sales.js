@@ -143,6 +143,8 @@ $(document).ready(function () {
     columnDefs: [],
   });
 
+  initPeriodReportButton();
+
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
     event.preventDefault();
@@ -202,6 +204,112 @@ function function_delete(id, name, quantity, date, seller) {
 }
 
 let urlSellGroup = "/business-gestion/sell-groups/";
+
+/**
+ * Reporte de ventas por periodo: lista los grupos de venta con su monto y el TOTAL.
+ *
+ * El rango se toma de los mismos datepickers de los filtros ("Ventas Desde" y
+ * "Ventas Hasta"), asi no hay dos juegos de fechas que se contradigan. Sin fechas
+ * el reporte cae en el dia de hoy.
+ */
+function initPeriodReportButton() {
+  $("#period-report-button").on("click", function () {
+    const filters = $("#filter-form").serializeArray();
+    const valorDe = (name) => {
+      const filtro = filters.find((item) => item.name === name);
+      return filtro ? filtro.value : "";
+    };
+
+    generarReporteVentas(
+      valorDe("created_timestamp__gte"),
+      valorDe("created_timestamp__lte"),
+    );
+  });
+}
+
+// Generar el reporte de ventas de un periodo, por defecto el dia de hoy
+async function generarReporteVentas(startDate, endDate) {
+  if (startDate && endDate && startDate > endDate) {
+    Swal.fire({
+      icon: "warning",
+      title: "Revise el periodo",
+      text: "La fecha 'Ventas Desde' no puede ser mayor que la fecha 'Ventas Hasta'.",
+    });
+    return;
+  }
+
+  const reportButton = $("#period-report-button");
+  const originalHtml = reportButton.html();
+  reportButton.prop("disabled", true);
+  reportButton.html('<i class="nav-icon fas fa-spinner fa-spin"></i> Generando...');
+
+  const params = {};
+  if (startDate) {
+    params.start_date = startDate;
+  }
+  if (endDate) {
+    params.end_date = endDate;
+  }
+  const shopId = localStorage.getItem("selectedShopId");
+  if (shopId) {
+    params.shop = shopId;
+  }
+
+  try {
+    const response = await axios.get(`${urlSellGroup}period-report/`, { params });
+    const reportText = (response.data?.report || "").trim();
+    if (!reportText) {
+      throw new Error("El reporte esta vacio");
+    }
+
+    const groups = Number(response.data?.groups || 0);
+    const total = response.data?.total || "0.00";
+
+    const result = await Swal.fire({
+      icon: "success",
+      title: `Reporte de ventas (${groups} ${groups === 1 ? "grupo" : "grupos"})`,
+      html: buildInformeHtml(reportText),
+      width: 700,
+      showDenyButton: true,
+      confirmButtonText: "Copiar reporte",
+      denyButtonText: "Cerrar",
+      didOpen: () => {
+        const comprobante = document.getElementById("sale-comprobante");
+        if (comprobante) {
+          comprobante.scrollTop = 0;
+        }
+      },
+    });
+
+    if (result.isConfirmed) {
+      const copied = await copiarComprobante(reportText);
+      if (copied) {
+        await Swal.fire({
+          icon: "success",
+          title: "Reporte copiado",
+          text: `El reporte por $${total} se copio al portapapeles.`,
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "No se pudo copiar",
+          text: "No fue posible copiar el reporte automaticamente.",
+        });
+      }
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error generando el reporte",
+      text:
+        "No fue posible generar el reporte de ventas: " +
+        (error.response?.data?.detail || error.message),
+    });
+  } finally {
+    reportButton.prop("disabled", false);
+    reportButton.html(originalHtml);
+  }
+}
 
 function escapeHtml(text) {
   const div = document.createElement("div");

@@ -103,6 +103,44 @@ class SellGroupSerializer(serializers.ModelSerializer):
         """Plain text receipt of a sell group, ready to be copied to the clipboard."""
         return "\n".join(self._report_lines(sell_group))
 
+    @staticmethod
+    def _summary_report_lines(sell_groups, period, net_total):
+        """One line per sell group plus the grand total of the whole period.
+
+        ``sell_groups`` only has to carry the group level data, so the caller can
+        feed it a plain values queryset and never load the individual sells.
+        """
+        header = [
+            "REPORTE DE VENTAS",
+            f"Periodo: {period}",
+            "------------------------------",
+            "Ventas específicas:\n",
+        ]
+        body = []
+        for sell_group in sell_groups:
+            net = max(
+                Decimal(sell_group["total"] or 0) - Decimal(sell_group["discount"] or 0),
+                Decimal("0.00"),
+            )
+            date_str = sell_group["for_date"].strftime("%d-%b-%Y %I:%M %p")
+            body.append(
+                f"Id de venta: {sell_group['id']} ({date_str}) | "
+                f"Cliente: {sell_group['client_name'] or '-'} | "
+                f"Total: ${net.quantize(two_decimals)}"
+                "\n"
+            )
+
+        footer = [
+            "------------------------------",
+            f"TOTAL: ${net_total.quantize(two_decimals)}",
+            f"Cant. de Ventas: {len(sell_groups)}",
+        ]
+        return header + (body or ["Sin ventas en el periodo"]) + footer
+
+    def get_summary_report(self, sell_groups, period, net_total):
+        """Plain text summary of the sell groups of a period, ready to be copied."""
+        return "\n".join(self._summary_report_lines(sell_groups, period, net_total))
+
     def validate_sells(self, value: list):
         if len(value) < 1:
             raise ValidationError("La venta debe contener al menos un elemento")

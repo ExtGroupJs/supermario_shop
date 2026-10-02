@@ -760,3 +760,195 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self._test_permissions(
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
         )
+
+    def _make_group_at(self, when, **kwargs):
+        """Sell group dated at ``when``, ready to be reported."""
+        return self._make_group_for_report(for_date=when, **kwargs)
+
+    def _period_report(self, **params):
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+        return self.client.get(reverse("sell-groups-period-report"), params)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_defaults_to_today_when_no_date_is_sent(self):
+        """Sin fechas el reporte trae los grupos de HOY, no los de todo el historico."""
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
+        self._make_group_at(datetime(2026, 3, 9, 9, 0), total=Decimal("999.00"))
+
+        response = self._period_report()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["start_date"], "2026-03-10")
+        self.assertEqual(response.json()["end_date"], "2026-03-10")
+        self.assertEqual(response.json()["groups"], 1)
+        self.assertNotIn("$999.00", response.json()["report"])
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_lists_one_line_per_sell_group_and_ends_with_the_total(self):
+        """Cada grupo aporta su monto neto y el TOTAL suma esos montos."""
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
+        self._make_group_at(
+            datetime(2026, 3, 10, 11, 0), total=Decimal("30.00"), discount=5
+        )
+
+        report = self._period_report().json()["report"]
+
+        self.assertIn("$50.00", report)
+        self.assertIn("$25.00", report)
+        self.assertIn("TOTAL: $75.00", report)
+        # El monto del reporte es el neto, el descuento no se vuelve a sumar.
+        self.assertNotIn("TOTAL: $85.00", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_shows_the_period_on_the_line_above_the_groups(self):
+        """La fecha va en la linea superior, antes de la lista de grupos."""
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
+
+        lines = self._period_report(
+            start_date="2026-03-01", end_date="2026-03-10"
+        ).json()["report"].split("\n")
+
+        period_line = next(
+            i for i, line in enumerate(lines) if line.startswith("Periodo:")
+        )
+        first_group_line = next(
+            i for i, line in enumerate(lines) if line.startswith("Id de venta:")
+        )
+        total_line = next(i for i, line in enumerate(lines) if line.startswith("TOTAL:"))
+        self.assertLess(period_line, first_group_line)
+        self.assertLess(first_group_line, total_line)
+        self.assertIn("01-Mar-2026", lines[period_line])
+        self.assertIn("10-Mar-2026", lines[period_line])
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_only_sums_the_sell_groups_not_the_individual_sells(self):
+        """
+        Un grupo vale su total UNA vez, por mas productos que tenga, y un grupo sin
+        ventas sigue summing lo que el grupo guardo.
+        """
+        group_with_many_sells = self._make_group_at(
+            datetime(2026, 3, 10, 9, 0), total=Decimal("80.00")
+        )
+        for _ in range(3):
+            baker.make(
+                Sell,
+                sell_group=group_with_many_sells,
+                shop_product=baker.make(
+                    ShopProducts,
+                    product=baker.make(Product),
+                    cost_price=1,
+                    sell_price=Decimal("10.00"),
+                    quantity=50,
+                ),
+                quantity=2,
+            )
+        # El grupo cuenta aunque se le borren todas sus ventas individuales.
+        orphan_group = self._make_group_at(
+            datetime(2026, 3, 10, 10, 0), total=Decimal("20.00")
+        )
+        orphan_group.sells.all().delete()
+
+        report = self._period_report().json()["report"]
+
+        self.assertIn("TOTAL: $100.00", report)
+        self.assertEqual(report.count("Id de venta: "), 2)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_excludes_the_groups_outside_the_period(self):
+        """Las fechas acotan el reporte: antes y despues quedan fuera."""
+        self._make_group_at(datetime(2026, 3, 5, 9, 0), total=Decimal("999.00"))
+        self._make_group_at(datetime(2026, 3, 8, 9, 0), total=Decimal("40.00"))
+        self._make_group_at(datetime(2026, 3, 12, 9, 0), total=Decimal("777.00"))
+
+        response = self._period_report(start_date="2026-03-07", end_date="2026-03-10")
+
+        self.assertEqual(response.json()["groups"], 1)
+        self.assertIn("TOTAL: $40.00", response.json()["report"])
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_without_sales_in_the_period_reports_zero(self):
+        """Un periodo sin ventas no revienta: informa cero grupos."""
+        self._make_group_at(datetime(2026, 1, 1, 9, 0), total=Decimal("999.00"))
+
+        report = self._period_report().json()["report"]
+
+        self.assertIn("Sin ventas en el periodo", report)
+        self.assertIn("TOTAL: $0.00", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_never_reports_a_negative_amount(self):
+        """Un descuento mayor que el total se recorta en cero."""
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0), total=Decimal("10.00"), discount=50
+        )
+
+        report = self._period_report().json()["report"]
+
+        self.assertIn("Total: $0.00", report)
+        self.assertIn("TOTAL: $0.00", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_rejects_a_start_date_after_the_end_date(self):
+        """Un 'Desde' posterior al 'Hasta' se rechaza en vez de reportar un periodo vacio."""
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
+
+        response = self._period_report(start_date="2026-03-10", end_date="2026-03-01")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("no puede ser mayor", response.json()["detail"])
+        self.assertNotIn("report", response.json())
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_accepts_a_start_date_equal_to_the_end_date(self):
+        """Un solo dia es un periodo valido: Desde igual a Hasta no es un error."""
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
+
+        response = self._period_report(start_date="2026-03-10", end_date="2026-03-10")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("TOTAL: $50.00", response.json()["report"])
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_rejects_an_inverted_period_even_without_a_start_date(self):
+        """El 'Hasta' invertido tambien se rechaza: sin 'Desde' cae en hoy."""
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
+
+        response = self._period_report(end_date="2026-03-01")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("no puede ser mayor", response.json()["detail"])
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_only_includes_the_groups_of_the_requested_shop(self):
+        """El reporte respeta la tienda seleccionada en el selector global."""
+        requested_shop = baker.make(Shop)
+        other_shop = baker.make(Shop)
+        mine = self._make_group_for_report(
+            for_date=datetime(2026, 3, 10, 9, 0), total=Decimal("50.00")
+        )
+        theirs = self._make_group_for_report(
+            for_date=datetime(2026, 3, 10, 10, 0), total=Decimal("900.00")
+        )
+        # update() no traverses relations, so the sells are pointed at their own shop.
+        for sell in theirs.sells.all():
+            sell.shop_product.shop = requested_shop
+            sell.shop_product.save()
+        for sell in mine.sells.all():
+            sell.shop_product.shop = other_shop
+            sell.shop_product.save()
+
+        report = self._period_report(shop=requested_shop.id).json()["report"]
+
+        self.assertIn("$900.00", report)
+        self.assertNotIn("$50.00", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_follows_the_same_permissions_as_the_sell_group_list(self):
+        """El reporte no abre permisos nuevos: hereda los permisos del viewset."""
+        url = reverse("sell-groups-period-report")
+
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
+        self._test_permissions(
+            url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
+        )
