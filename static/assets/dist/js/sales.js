@@ -94,7 +94,6 @@ $(document).ready(function () {
       { data: "total_priced", title: "Monto total" },
       { data: "profits", title: "Ganancia" },
       { data: "seller__first_name", title: "Vendedor" },
-      { data: "created_timestamp", title: "Fecha" },
       {
         data: "id",
         title: "Acciones",
@@ -105,7 +104,9 @@ $(document).ready(function () {
         },
       },
     ],
-    order: [[7, "desc"]], // Primero ordena por grupo, luego por fecha
+    // La columna Fecha se elimino de la tabla, asi que el orden descendente se
+    // aplica sobre el grupo (columna oculta): los grupos mas recientes salen primero.
+    order: [[0, "desc"]],
     rowGroup: {
       dataSrc: "sell_group",
       startRender: function (rows, group) {
@@ -128,11 +129,21 @@ $(document).ready(function () {
         if (note) {
           header += ` | Nota: ${note}`;
         }
+        // La fecha del grupo va en su propia linea, debajo de la info del grupo.
+        // Se usa for_date (no la fecha de la venta) porque todas las ventas del
+        // grupo comparten ese valor.
+        const groupDate = (first.group_for_date || "").trim();
+        const dateLine = groupDate
+          ? `<div class="text-muted" style="font-size: 0.85rem;">Fecha: ${escapeHtml(groupDate)}</div>`
+          : "";
         // The label is escaped and kept apart from the button markup; the flex
         // wrapper pushes the button to the right edge of the full width group row.
         return `
           <div class="d-flex justify-content-between align-items-center w-100">
-            <span class="flex-grow-1 mr-2">${escapeHtml(header)}</span>
+            <div class="flex-grow-1 mr-2">
+              <div>${escapeHtml(header)}</div>
+              ${dateLine}
+            </div>
             <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" onclick="generarInformeVenta(${group})">
               <i class="nav-icon fas fa-file-invoice"></i> Generar informe
             </button>
