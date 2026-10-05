@@ -92,14 +92,3 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
         if not is_safedelete and update_fields is None:
             self.full_clean()  # Valida el modelo antes de guardar
         super().save(*args, **kwargs)
-
-    def investment(self):
-        from apps.business_app.models.sell import Sell
-
-        related_sells = Sell.objects.filter(shop_product=self)
-        cost_price = self.cost_price or 0
-        accumulated_selled = 0
-        for sell in related_sells:
-            accumulated_selled += cost_price * sell.quantity
-        accumulated_selled += cost_price * self.quantity
-        return accumulated_selled
