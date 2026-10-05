@@ -39,8 +39,10 @@ function initShopProductsTable(palletId) {
       { extend: "print", text: "Print" },
     ],
     serverSide: true,
+    // Live search debounce is handled by serverSideAjax.
+    searchDelay: 0,
     processing: true,
-    ajax: function (data, callback) {
+    ajax: serverSideAjax(function (data, callback) {
       let dir = "";
       if (data.order[0].dir === "desc") {
         dir = "-";
@@ -58,6 +60,7 @@ function initShopProductsTable(palletId) {
         })
         .then((res) => {
           callback({
+            draw: data.draw,
             recordsTotal: res.data.count,
             recordsFiltered: res.data.count,
             data: res.data.results,
@@ -65,12 +68,13 @@ function initShopProductsTable(palletId) {
         })
         .catch(() => {
           callback({
+            draw: data.draw,
             recordsTotal: 0,
             recordsFiltered: 0,
             data: [],
           });
         });
-    },
+    }),
     columns: [
       { data: "product_name", title: "Producto" },
       { data: "model_brand", title: "Marca / Modelo" },

@@ -53,13 +53,16 @@ function initTable() {
       { extend: "print", text: "Print" },
     ],
     serverSide: true,
+    // Live search debounce is handled by serverSideAjax.
+    searchDelay: 0,
     processing: true,
-    ajax: function (data, callback) {
+    ajax: serverSideAjax(function (data, callback) {
       const selectedShopId = localStorage.getItem("selectedShopId");
 
       if (!selectedShopId) {
         showMissingShopWarning();
         callback({
+          draw: data.draw,
           recordsTotal: 0,
           recordsFiltered: 0,
           data: [],
@@ -85,6 +88,7 @@ function initTable() {
         })
         .then((res) => {
           callback({
+            draw: data.draw,
             recordsTotal: res.data.count,
             recordsFiltered: res.data.count,
             data: res.data.results,
@@ -93,7 +97,7 @@ function initTable() {
         .catch((error) => {
           alert(error);
         });
-    },
+    }),
     columns: [
       { data: "pallet_label", title: "Pallet" },
       {
