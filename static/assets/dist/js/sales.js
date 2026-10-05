@@ -43,12 +43,11 @@ $(document).ready(function () {
       },
     ],
     serverSide: true,
-    search: {
-      return: true,
-    },
+    // Live search debounce is handled by serverSideAjax.
+    searchDelay: 0,
     processing: true,
 
-    ajax: function (data, callback, settings) {
+    ajax: serverSideAjax(function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
       if (filters[1].value != "") {
         filters[1].value += ":23:59";
@@ -73,6 +72,7 @@ $(document).ready(function () {
         .get(urlSell, { params })
         .then((res) => {
           callback({
+            draw: data.draw,
             recordsTotal: res.data.count,
             recordsFiltered: res.data.count,
             data: res.data.results,
@@ -81,7 +81,7 @@ $(document).ready(function () {
         .catch((error) => {
           alert(error);
         });
-    },
+    }),
     columns: [
       {
         data: "sell_group",
