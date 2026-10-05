@@ -2,11 +2,7 @@ from rest_framework import viewsets
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
-from apps.business_app.models.shop_products import ShopProducts
-from apps.business_app.serializers.dashboard import (
-    DashboardCountsSerializer,
-    DashboardInvestmentSerializer,
-)
+from apps.business_app.serializers.dashboard import DashboardCountsSerializer
 
 from django.db.models.functions import (
     TruncDay,
@@ -35,27 +31,6 @@ class DashboardViewSet(
     # GenericAPIView,
 ):
     serializer_class = DashboardCountsSerializer
-
-    @action(
-        detail=False,
-        methods=["POST"],
-        url_name="shop-product-investment",
-        url_path="shop-product-investment",
-        serializer_class=DashboardInvestmentSerializer,
-        permission_classes=[CommonRolePermission],
-    )
-    def shop_product_investment(self, request):
-        """
-        This function obtains the total investment for a given date limit, shop, product or a combination
-        """
-        serializer = self.get_serializer_class()(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        objects = ShopProducts.objects.filter(**serializer.validated_data)
-        investments = 0
-        for obj in objects:
-            investments += obj.investment()
-        return Response({"investments": investments})
 
     @action(
         detail=False,

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from apps.business_app.models.product import Product
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.shop_products import ShopProducts
 from apps.common.utils.allowed_frequencies import AllowedFrequencies
@@ -23,16 +22,4 @@ class DashboardCountsSerializer(DashboardSerializer):
     )
     shop_product = serializers.PrimaryKeyRelatedField(
         queryset=ShopProducts.objects.all(), required=False
-    )
-
-
-class DashboardInvestmentSerializer(DashboardSerializer):
-    shop_id = serializers.PrimaryKeyRelatedField(
-        source="shop", queryset=Shop.objects.all(), required=False
-    )
-    shop = serializers.PrimaryKeyRelatedField(
-        queryset=Shop.objects.all(), required=False
-    )
-    product = serializers.PrimaryKeyRelatedField(
-        queryset=Product.objects.all(), required=False
     )

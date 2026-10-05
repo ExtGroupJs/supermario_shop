@@ -40,17 +40,12 @@ function formatMetricNumber(value) {
     });
 }
 
-// url del endpoint principal
-// const url = "/business-gestion/dashboard/shop-product-investment/";
 $(document).ready(function () {
   updateNoShopWarning();
 
   const shopId = localStorage.getItem("selectedShopId");
   if (!shopId) return; // No cargar métricas si no hay tienda seleccionada
 
-smallboxdataInvestment();
-smallboxdataInvestmentLastMonth();
-smallboxdataInvestmentCurrentMonth();
 smallboxdataSellCurrentWeek();
 smallboxdataSellCurrentMonth();
 smallboxdataSellProfits();
@@ -65,106 +60,6 @@ const today = new Date();
 
     daterangeSellProfits(startDate, endDate);
 });
-
-function smallboxdataInvestment() {
-    axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-    axios.post("/business-gestion/dashboard/shop-product-investment/", { ...getShopIdFilter() })
-        .then(response => {
-            // Obtener el valor de inversiones de la respuesta
-            const investmentValue = response.data.investments;
-
-            // Modificar el contenido del small-box con el valor de la inversión
-            const smallBox = document.getElementById('inversion');
-            if (smallBox) {
-                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-}
-
-
-function smallboxdataInvestmentLastMonth() {
-    // Obtener la fecha actual
-    const today = new Date();
-    
-    // Calcular el primer día del mes actual
-    const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    
-    // Calcular el último día del mes anterior
-    const lastDayOfLastMonth = new Date(firstDayOfCurrentMonth - 1);
-    
-    // Calcular el primer día del mes anterior
-    const firstDayOfLastMonth = new Date(lastDayOfLastMonth.getFullYear(), lastDayOfLastMonth.getMonth(), 1);
-    
-    // Formatear las fechas a YYYY-MM-DD
-    firstDayOfLastMonth.setHours(0, 0, 0, 0);
-    lastDayOfLastMonth.setHours(0, 0, 0, 0);
-    const startDate = firstDayOfLastMonth.toISOString().split('T')[0];
-    const endDate = lastDayOfLastMonth.toISOString().split('T')[0];
-
-    // Parámetros para la solicitud
-    const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
-        ...getShopIdFilter()
-    };
-
-    axios.post('/business-gestion/dashboard/shop-product-investment/', params)
-        .then(response => {
-            // Obtener el valor de inversiones de la respuesta
-            const investmentValue = response.data.investments;
-
-            // Modificar el contenido del small-box con el valor de la inversión
-            const smallBox = document.getElementById('inversionxmes');
-            if (smallBox) {
-                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-}
-
-function smallboxdataInvestmentCurrentMonth() {
-    // Obtener la fecha actual
-    const today = new Date();
-    
-    // Calcular el primer día del mes actual
-    const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    
-    // Calcular el último día del mes actual
-    const lastDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    
-    // Formatear las fechas a YYYY-MM-DD
-    firstDayOfCurrentMonth.setHours(0, 0, 0, 0);
-    lastDayOfCurrentMonth.setHours(0, 0, 0, 0);
-    const startDate = firstDayOfCurrentMonth.toISOString().split('T')[0];
-    const endDate = lastDayOfCurrentMonth.toISOString().split('T')[0];
-
-    // Parámetros para la solicitud
-    const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
-        ...getShopIdFilter()
-    };
-
-    axios.post('/business-gestion/dashboard/shop-product-investment/', params)
-        .then(response => {
-            // Obtener el valor de inversiones de la respuesta
-            const investmentValue = response.data.investments;
-
-            // Modificar el contenido del small-box con el valor de la inversión
-            const smallBox = document.getElementById('inversioncurrentmes');
-            if (smallBox) {
-                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-}
 
 function smallboxdataSellCurrentWeek() {
     // Obtener la fecha actual

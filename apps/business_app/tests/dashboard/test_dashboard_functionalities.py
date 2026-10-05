@@ -21,72 +21,6 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
         self.user.groups.add(Groups.SHOP_OWNER)
         self.client.force_authenticate(self.user)
 
-    def test_shop_product_investment(self):
-        shops = [baker.make(Shop), baker.make(Shop)]
-
-        shop_products_per_shop = baker.random_gen.gen_integer(min_int=1, max_int=10)
-        random_equal_cost = baker.random_gen.gen_integer(min_int=10, max_int=20)
-        for shop in shops:
-            baker.make(
-                ShopProducts,
-                shop=shop,
-                cost_price=random_equal_cost,
-                sell_price=random_equal_cost + 1,  # is irrelevant for this test
-                quantity=1,
-                _quantity=shop_products_per_shop,
-            )
-
-        url = reverse("dashboard-shop-product-investment")
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data.get("investments"),
-            shop_products_per_shop * random_equal_cost * len(shops),
-        )
-
-        # Testing filter by shop
-        for shop in shops:
-            payload = {"shop": shop.id}
-            response = self.client.post(url, data=payload, format="json")
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(
-                response.data.get("investments"),
-                shop_products_per_shop * random_equal_cost,
-            )
-
-    def test_shop_product_investment_filter_by_shop_id(self):
-        target_shop = baker.make(Shop)
-        other_shop = baker.make(Shop)
-
-        baker.make(
-            ShopProducts,
-            shop=target_shop,
-            cost_price=5,
-            sell_price=6,
-            quantity=2,
-        )
-        baker.make(
-            ShopProducts,
-            shop=target_shop,
-            cost_price=3,
-            sell_price=4,
-            quantity=4,
-        )
-        baker.make(
-            ShopProducts,
-            shop=other_shop,
-            cost_price=100,
-            sell_price=120,
-            quantity=1,
-        )
-
-        url = reverse("dashboard-shop-product-investment")
-        response = self.client.post(
-            url, data={"shop_id": target_shop.id}, format="json"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get("investments"), 22)
-
     def test_shop_product_filter_by_shop(self):
         ShopProducts.objects.all().delete(
             force_policy=0
@@ -119,49 +53,6 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_content = response.json()
         self.assertEqual(response_content.get("count"), shop_products_to_create)
-
-    def test_shop_product_investment_with_previous_sells(self):
-        shop = baker.make(Shop)
-
-        random_equal_cost = baker.random_gen.gen_integer(min_int=10, max_int=20)
-        random_qty = baker.random_gen.gen_integer(min_int=10, max_int=20)
-        shop_product = baker.make(
-            ShopProducts,
-            shop=shop,
-            sell_price=random_equal_cost + 1,
-            cost_price=random_equal_cost,
-            quantity=random_qty,
-        )
-        url = reverse("dashboard-shop-product-investment")
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data.get("investments"),
-            random_equal_cost
-            * random_qty,  # Initial investment only depends on the cost price of the product
-        )
-
-        first_sell_qty = random_qty - int(random_qty / 2)
-        baker.make(Sell, shop_product=shop_product, quantity=first_sell_qty)
-
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data.get("investments"),
-            random_equal_cost
-            * random_qty,  # despite a part is sold the investment remains
-        )
-        baker.make(
-            Sell, shop_product=shop_product, quantity=random_qty - first_sell_qty
-        )
-        url = reverse("dashboard-shop-product-investment")
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data.get("investments"),
-            random_equal_cost
-            * random_qty,  # all products sold, the investment is the same
-        )
 
     def test_sell_profits(self):
         sell_group = baker.make(SellGroup)  # Initialy without any discount
