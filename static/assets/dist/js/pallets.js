@@ -57,13 +57,16 @@ function initTable() {
       { extend: "print", text: "Print" },
     ],
     serverSide: true,
+    // Live search debounce is handled by serverSideAjax.
+    searchDelay: 0,
     processing: true,
-    ajax: function (data, callback) {
+    ajax: serverSideAjax(function (data, callback) {
       const selectedShopId = localStorage.getItem("selectedShopId");
 
       if (!selectedShopId) {
         showMissingShopWarning();
         callback({
+          draw: data.draw,
           recordsTotal: 0,
           recordsFiltered: 0,
           data: [],
@@ -77,15 +80,16 @@ function initTable() {
         dir = "-";
       }
 
-      fetchPallets({
+fetchPallets({
         shop: selectedShopId,
         pageSize: data.length,
         page: data.start / data.length + 1,
         search: data.search.value,
         ordering: dir + data.columns[data.order[0].column].data,
+        draw: data.draw,
         callback,
       });
-    },
+    }),
     columns: [
       { data: "pallet_label", title: "Pallet" },
       {
@@ -185,17 +189,26 @@ function buildPalletSearchParams(term) {
   return filters;
 }
 
-async function requestPalletPage(params) {
+async function requestPalletPage(draw, params) {
   const response = await axios.get(palletUrl, { params });
 
   return {
+    draw,
     recordsTotal: response.data.count,
     recordsFiltered: response.data.count,
     data: response.data.results,
   };
 }
 
-async function fetchPallets({ shop, pageSize, page, search, ordering, callback }) {
+async function fetchPallets({
+  shop,
+  pageSize,
+  page,
+  search,
+  ordering,
+  draw,
+  callback,
+}) {
   const baseParams = {
     shop,
     page_size: pageSize,
@@ -208,11 +221,11 @@ async function fetchPallets({ shop, pageSize, page, search, ordering, callback }
   };
 
   const candidates = buildPalletSearchParams(search);
-  let emptyResult = { recordsTotal: 0, recordsFiltered: 0, data: [] };
+  let emptyResult = { draw, recordsTotal: 0, recordsFiltered: 0, data: [] };
 
   for (const filters of candidates) {
     try {
-      const result = await requestPalletPage({ ...baseParams, ...filters });
+      const result = await requestPalletPage(draw, { ...baseParams, ...filters });
       if (result.data.length) {
         callback(result);
         return;
