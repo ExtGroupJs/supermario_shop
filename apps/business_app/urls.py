@@ -14,6 +14,7 @@ from apps.business_app.views.input import InputViewSet
 from apps.business_app.views.shop_products import ShopProductsViewSet
 from apps.business_app.views.sell import SellViewSet
 from apps.business_app.views.shop_products_logs import ShopProductsLogsViewSet
+from apps.business_app.views.group_sell import GroupSellViewSet
 from apps.business_app.views.pallet import PalletViewSet
 
 
@@ -59,6 +60,11 @@ router.register(
     "sell-groups",
     SellGroupViewSet,
     basename="sell-groups",
+)
+router.register(
+    "group-sells",
+    GroupSellViewSet,
+    basename="group-sells",
 )
 router.register(
     "dashboard",

@@ -446,14 +446,17 @@ function getSelectedEntries() {
     .filter((entry) => entry && entry.chosenMatch);
 }
 
-function calculateCurrentTotal() {
+function calculateGrossTotal() {
   const selectedEntries = getSelectedEntries();
-  const grossTotal = selectedEntries.reduce((sum, entry) => {
+  return selectedEntries.reduce((sum, entry) => {
     const price = Number(entry?.chosenMatch?.sellPrice || 0);
     const quantity = Number(entry?.quantity || 0);
     return sum + price * quantity;
   }, 0);
+}
 
+function calculateCurrentTotal() {
+  const grossTotal = calculateGrossTotal();
   const discount = parseFloat(document.getElementById("discount")?.value) || 0;
   const netTotal = Math.max(grossTotal - discount, 0);
 
@@ -488,6 +491,7 @@ async function crearVentas() {
   const paymentMethod = document.getElementById("payment_method").value;
   const manualExtraInfo = document.getElementById("extra_info").value || "";
   const clientName = (document.getElementById("client").value || "").trim();
+  const clientPhone = (document.getElementById("client_phone").value || "").trim();
   const sellerId = localStorage.getItem("id");
 
   if (!clientName) {
@@ -554,6 +558,11 @@ async function crearVentas() {
     extra_info: composedExtraInfo,
     payment_method: paymentMethod,
     seller: sellerId,
+    // The gross amount, matching the salescar view: the discount is kept apart so the
+    // sell group can report both the subtotal and the net amount.
+    total: Number(calculateGrossTotal()) || 0,
+    client_name: clientName,
+    client_phone: clientPhone,
     sells,
   };
 
@@ -605,6 +614,7 @@ async function crearVentas() {
     document.getElementById("discount").value = 0;
     document.getElementById("extra_info").value = "";
     document.getElementById("client").value = "";
+    document.getElementById("client_phone").value = "";
     thresholdValue.textContent = `${thresholdInput.value}%`;
   } catch (error) {
     hideLoader();

@@ -82,13 +82,14 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     def save(self, *args, **kwargs):
         if self.wholesale_price is None:
             self.wholesale_price = self.sell_price
-            # 1. Check if django-safedelete is performing a soft delete action
+        # 1. Check if django-safedelete is performing a soft delete action
         is_safedelete = kwargs.get("keep_deleted", False) or getattr(
             self, "deleted", None
         )
 
-        # 2. Only validate if it's a normal save (not a deletion)
-        if not is_safedelete:
+        update_fields = kwargs.get("update_fields", None)
+        # 2. Only validate if it's a normal save (not a deletion) and not a partial update
+        if not is_safedelete and update_fields is None:
             self.full_clean()  # Valida el modelo antes de guardar
         super().save(*args, **kwargs)
 

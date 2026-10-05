@@ -29,6 +29,10 @@ class SellSerializer(serializers.ModelSerializer):
     group_extra_info = serializers.CharField(
         read_only=True, source="sell_group.extra_info", default=""
     )
+    group_for_date = serializers.SerializerMethodField()
+    payment_method_label = serializers.CharField(
+        read_only=True, source="sell_group.get_payment_method_display", default=""
+    )
 
     class Meta:
         model = Sell
@@ -49,6 +53,8 @@ class SellSerializer(serializers.ModelSerializer):
             "client_phone",
             "group_total",
             "group_extra_info",
+            "group_for_date",
+            "payment_method_label",
         )
         read_only_fields = (
             "id",
@@ -58,6 +64,19 @@ class SellSerializer(serializers.ModelSerializer):
 
     def get_created_timestamp(self, object):
         return object.created_timestamp.strftime("%d-%h-%Y a las %I:%M %p")
+
+    def get_group_for_date(self, object):
+        """
+        Fecha del grupo de venta, la que se muestra en el encabezado del grupo.
+
+        Se usa ``for_date`` y no ``created_timestamp`` porque es la fecha que el
+        vendedor dio a la venta; todos los sells del grupo comparten ese valor, asi
+        que alcanza con leer el del primer sell del grupo.
+        """
+        sell_group = getattr(object, "sell_group", None)
+        if sell_group is None or not sell_group.for_date:
+            return ""
+        return sell_group.for_date.strftime("%d-%b-%Y %I:%M %p")
 
     @staticmethod
     def _get_cancellation_label(shop_product, when):

@@ -8,7 +8,7 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 // url del endpoint principal
 let selectedShopId = localStorage.getItem("selectedShopId");
-let urlSell = "/business-gestion/sell-products/";
+let urlSell = "/business-gestion/group-sells/";
 
 $(function () {
   bsCustomFileInput.init();
@@ -49,7 +49,7 @@ $(document).ready(function () {
 
     ajax: serverSideAjax(function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
-      if (filters[1].value != "") {
+      if (filters.length > 1 && filters[1].value != "") {
         filters[1].value += ":23:59";
       }
       const params = {};
@@ -66,7 +66,9 @@ $(document).ready(function () {
       params.page = data.start / data.length + 1;
       params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
-      params.shop_product__shop = selectedShopId;
+      if (selectedShopId) {
+        params.sells__shop_product__shop = selectedShopId;
+      }
 
       axios
         .get(urlSell, { params })
@@ -84,73 +86,35 @@ $(document).ready(function () {
     }),
     columns: [
       {
-        data: "sell_group",
+        data: "id",
         title: "Grupo de Venta",
-        visible: false, // La columna estará oculta ya que se usa solo para agrupar
+        visible: false,
       },
-      { data: "product_name", title: "Producto" },
-      { data: "quantity", title: "Cantidad" },
-      { data: "sell_price", title: "Precio unitario" },
-      { data: "total_priced", title: "Monto total" },
-      { data: "profits", title: "Ganancia" },
+      { data: "id", title: "ID" },
+      { data: "for_date_label", title: "Fecha" },
+      { data: "client_name", title: "Cliente" },
+      { data: "total", title: "Total" },
+      { data: "discount", title: "Descuento" },
+      { data: "net_total", title: "Total Neto" },
       { data: "payment_method_label", title: "Método de Pago" },
       {
         data: "id",
         title: "Acciones",
         render: (data, type, row) => {
-          return `<button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.product_name}','${row.quantity}','${row.created_timestamp}','${row.seller__first_name}')" >
-                    <i class="fas fa-trash"></i>
+          return `<button type="button" title="Ver detalle" class="btn bg-primary" onclick="toggleGroupSells(${data})">
+                    <i class="nav-icon fas fa-plus"></i>
+                    </button>
+                    <button type="button" title="Generar informe" class="btn bg-info ml-1" onclick="generarInformeVenta('${data}')">
+                    <i class="nav-icon fas fa-file-invoice"></i>
                     </button>`;
         },
       },
     ],
+    
     // La columna Fecha se elimino de la tabla, asi que el orden descendente se
     // aplica sobre el grupo (columna oculta): los grupos mas recientes salen primero.
     order: [[0, "desc"]],
-    rowGroup: {
-      dataSrc: "sell_group",
-      startRender: function (rows, group) {
-        // Group level data is the same on every row of the group, so the first one
-        // carries everything needed to build the header.
-        const first = rows.data()[0];
-        const discount = Number(first.discounts || 0);
-        const total = Number(first.group_total || 0);
-        const clientName = (first.client_name || "").trim();
-        const clientLabel = clientName
-          ? `Venta ${group} (${clientName}):`
-          : `Venta ${group}:`;
-
-        let header = `${clientLabel} Importe: $${total.toFixed(2)}`;
-        if (discount > 0) {
-          // The net amount only makes sense once the discount is taken off the gross.
-          header += ` ($${(total - discount).toFixed(2)}) | Descuento: $${discount.toFixed(2)}`;
-        }
-        const note = (first.group_extra_info || "").trim();
-        if (note) {
-          header += ` | Nota: ${note}`;
-        }
-        // La fecha del grupo va en su propia linea, debajo de la info del grupo.
-        // Se usa for_date (no la fecha de la venta) porque todas las ventas del
-        // grupo comparten ese valor.
-        const groupDate = (first.group_for_date || "").trim();
-        const dateLine = groupDate
-          ? `<div class="text-muted" style="font-size: 0.85rem;">Fecha: ${escapeHtml(groupDate)}</div>`
-          : "";
-        // The label is escaped and kept apart from the button markup; the flex
-        // wrapper pushes the button to the right edge of the full width group row.
-        return `
-          <div class="d-flex justify-content-between align-items-center w-100">
-            <div class="flex-grow-1 mr-2">
-              <div>${escapeHtml(header)}</div>
-              ${dateLine}
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" onclick="generarInformeVenta(${group})">
-              <i class="nav-icon fas fa-file-invoice"></i> Generar informe
-            </button>
-          </div>
-        `;
-      },
-    },
+    rowGroup: null,
     columnDefs: [],
   });
 
@@ -426,4 +390,50 @@ async function copiarComprobante(text) {
   } catch (error) {
     return false;
   }
+}
+
+function toggleGroupSells(groupId) {
+  const table = $("#tabla-de-Datos").DataTable();
+  const row = table.rows().data().toArray().find((r) => r.id == groupId);
+  if (!row || !row.sells) {
+    return;
+  }
+  const sells = row.sells;
+  const sellsHtml = sells
+    .map(
+      (s, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${escapeHtml(s.product_name || "")}</td>
+          <td>${s.quantity}</td>
+          <td>$${Number(s.sell_price || 0).toFixed(2)}</td>
+          <td>$${Number(s.total_priced || 0).toFixed(2)}</td>
+          <td>${escapeHtml(s.seller__first_name || "")}</td>
+        </tr>
+      `
+    )
+    .join("");
+  Swal.fire({
+    title: `Ventas del grupo ${groupId}`,
+    html: `
+      <div style="max-height:400px;overflow:auto;">
+        <table class="table table-bordered table-sm" style="width:100%">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio unitario</th>
+              <th>Monto total</th>
+              <th>Vendedor</th>
+            </tr>
+          </thead>
+          <tbody>${sellsHtml}</tbody>
+        </table>
+      </div>
+    `,
+    width: 900,
+    showCloseButton: true,
+    confirmButtonText: "Cerrar",
+  });
 }

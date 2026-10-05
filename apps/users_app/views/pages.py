@@ -160,6 +160,11 @@ def sales(request):
 
 
 @user_passes_test(is_owner)
+def group_sells(request):
+    return render(request, "sales/group_sells.html")
+
+
+@user_passes_test(is_owner)
 def inputs(request):
     return render(request, "input/input.html")
 

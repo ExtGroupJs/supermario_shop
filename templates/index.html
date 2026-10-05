@@ -268,6 +268,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   </a>
                 </li>
                 <li class="nav-item">
+                  <a href="{% url 'group_sells' %}" class="nav-link">
+                    <i class="far fa-circle text-warning nav-icon"></i>
+                    <p>{% blocktranslate %}Ventas por Grupo{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
                   <a href="{% url 'create_sales_auto' %}" class="nav-link">
                     <i class="fas fa-circle text-danger nav-icon"></i>
                     <p>{% blocktranslate %}Venta Automática{% endblocktranslate %}</p>
