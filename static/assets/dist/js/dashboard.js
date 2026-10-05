@@ -40,6 +40,17 @@ function formatMetricNumber(value) {
     });
 }
 
+/**
+ * Suma los totales de todos los buckets devueltos por un endpoint agrupado por
+ * frecuencia. El dashboard pide periodos (semana, mes) que pueden quedar partidos en
+ * mas de un bucket por el truncado, y un tile tiene que mostrar el total del periodo
+ * pedido, no el del primer bucket.
+ */
+function sumFrequencyTotals(result) {
+    if (!Array.isArray(result)) return 0;
+    return result.reduce((total, bucket) => total + (Number(bucket.total) || 0), 0);
+}
+
 $(document).ready(function () {
   updateNoShopWarning();
 
@@ -81,16 +92,19 @@ function smallboxdataSellCurrentWeek() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         "frequency": "week",
         ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-sells-count/', params)
         .then(response => {
-            // Obtener el valor de ventas de la respuesta
-            const sellCount =  response.data.result[0] ? response.data.result[0].total : 0;
+            // Suman los buckets porque el periodo pedido puede caer en mas de uno:
+            // la semana va de domingo a sabado y TruncWeek agrupa de lunes a domingo,
+            // asi que esa semana se parte en dos y solo con el primer bucket se
+            // perderian las ventas del domingo.
+            const sellCount = sumFrequencyTotals(response.data.result);
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('sellweek');
             if (smallBox) {
@@ -118,17 +132,16 @@ function smallboxdataSellCurrentMonth() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         "frequency": "month",
         ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-sells-count/', params)
         .then(response => {
-            // Obtener el valor de ventas de la respuesta
-            
-            const sellCount =  response.data.result[0] ? response.data.result[0].total : 0;
+            // Suman los buckets por si el rango cae en mas de un mes.
+            const sellCount = sumFrequencyTotals(response.data.result);
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('sellmount');
             if (smallBox) {
@@ -179,8 +192,8 @@ function smallboxdataSellProfitsLastMonth() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         ...getShopIdFilter()
     };
 
@@ -218,8 +231,8 @@ function smallboxdataSellProfitsCurrentMonth() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         ...getShopIdFilter()
     };
 
@@ -259,8 +272,8 @@ function smallboxdataSellProfitsCurrentWeek() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         ...getShopIdFilter()
     };
 
@@ -292,8 +305,8 @@ function daterangeSellProfits(startDate, endDate) {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": start,
-        "updated_timestamp__lte": end,
+        "created_timestamp__gte": start,
+        "created_timestamp__lte": end,
         "frequency": "day",
         ...getShopIdFilter()
     };
@@ -347,8 +360,8 @@ function chartSellProfitsLastWeek() {
     const endDate = lastDayOfLastWeek.toISOString().split('T')[0];
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         "frequency": "day",  // Cambiamos a "day" para obtener datos diarios
         ...getShopIdFilter()
     };
@@ -396,8 +409,8 @@ function chartSellProfitsThisWeek() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         "frequency": "day",  // Cambiamos a "day" para obtener datos diarios
         ...getShopIdFilter()
     };

@@ -1,5 +1,8 @@
 import pytest
+from datetime import timedelta
+
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
@@ -127,9 +130,28 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
             quantity=10,
         )
 
-        baker.make(Sell, shop_product=target_shop_product, quantity=1)
-        baker.make(Sell, shop_product=target_shop_product, quantity=2)
-        baker.make(Sell, shop_product=other_shop_product, quantity=10)
+        # The shop of a group is the shop of its products, so the group has to be
+        # reached through a sell of the target shop to be selected by the filter.
+        target_sell_group = baker.make(SellGroup)
+        other_sell_group = baker.make(SellGroup)
+        baker.make(
+            Sell,
+            sell_group=target_sell_group,
+            shop_product=target_shop_product,
+            quantity=1,
+        )
+        baker.make(
+            Sell,
+            sell_group=target_sell_group,
+            shop_product=target_shop_product,
+            quantity=2,
+        )
+        baker.make(
+            Sell,
+            sell_group=other_sell_group,
+            shop_product=other_shop_product,
+            quantity=10,
+        )
 
         url = reverse("dashboard-sell-profits")
         response = self.client.post(
@@ -142,6 +164,115 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
                 "frequency": "None",
                 "total": 15,
             },
+        )
+
+    def test_sell_profits_filters_by_group_date_not_by_sell_date(self):
+        """
+        The dashboard measures the period by the date of the group, not by the date of
+        each sell, so a sell added later to an old group is reported in the period of
+        the group and never splits the group between two periods.
+        """
+        shop = baker.make(Shop)
+        shop_product = baker.make(
+            ShopProducts,
+            shop=shop,
+            cost_price=2,
+            sell_price=4,
+            quantity=10,
+        )
+        sell_group = baker.make(SellGroup)
+        baker.make(Sell, sell_group=sell_group, shop_product=shop_product, quantity=1)
+
+        # The sell is dated today, but it belongs to a group of the previous month.
+        old_group_day = timezone.now() - timedelta(days=40)
+        Sell.objects.filter(sell_group=sell_group).update(
+            created_timestamp=timezone.now()
+        )
+        SellGroup.objects.filter(pk=sell_group.pk).update(
+            created_timestamp=old_group_day
+        )
+
+        url = reverse("dashboard-sell-profits")
+
+        # No period at all: the group is selected regardless of how old it is.
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("result").get("total"), 2)
+
+        # Asking for the period of the group returns it, even though the sell itself is
+        # far newer than that period.
+        group_day = old_group_day.date()
+        response = self.client.post(
+            url,
+            data={
+                "created_timestamp__gte": group_day.strftime("%Y-%m-%d"),
+                "created_timestamp__lte": group_day.strftime("%Y-%m-%d"),
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("result").get("total"), 2)
+
+    def test_sell_profits_discount_is_taken_once_per_group(self):
+        """
+        A discount belongs to the sale, so a group with five sells has its discount
+        subtracted once and not once per sell.
+        """
+        shop = baker.make(Shop)
+        shop_product = baker.make(
+            ShopProducts,
+            shop=shop,
+            cost_price=1,
+            sell_price=3,
+            quantity=10,
+        )
+        sell_group = baker.make(SellGroup, discount=5)
+        baker.make(
+            Sell,
+            sell_group=sell_group,
+            shop_product=shop_product,
+            quantity=1,
+            _quantity=5,
+        )
+
+        url = reverse("dashboard-sell-profits")
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("result").get("total"),
+            10,  # 5 sells x (3 - 1)
+        )
+        self.assertEqual(response.data.get("discounts"), 5)
+        self.assertEqual(response.data.get("sell_group_ids"), [sell_group.id])
+
+    def test_sell_profits_ignores_sells_without_group(self):
+        """
+        A sell is part of a sale, so a sell with no group has no sale to be reported in
+        and must not add anything to the totals.
+        """
+        shop = baker.make(Shop)
+        shop_product = baker.make(
+            ShopProducts,
+            shop=shop,
+            cost_price=1,
+            sell_price=11,
+            quantity=10,
+        )
+        sell_group = baker.make(SellGroup)
+        baker.make(Sell, sell_group=sell_group, shop_product=shop_product, quantity=2)
+        baker.make(
+            Sell,
+            sell_group=None,
+            shop_product=shop_product,
+            quantity=5,
+        )
+
+        url = reverse("dashboard-sell-profits")
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("result").get("total"),
+            20,  # only the 2 units of the grouped sell
         )
 
     def test_shop_product_sells_count_filter_by_shop_id(self):
@@ -163,9 +294,29 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
             quantity=20,
         )
 
-        baker.make(Sell, shop_product=target_shop_product, quantity=1)
-        baker.make(Sell, shop_product=target_shop_product, quantity=5)
-        baker.make(Sell, shop_product=other_shop_product, quantity=7)
+        # Each sell carries a different quantity on purpose: the tile reports sales,
+        # and a sale is a group, so the quantities must not change the count.
+        target_first_sell_group = baker.make(SellGroup)
+        target_second_sell_group = baker.make(SellGroup)
+        other_sell_group = baker.make(SellGroup)
+        baker.make(
+            Sell,
+            sell_group=target_first_sell_group,
+            shop_product=target_shop_product,
+            quantity=1,
+        )
+        baker.make(
+            Sell,
+            sell_group=target_second_sell_group,
+            shop_product=target_shop_product,
+            quantity=5,
+        )
+        baker.make(
+            Sell,
+            sell_group=other_sell_group,
+            shop_product=other_shop_product,
+            quantity=7,
+        )
 
         url = reverse("dashboard-shop-product-sells-count")
         response = self.client.post(
@@ -176,8 +327,41 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
             response.data.get("result"),
             {
                 "frequency": "None",
-                "total": 2,
+                "total": 2,  # two sales, although they sold 1 + 5 units
             },
+        )
+
+    def test_shop_product_sells_count_counts_groups_not_sells(self):
+        """
+        The tiles report sales, and a sale is the group: a sale of five products is one
+        sale and not five.
+        """
+        shop = baker.make(Shop)
+        shop_product = baker.make(
+            ShopProducts,
+            shop=shop,
+            cost_price=1,
+            sell_price=2,
+            quantity=20,
+        )
+        # Two sales: one of a single product and another of three products.
+        one_product_sale = baker.make(SellGroup)
+        baker.make(Sell, sell_group=one_product_sale, shop_product=shop_product, quantity=1)
+        three_products_sale = baker.make(SellGroup)
+        baker.make(
+            Sell,
+            sell_group=three_products_sale,
+            shop_product=shop_product,
+            quantity=1,
+            _quantity=3,
+        )
+
+        url = reverse("dashboard-shop-product-sells-count")
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("result").get("total"),
+            2,  # two sales, although they sold 1 + 3 = 4 lines
         )
 
     def test_shop_product_sells_products_count_filter_by_shop_id(self):
