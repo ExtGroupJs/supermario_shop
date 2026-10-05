@@ -113,9 +113,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "project_site.urls"
 
-SESSION_EXPIRE_SECONDS = env.int("SESSION_EXPIRE_SECONDS")
-SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
-SESSION_TIMEOUT_REDIRECT = "/"
+# SESSION_EXPIRE_SECONDS = env.int("SESSION_EXPIRE_SECONDS")
+# SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
+# SESSION_TIMEOUT_REDIRECT = "/"
 
 TEMPLATES = [
     {
@@ -142,8 +142,8 @@ RUNNING_FROM_LOCAL = "local"
 RUNNING_FROM_REMOTE = "remote"
 RUNNING_FROM = env("RUNNING_FROM", default=RUNNING_FROM_LOCAL)
 
-if RUNNING_FROM == RUNNING_FROM_LOCAL:
-    MIDDLEWARE.append("django_session_timeout.middleware.SessionTimeoutMiddleware")
+# if RUNNING_FROM == RUNNING_FROM_LOCAL:
+#     MIDDLEWARE.append("django_session_timeout.middleware.SessionTimeoutMiddleware")
 
 
 # Database
