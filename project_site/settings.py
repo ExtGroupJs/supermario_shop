@@ -101,7 +101,6 @@ SPECTACULAR_SETTINGS = {
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django_session_timeout.middleware.SessionTimeoutMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -142,6 +141,9 @@ WSGI_APPLICATION = "project_site.wsgi.application"
 RUNNING_FROM_LOCAL = "local"
 RUNNING_FROM_REMOTE = "remote"
 RUNNING_FROM = env("RUNNING_FROM", default=RUNNING_FROM_LOCAL)
+
+if RUNNING_FROM == RUNNING_FROM_LOCAL:
+    MIDDLEWARE.append("django_session_timeout.middleware.SessionTimeoutMiddleware")
 
 
 # Database

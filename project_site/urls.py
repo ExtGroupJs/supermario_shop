@@ -128,6 +128,7 @@ urlpatterns = [
         "sales_products/", login_required(pages.sales_products), name="sales_products"
     ),
     path("sales/", login_required(pages.sales), name="sales"),
+    path("group_sells/", login_required(pages.group_sells), name="group_sells"),
     path("inputs/", login_required(pages.inputs), name="inputs"),
     path("sales_tienda/", login_required(pages.sales_tienda), name="sales_tienda"),
     path("salescar/", login_required(pages.salescar), name="salescar"),
