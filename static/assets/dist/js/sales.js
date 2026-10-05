@@ -93,7 +93,7 @@ $(document).ready(function () {
       { data: "sell_price", title: "Precio unitario" },
       { data: "total_priced", title: "Monto total" },
       { data: "profits", title: "Ganancia" },
-      { data: "seller__first_name", title: "Vendedor" },
+      { data: "payment_method_label", title: "Método de Pago" },
       {
         data: "id",
         title: "Acciones",

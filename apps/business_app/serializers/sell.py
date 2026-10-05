@@ -30,6 +30,9 @@ class SellSerializer(serializers.ModelSerializer):
         read_only=True, source="sell_group.extra_info", default=""
     )
     group_for_date = serializers.SerializerMethodField()
+    payment_method_label = serializers.CharField(
+        read_only=True, source="sell_group.get_payment_method_display", default=""
+    )
 
     class Meta:
         model = Sell
@@ -51,6 +54,7 @@ class SellSerializer(serializers.ModelSerializer):
             "group_total",
             "group_extra_info",
             "group_for_date",
+            "payment_method_label",
         )
         read_only_fields = (
             "id",

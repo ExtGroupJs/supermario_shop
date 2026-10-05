@@ -68,7 +68,7 @@ $(document).ready(function () {
       params.ordering = dir + data.columns[data.order[0].column].data;
       params.search = data.search.value;
       if (selectedShopId) {
-        params["sells__shop_product__shop"] = selectedShopId;
+        params.sells__shop_product__shop = selectedShopId;
       }
 
       axios
@@ -90,13 +90,13 @@ $(document).ready(function () {
         title: "Grupo de Venta",
         visible: false,
       },
-      { data: "id", title: "ID Grupo" },
+      { data: "id", title: "ID" },
       { data: "for_date_label", title: "Fecha" },
       { data: "client_name", title: "Cliente" },
       { data: "total", title: "Total" },
       { data: "discount", title: "Descuento" },
       { data: "net_total", title: "Total Neto" },
-      { data: "seller__first_name", title: "Vendedor" },
+      { data: "payment_method_label", title: "Método de Pago" },
       {
         data: "id",
         title: "Acciones",

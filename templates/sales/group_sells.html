@@ -51,39 +51,18 @@
             <!-- /.card-header -->
               <div class="card-body" id="filter-section" style="display: none;">
               <form id="filter-form" class="mb-2">
-                <div class="row">
-                  <div class="form-group col-md-3">
-                    <label for="for_date__date__gte">Ventas Desde</label>
-                    <input type="date" class="form-control" id="for_date__date__gte" name="for_date__date__gte">
+                <div class="row"> 
+                <div class="form-group col-md-6">
+                    <label for="created_timestamp__gte">Ventas Desde </label>
+                    <input type="date" class="form-control" id="created_timestamp__gte"
+                      name="created_timestamp__gte">
                   </div>
-                  <div class="form-group col-md-3">
-                    <label for="for_date__date__lte">Ventas Hasta</label>
-                    <input type="date" class="form-control" id="for_date__date__lte" name="for_date__date__lte">
-                  </div>
-                  <div class="form-group col-md-3">
-                    <label for="seller">Vendedor</label>
-                    <input type="text" class="form-control" id="seller" name="seller" placeholder="ID">
-                  </div>
-                  <div class="form-group col-md-3">
-                    <label for="client">Cliente</label>
-                    <input type="text" class="form-control" id="client" name="client" placeholder="ID">
-                  </div>
-                  <div class="form-group col-md-3">
-                    <label for="total__gte">Total Desde</label>
-                    <input type="number" step="0.01" min="0" class="form-control" id="total__gte" name="total__gte">
-                  </div>
-                  <div class="form-group col-md-3">
-                    <label for="total__lte">Total Hasta</label>
-                    <input type="number" step="0.01" min="0" class="form-control" id="total__lte" name="total__lte">
-                  </div>
-                  <div class="form-group col-md-3">
-                    <label for="discount">Descuento</label>
-                    <input type="number" step="1" min="0" class="form-control" id="discount" name="discount">
-                  </div>
-                  <div class="form-group col-md-3">
-                    <label for="sells__shop_product__shop">Tienda</label>
-                    <input type="text" class="form-control" id="sells__shop_product__shop" name="sells__shop_product__shop" placeholder="ID">
-                  </div>
+                  <div class="form-group col-md-6">
+                    <label for="created_timestamp__lte">Ventas Hasta</label>
+                    <input type="date" class="form-control" id="created_timestamp__lte"
+                      name="created_timestamp__lte">
+                                    
+                   </div>
                 </div>
                
               
