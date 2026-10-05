@@ -57,8 +57,12 @@
     <section class="content">
       <div class="container-fluid">
         <!-- Small boxes (Stat box) -->
+        <!-- Cada tile ocupa col-lg-4: con 6 tiles son dos filas de 3 y cada fila
+             completa las 12 columnas de Bootstrap, sin huecos a la derecha. Antes
+             mezclaban col-lg-3 y col-lg-2 (3+2+3+2+3+2 = 15 de 12), por lo que la
+             fila se partia y dejaba columnas sin usar. -->
         <div class="row">
-          <div class="col-lg-3 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-danger">
               <div class="inner">
@@ -69,11 +73,11 @@
               <div class="icon">
                 <i class="nav-icon fas fa-calendar-minus"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
-          <div class="col-lg-2 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-indigo">
               <div class="inner">
@@ -84,11 +88,11 @@
               <div class="icon">
                 <i class="nav-icon fas fa-calendar-alt"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
-          <div class="col-lg-3 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-orange">
               <div class="inner">
@@ -105,47 +109,47 @@
             </div>
           </div>
           <!-- ./col -->
-          <div class="col-lg-2 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-olive">
               <div class="inner">
                 <h3 id = "gananciaslastmes">-</h3>
 
-                <p>Ganancias mes anterior</p>
+                <p>Ingresos mes anterior</p>
               </div>
               <div class="icon">
                 <i class="ion ion-stats-bars"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
              </div>
           </div>
           <!-- ./col -->
-          <div class="col-lg-3 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-pink">
               <div class="inner">
                 <h3 id = "gananciascurrentmes">-</h3>
 
-                <p>Ganancias mes actual</p>
+                <p>Ingresos mes actual</p>
               </div>
               <div class="icon">
                 <i class="ion ion-person-add"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
               </div>
           </div>
 
-   <div class="col-lg-2 col-6">
+   <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-lightblue">
               <div class="inner">
                 <h3 id = "SellProfitscurrentweek">-</h3>
-                <p>Ganancias semana actual</p>
+                <p>Ingresos semana actual</p>
               </div>
               <div class="icon">
                 <i class="nav-icon fas fa-calendar-minus"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
             </div>            
           </div>                  
           </div>
@@ -349,8 +353,8 @@
         data: {
             labels: [], // Etiquetas de los días
             datasets: [{
-                label: 'Ganancias Diarias',
-                data: [], // Datos de ganancias
+                label: 'Total de ventas (bruto) por día',
+                data: [], // Datos de totales de grupos
                 backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
                         'rgba(54, 162, 235, 0.2)',
@@ -385,8 +389,8 @@
         data: {
             labels: [], // Etiquetas de los días
             datasets: [{
-                label: 'Ganancias Diarias',
-                data: [], // Datos de ganancias
+                label: 'Total de ventas (bruto) por día',
+                data: [], // Datos de totales de grupos
                 backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
                         'rgba(54, 162, 235, 0.2)',

@@ -157,6 +157,61 @@ class DashboardViewSet(
     @action(
         detail=False,
         methods=["POST"],
+        url_name="sell-group-totals",
+        url_path="sell-group-totals",
+        serializer_class=DashboardSellGroupSerializer,
+        permission_classes=[CommonRolePermission],
+    )
+    def sell_group_totals(self, request):
+        """
+        Totales brutos de los grupos de venta (SellGroup.total), agrupados por
+        frecuencia usando la fecha de creación del grupo.
+
+        No suma líneas de venta: toma directamente el campo `total` de cada
+        SellGroup. Esto es lo que deben mostrar las gráficas.
+        """
+        groups, frequency = self._sell_groups(request)
+
+        if frequency:
+            results = (
+                groups.annotate(
+                    frequency=self._get_frequency_function_given_payload_string(
+                        frequency
+                    )(SELL_GROUP_DATE_FIELD)
+                )
+                .values("frequency")
+                .annotate(
+                    total=Sum("total") - Sum("discount")
+                )
+                .order_by("frequency")
+            )
+        else:
+            tmp_queryset = groups.aggregate(
+                total=Sum("total") - Sum("discount")
+            )
+            results = {
+                "frequency": "None",
+                "total": tmp_queryset.get("total"),
+            }
+
+        result = {"result": results}
+        discounted_groups = groups.filter(discount__gt=0)
+        total_discount = discounted_groups.aggregate(total=Sum("discount")).get(
+            "total"
+        )
+        if total_discount:
+            result["discounts"] = total_discount
+            result["sell_group_ids"] = list(
+                discounted_groups.values_list("id", flat=True)
+            )
+        else:
+            result["discounts"] = 0
+
+        return Response(result)
+
+    @action(
+        detail=False,
+        methods=["POST"],
         url_name="shop-product-sells-count",
         url_path="shop-product-sells-count",
         serializer_class=DashboardSellGroupSerializer,

@@ -366,20 +366,19 @@ function chartSellProfitsLastWeek() {
         ...getShopIdFilter()
     };
 
-    axios.post('/business-gestion/dashboard/sell-profits/', params)
+    axios.post('/business-gestion/dashboard/sell-group-totals/', params)
         .then(response => {
-            // Procesar las ganancias por día
-            const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
+            // Procesar los totales de grupos de venta por día (SellGroup.total)
+            const dailyTotals = response.data.result;
 
-           
             // Limpiar datos anteriores
             profitsChart.data.labels = [];
             profitsChart.data.datasets[0].data = [];
 
             // Llenar datos de la gráfica
-            dailyProfits.forEach(day => {
-                 profitsChart.data.labels.push(getDayOfWeek(day.frequency)); // Asegúrate de que 'date' es la propiedad correcta
-                profitsChart.data.datasets[0].data.push(day.total); // Asegúrate de que 'total' es la propiedad correcta
+            dailyTotals.forEach(day => {
+                profitsChart.data.labels.push(getDayOfWeek(day.frequency));
+                profitsChart.data.datasets[0].data.push(day.total);
             });
 
             // Actualizar la gráfica
@@ -415,18 +414,18 @@ function chartSellProfitsThisWeek() {
         ...getShopIdFilter()
     };
 
-    axios.post('/business-gestion/dashboard/sell-profits/', params)
+    axios.post('/business-gestion/dashboard/sell-group-totals/', params)
         .then(response => {
-            // Procesar las ganancias por día
-            const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
-console.log('✌️dailyProfits --->', dailyProfits);
+            // Procesar los totales de grupos de venta por día (SellGroup.total)
+            const dailyTotals = response.data.result;
+
             // Limpiar datos anteriores
             profitsChartThisWeek.data.labels = [];
             profitsChartThisWeek.data.datasets[0].data = [];
             // Llenar datos de la gráfica
-            dailyProfits.forEach(day => {
-                profitsChartThisWeek.data.labels.push(getDayOfWeek(day.frequency)); // Asegúrate de que 'date' es la propiedad correcta
-                profitsChartThisWeek.data.datasets[0].data.push(day.total); // Asegúrate de que 'total' es la propiedad correcta
+            dailyTotals.forEach(day => {
+                profitsChartThisWeek.data.labels.push(getDayOfWeek(day.frequency));
+                profitsChartThisWeek.data.datasets[0].data.push(day.total);
             });
 
             // Actualizar la gráfica
