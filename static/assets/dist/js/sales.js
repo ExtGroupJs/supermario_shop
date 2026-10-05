@@ -92,7 +92,7 @@ $(document).ready(function () {
       { data: "quantity", title: "Cantidad" },
       { data: "sell_price", title: "Precio unitario" },
       { data: "total_priced", title: "Monto total" },
-      { data: "profits", title: "Ganancia" },
+      { data: "profits", title: "Ingresos" },
       { data: "payment_method_label", title: "Método de Pago" },
       {
         data: "id",
@@ -252,7 +252,9 @@ async function generarReporteVentas(startDate, endDate) {
   const reportButton = $("#period-report-button");
   const originalHtml = reportButton.html();
   reportButton.prop("disabled", true);
-  reportButton.html('<i class="nav-icon fas fa-spinner fa-spin"></i> Generando...');
+  reportButton.html(
+    '<i class="nav-icon fas fa-spinner fa-spin"></i> Generando...',
+  );
 
   const params = {};
   if (startDate) {
@@ -267,7 +269,9 @@ async function generarReporteVentas(startDate, endDate) {
   }
 
   try {
-    const response = await axios.get(`${urlSellGroup}period-report/`, { params });
+    const response = await axios.get(`${urlSellGroup}period-report/`, {
+      params,
+    });
     const reportText = (response.data?.report || "").trim();
     if (!reportText) {
       throw new Error("El reporte esta vacio");
