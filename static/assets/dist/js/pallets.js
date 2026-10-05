@@ -80,7 +80,7 @@ function initTable() {
         dir = "-";
       }
 
-fetchPallets({
+      fetchPallets({
         shop: selectedShopId,
         pageSize: data.length,
         page: data.start / data.length + 1,
