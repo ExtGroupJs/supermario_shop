@@ -80,7 +80,11 @@ function initTable() {
         dir = "-";
       }
 
+<<<<<<< HEAD
 fetchPallets({
+=======
+      fetchPallets({
+>>>>>>> 274-make-daily-sell-reports-update-sales-views
         shop: selectedShopId,
         pageSize: data.length,
         page: data.start / data.length + 1,
