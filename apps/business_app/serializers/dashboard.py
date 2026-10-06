@@ -43,6 +43,7 @@ class DashboardMoneyToRecoverSerializer(serializers.Serializer):
     The money to recover is read from the stock of the shop, not from a sale, so the
     payload has no period: it only picks the shop whose products are added up.
     """
+
     # A shop product already belongs to the shop, so this is the shop of the stock the
     # tile sums, the same way the tiles of sales resolve their shop.
     shop_id = serializers.PrimaryKeyRelatedField(
@@ -58,7 +59,9 @@ class DashboardCountsSerializer(DashboardSerializer):
         choices=AllowedFrequencies.choices, required=False
     )
     shop_id = serializers.PrimaryKeyRelatedField(
-        source="shop_product__shop", queryset=Shop.objects.filter(enabled=True).all(), required=False
+        source="shop_product__shop",
+        queryset=Shop.objects.filter(enabled=True).all(),
+        required=False,
     )
     shop_product__shop = serializers.PrimaryKeyRelatedField(
         queryset=Shop.objects.filter(enabled=True).all(), required=False
