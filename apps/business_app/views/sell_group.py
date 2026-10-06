@@ -211,8 +211,8 @@ class SellGroupViewSet(
         sell_groups = list(
             queryset.annotate(
                 client_name=Coalesce("client__name", Value("")),
-            # ``payment_method`` viaja porque la linea del reporte lo imprime; si no
-            # estuviera en el values() el dict no lo trae y la linea revienta.
+                # ``payment_method`` viaja porque la linea del reporte lo imprime; si no
+                # estuviera en el values() el dict no lo trae y la linea revienta.
             ).values(
                 "id",
                 "for_date",

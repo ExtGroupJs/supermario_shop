@@ -224,6 +224,26 @@
 
           </section>
           
+          </div>
+          <!-- /.row (gráficas) -->
+
+          <!-- Dinero a recuperar: suma de sell_price * cantidad de cada producto de la tienda -->
+          <div class="row">
+            <div class="col-12">
+              <div class="small-box bg-teal">
+                <div class="inner">
+                  <h3 id="money-to-recover">-</h3>
+                  <p>Ingreso esperado de los productos</p>
+                </div>
+                <div class="icon">
+                  <i class="nav-icon fas fa-hand-holding-usd"></i>
+                </div>
+                <a href="{% url 'shop_products' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <!-- /.row (dinero a recuperar) -->
+
      </section>
     <!-- /.content -->
   </div>
@@ -353,7 +373,7 @@
         data: {
             labels: [], // Etiquetas de los días
             datasets: [{
-                label: 'Ingresos diarios',
+                label: 'Ingresos',
                 data: [], // Datos de totales de grupos
                 backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
@@ -389,7 +409,7 @@
         data: {
             labels: [], // Etiquetas de los días
             datasets: [{
-                label: 'Ingresos diarios',
+                label: 'Ingresos',
                 data: [], // Datos de totales de grupos
                 backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
