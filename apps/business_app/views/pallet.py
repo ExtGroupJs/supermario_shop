@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Count, F, Value
+from django.db.models import Count, Value
 from django.db.models.functions import Coalesce
 from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView

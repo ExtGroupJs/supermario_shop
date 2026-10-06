@@ -119,7 +119,8 @@ class SellGroupSerializer(serializers.ModelSerializer):
         body = []
         for sell_group in sell_groups:
             net = max(
-                Decimal(sell_group["total"] or 0) - Decimal(sell_group["discount"] or 0),
+                Decimal(sell_group["total"] or 0)
+                - Decimal(sell_group["discount"] or 0),
                 Decimal("0.00"),
             )
             date_str = sell_group["for_date"].strftime("%d-%b-%Y %I:%M %p")

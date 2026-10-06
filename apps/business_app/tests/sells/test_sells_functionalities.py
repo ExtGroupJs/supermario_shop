@@ -91,7 +91,9 @@ class TestSellViewSetFunctionalities(BaseTestClass):
         sell = baker.make(
             Sell,
             sell_group=sell_group,
-            shop_product=baker.make(ShopProducts, cost_price=1, sell_price=3, quantity=10),
+            shop_product=baker.make(
+                ShopProducts, cost_price=1, sell_price=3, quantity=10
+            ),
             quantity=1,
         )
         # SHOP_OWNER is not restricted to the seller shop, so the row is visible.
@@ -116,7 +118,9 @@ class TestSellViewSetFunctionalities(BaseTestClass):
         sell = baker.make(
             Sell,
             sell_group=sell_group,
-            shop_product=baker.make(ShopProducts, cost_price=1, sell_price=3, quantity=10),
+            shop_product=baker.make(
+                ShopProducts, cost_price=1, sell_price=3, quantity=10
+            ),
             quantity=1,
         )
         # SHOP_OWNER is not restricted to the seller shop, so the row is visible.
