@@ -48,10 +48,10 @@ $(document).ready(function () {
     processing: true,
 
     ajax: serverSideAjax(function (data, callback, settings) {
+      // Los filtros de fecha son lookups ``for_date__date__*``: el dia completo ya
+      // esta incluido, asi que no se le añade hora (con ``:23:59`` el backend
+      // devolveria 400 porque el lookup espera una fecha).
       const filters = $("#filter-form").serializeArray();
-      if (filters.length > 1 && filters[1].value != "") {
-        filters[1].value += ":23:59";
-      }
       const params = {};
       filters.forEach((filter) => {
         if (filter.value) {
@@ -196,8 +196,8 @@ function initPeriodReportButton() {
     };
 
     generarReporteVentas(
-      valorDe("created_timestamp__gte"),
-      valorDe("created_timestamp__lte"),
+      valorDe("for_date__date__gte"),
+      valorDe("for_date__date__lte"),
     );
   });
 }

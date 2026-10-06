@@ -161,7 +161,9 @@ class SellGroupViewSet(
         cannot be rebuilt from the group payload alone.
         """
         sell_group = self.get_object()
-        return Response({"report": self.get_serializer(sell_group).get_report(sell_group)})
+        return Response(
+            {"report": self.get_serializer(sell_group).get_report(sell_group)}
+        )
 
     @action(detail=False, methods=["GET"], url_path="period-report")
     def period_report(self, request):
@@ -177,9 +179,7 @@ class SellGroupViewSet(
         after the end date is rejected with a 400 instead of reporting nothing.
         """
         today = self._today()
-        start_date = self._parse_date(
-            request.query_params.get("start_date"), today
-        )
+        start_date = self._parse_date(request.query_params.get("start_date"), today)
         end_date = self._parse_date(request.query_params.get("end_date"), start_date)
 
         # A period that starts after it ends can never match anything, so it is
@@ -217,8 +217,7 @@ class SellGroupViewSet(
         # to keep the report from having to deal with an int total.
         net_total = sum(
             (
-                Decimal(str(group["total"] or 0))
-                - Decimal(str(group["discount"] or 0))
+                Decimal(str(group["total"] or 0)) - Decimal(str(group["discount"] or 0))
                 for group in sell_groups
             ),
             Decimal("0.00"),

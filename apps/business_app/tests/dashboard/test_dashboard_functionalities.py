@@ -346,7 +346,9 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
         )
         # Two sales: one of a single product and another of three products.
         one_product_sale = baker.make(SellGroup)
-        baker.make(Sell, sell_group=one_product_sale, shop_product=shop_product, quantity=1)
+        baker.make(
+            Sell, sell_group=one_product_sale, shop_product=shop_product, quantity=1
+        )
         three_products_sale = baker.make(SellGroup)
         baker.make(
             Sell,

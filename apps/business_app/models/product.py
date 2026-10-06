@@ -5,7 +5,6 @@ from safedelete import SOFT_DELETE_CASCADE
 from apps.business_app.models.model import Model
 from apps.common.models import BaseModel
 from safedelete.models import SafeDeleteModel
-from PIL import Image
 
 
 class Product(SafeDeleteModel, BaseModel):

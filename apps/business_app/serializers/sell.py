@@ -104,7 +104,9 @@ class SellSerializer(serializers.ModelSerializer):
         if sell_group is None:
             return
 
-        amount = Decimal(instance.quantity) * Decimal(str(instance.shop_product.sell_price or 0))
+        amount = Decimal(instance.quantity) * Decimal(
+            str(instance.shop_product.sell_price or 0)
+        )
 
         note = self._get_cancellation_label(instance.shop_product, when)
         previous_info = (sell_group.extra_info or "").strip()
