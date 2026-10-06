@@ -2,9 +2,11 @@ from rest_framework import viewsets
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
+from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.sell_annotations import profits
 from apps.business_app.serializers.dashboard import (
     DashboardCountsSerializer,
+    DashboardMoneyToRecoverSerializer,
     DashboardSellGroupSerializer,
 )
 
@@ -15,7 +17,7 @@ from django.db.models.functions import (
     TruncQuarter,
     TruncYear,
 )
-from django.db.models import Count, ExpressionWrapper, FloatField, Sum
+from django.db.models import Count, ExpressionWrapper, F, FloatField, Sum
 
 
 from apps.common.mixins.serializer_map import SerializerMapMixin
@@ -51,6 +53,7 @@ class DashboardViewSet(
     # this cannot stay a single ``serializer_class`` for the whole viewset.
     sell_profits_serializer_class = DashboardSellGroupSerializer
     shop_product_sells_count_serializer_class = DashboardSellGroupSerializer
+    money_to_recover_serializer_class = DashboardMoneyToRecoverSerializer
 
     def _sell_groups(self, request):
         """The sell groups the payload selects, and the frequency it asks to group by.
@@ -276,6 +279,37 @@ class DashboardViewSet(
             }
 
         return Response({"result": results})
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_name="money-to-recover",
+        url_path="money-to-recover",
+        serializer_class=DashboardMoneyToRecoverSerializer,
+        permission_classes=[CommonRolePermission],
+    )
+    def money_to_recover(self, request):
+        """Money the products of a shop are yet to bring in, summed per shop product.
+
+        For every product of the shop the tile takes its sell price times the units
+        it still has, so it reads the current stock and never the sells: the money to
+        recover is what everything left on the shelf of the shop is worth. The period
+        filters of the other tiles do not apply here, only the shop does, and a shop
+        that is not enabled is not counted either, asked for by id or not.
+        """
+        serializer = self.get_serializer_class()(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        shop = serializer.validated_data.get("shop")
+
+        shop_products = ShopProducts.objects.filter(shop__enabled=True)
+        if shop is not None:
+            shop_products = shop_products.filter(shop=shop)
+
+        total = shop_products.aggregate(
+            total=Sum(F("sell_price") * F("quantity"), output_field=FloatField())
+        ).get("total")
+
+        return Response({"result": {"total": total or 0}})
 
     def _get_frequency_function_given_payload_string(self, frequency):
         if frequency == AllowedFrequencies.DAY:
