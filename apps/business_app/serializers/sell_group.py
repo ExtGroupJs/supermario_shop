@@ -12,6 +12,17 @@ from apps.clients_app.models.client import Client
 two_decimals = Decimal("0.01")
 
 
+def _payment_method_label(payment_method):
+    """Human readable payment method, the wording the receipt has always printed.
+
+    The column stores the choice code ("U"/"Z"), which means nothing to the person
+    reading a report, so both the receipt and the period summary resolve it here.
+    """
+    if payment_method == SellGroup.PAYMENT_METODS.ZELLE:
+        return "Zelle"
+    return "USD"
+
+
 class SellGroupSerializer(serializers.ModelSerializer):
     updated_timestamp = serializers.SerializerMethodField()
     sells = SellSerializer(many=True)
@@ -51,11 +62,7 @@ class SellGroupSerializer(serializers.ModelSerializer):
         is, and the rows can be assembled server side, where the sell data needed to
         build it is actually available.
         """
-        payment_method = (
-            "Zelle"
-            if sell_group.payment_method == SellGroup.PAYMENT_METODS.ZELLE
-            else "USD"
-        )
+        payment_method = _payment_method_label(sell_group.payment_method)
         client_name = sell_group.client.name if sell_group.client else ""
         date_str = sell_group.for_date.astimezone(
             timezone.get_current_timezone()
@@ -124,10 +131,11 @@ class SellGroupSerializer(serializers.ModelSerializer):
                 Decimal("0.00"),
             )
             date_str = sell_group["for_date"].strftime("%d-%b-%Y %I:%M %p")
+            payment_method = _payment_method_label(sell_group["payment_method"])
             body.append(
-                f"Id de venta: {sell_group['id']} ({date_str}) | "
+                f"Id: {sell_group['id']} ({date_str}) | "
                 f"Cliente: {sell_group['client_name'] or '-'} | "
-                f"Total: ${net.quantize(two_decimals)}"
+                f"Total: ${net.quantize(two_decimals)} {payment_method}"
                 "\n"
             )
 
