@@ -211,7 +211,16 @@ class SellGroupViewSet(
         sell_groups = list(
             queryset.annotate(
                 client_name=Coalesce("client__name", Value("")),
-            ).values("id", "for_date", "total", "discount", "client_name")
+            # ``payment_method`` viaja porque la linea del reporte lo imprime; si no
+            # estuviera en el values() el dict no lo trae y la linea revienta.
+            ).values(
+                "id",
+                "for_date",
+                "total",
+                "discount",
+                "payment_method",
+                "client_name",
+            )
         )
         # ``sum`` starts at the int 0, so the empty period is coerced back to Decimal
         # to keep the report from having to deal with an int total.

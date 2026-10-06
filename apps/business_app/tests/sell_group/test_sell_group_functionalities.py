@@ -797,6 +797,27 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertNotIn("TOTAL: $85.00", report)
 
     @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_shows_the_readable_payment_method_of_each_group(self):
+        """La linea de grupo imprime el medio de pago legible, no el codigo de la choice."""
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0),
+            total=Decimal("50.00"),
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self._make_group_at(
+            datetime(2026, 3, 10, 11, 0),
+            total=Decimal("30.00"),
+            payment_method=SellGroup.PAYMENT_METODS.USD,
+        )
+
+        report = self._period_report().json()["report"]
+
+        self.assertIn("Total: $50.00 Zelle", report)
+        self.assertIn("Total: $30.00 USD", report)
+        # El codigo crudo de la choice ("Z") no llega a quien lee el reporte.
+        self.assertNotIn("$50.00 Z\n", report)
+
+    @freeze_time("2026-03-10 12:00:00")
     def test_period_report_shows_the_period_on_the_line_above_the_groups(self):
         """La fecha va en la linea superior, antes de la lista de grupos."""
         self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
@@ -811,7 +832,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             i for i, line in enumerate(lines) if line.startswith("Periodo:")
         )
         first_group_line = next(
-            i for i, line in enumerate(lines) if line.startswith("Id de venta:")
+            i for i, line in enumerate(lines) if line.startswith("Id:")
         )
         total_line = next(
             i for i, line in enumerate(lines) if line.startswith("TOTAL:")
@@ -852,7 +873,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         report = self._period_report().json()["report"]
 
         self.assertIn("TOTAL: $100.00", report)
-        self.assertEqual(report.count("Id de venta: "), 2)
+        self.assertEqual(report.count("Id: "), 2)
 
     @freeze_time("2026-03-10 12:00:00")
     def test_period_report_excludes_the_groups_outside_the_period(self):
