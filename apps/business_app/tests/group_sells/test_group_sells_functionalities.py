@@ -1,11 +1,15 @@
 import pytest
+import re
 from decimal import Decimal
 from django.urls import reverse
+from django.utils import timezone
+from django_filters.filterset import filterset_factory
 from rest_framework import status
 
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop_products import ShopProducts
+from apps.business_app.views.group_sell import GroupSellViewSet
 from apps.clients_app.models.client import Client
 from apps.common.baseclass_for_testing import BaseTestClass
 from apps.users_app.models.groups import Groups
@@ -192,6 +196,68 @@ class TestGroupSellViewSetFunctionalities(BaseTestClass):
         listed_ids = [item["id"] for item in response.json()["results"]]
         self.assertIn(new_group.id, listed_ids)
         self.assertNotIn(old_group.id, listed_ids)
+
+    def test_listing_can_be_filtered_by_the_period_the_form_sends(self):
+        """
+        El formulario de la pagina filtra el listado, con los parametros que
+        ``group_sells.js`` manda realmente.
+
+        Son fechas de input ``date`` (sin hora) contra ``for_date``: si esos nombres
+        no estan en ``filterset_fields`` django-filter los ignora sin error y el
+        listado se devuelve completo, que es el fallo original de la pantalla.
+        """
+        old_group, _ = self._make_sale(for_date=timezone.now().replace(year=2001))
+        new_group, _ = self._make_sale(for_date=timezone.now())
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        listed_ids = self._listed_ids(
+            {
+                "for_date__date__gte": new_group.for_date.strftime("%Y-%m-%d"),
+                "for_date__date__lte": new_group.for_date.strftime("%Y-%m-%d"),
+            }
+        )
+        self.assertIn(new_group.id, listed_ids)
+        self.assertNotIn(old_group.id, listed_ids)
+
+        # Solo "Ventas Hasta": el limite superior es inclusivo y abarca el dia entero.
+        listed_ids = self._listed_ids(
+            {"for_date__date__lte": old_group.for_date.strftime("%Y-%m-%d")}
+        )
+        self.assertIn(old_group.id, listed_ids)
+        self.assertNotIn(new_group.id, listed_ids)
+
+    def _listed_ids(self, params):
+        response = self.client.get(reverse("group-sells-list"), params)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return [item["id"] for item in response.json()["results"]]
+
+    def test_the_filter_form_only_asks_for_filters_the_endpoint_declares(self):
+        """
+        Todos los campos del formulario de filtros son filtros declarados.
+
+        django-filter descarta sin error cualquier parametro ausente de
+        ``filterset_fields``: si el formulario manda un nombre que el endpoint no
+        declara (paso con ``created_timestamp__*``) la lista vuelve completa y el
+        filtro parece no funcionar.
+        """
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+        page = self.client.get(reverse("group_sells"))
+        self.assertEqual(page.status_code, status.HTTP_200_OK)
+
+        form_html = re.search(
+            r'<form id="filter-form".*?</form>', page.content.decode(), re.S
+        ).group(0)
+        sent_params = set(re.findall(r'name="([^"]+)"', form_html))
+        declared = set(
+            filterset_factory(
+                SellGroup, fields=GroupSellViewSet.filterset_fields
+            ).base_filters
+        )
+
+        self.assertTrue(sent_params)
+        self.assertEqual(set(), sent_params - declared)
 
     def test_listing_can_be_sorted_by_net_total(self):
         """
