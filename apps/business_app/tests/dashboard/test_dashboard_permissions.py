@@ -45,3 +45,14 @@ class TestDashboardViewSetPermisions(BaseTestClass):
             allowed_roles=self.allowed_groups,
             request_using_protocol=self.client.post,
         )
+
+    def test_money_to_recover_permissions(self):
+        """
+        Este test comprueba que solo un superadmin o un SHOP_OWNER pueden acceder a la funcionalidad
+        """
+        url = reverse("dashboard-money-to-recover")
+        self._test_permissions(
+            url,
+            allowed_roles=self.allowed_groups,
+            request_using_protocol=self.client.post,
+        )

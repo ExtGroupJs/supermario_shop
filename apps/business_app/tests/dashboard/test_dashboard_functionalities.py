@@ -401,3 +401,110 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
                 "total": 5,
             },
         )
+
+    def test_money_to_recover_multiplies_sell_price_by_quantity(self):
+        """
+        The money to recover is the stock of the shop valued at its sell price: every
+        product of the shop contributes its sell price times the units it has, and the
+        products of another shop are never part of it.
+        """
+        target_shop = baker.make(Shop, enabled=True)
+        other_shop = baker.make(Shop, enabled=True)
+
+        baker.make(
+            ShopProducts,
+            shop=target_shop,
+            cost_price=2,
+            sell_price=4,
+            quantity=10,
+        )
+        baker.make(
+            ShopProducts,
+            shop=target_shop,
+            cost_price=2,
+            sell_price=5.5,
+            quantity=2,
+        )
+        baker.make(
+            ShopProducts,
+            shop=other_shop,
+            cost_price=2,
+            sell_price=100,
+            quantity=100,
+        )
+
+        url = reverse("dashboard-money-to-recover")
+        response = self.client.post(
+            url, data={"shop_id": target_shop.id}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("result").get("total"),
+            4 * 10 + 5.5 * 2,
+        )
+
+    def test_money_to_recover_only_counts_enabled_shops(self):
+        """
+        Only the stock of the enabled shops is counted: without a shop the tile skips
+        the products of every disabled shop, and a disabled shop cannot even be asked
+        for by id, the payload rejects it.
+        """
+        ShopProducts.objects.all().delete(
+            force_policy=0
+        )  # this is because in migrations 0021 and 0022 we create ShopProducts
+        enabled_shop = baker.make(Shop, enabled=True)
+        disabled_shop = baker.make(Shop, enabled=False)
+        baker.make(
+            ShopProducts,
+            shop=enabled_shop,
+            cost_price=1,
+            sell_price=3,
+            quantity=7,
+        )
+        baker.make(
+            ShopProducts,
+            shop=disabled_shop,
+            cost_price=1,
+            sell_price=2.5,
+            quantity=4,
+        )
+
+        url = reverse("dashboard-money-to-recover")
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data.get("result").get("total"),
+            3 * 7,  # the stock of the disabled shop is left out
+        )
+
+        response = self.client.post(
+            url, data={"shop_id": disabled_shop.id}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("shop_id", response.data)
+
+    def test_dashboard_tiles_reject_disabled_shops(self):
+        """
+        Every tile of the dashboard only filters by enabled shops: the period tiles and
+        the counters turn the id of a disabled shop into a validation error instead of
+        reporting money or sales of a shop that is not enabled.
+        """
+        disabled_shop = baker.make(Shop, enabled=False)
+
+        for url_name in (
+            "dashboard-sell-profits",
+            "dashboard-sell-group-totals",
+            "dashboard-shop-product-sells-count",
+            "dashboard-shop-product-sell-products-count",
+            "dashboard-money-to-recover",
+        ):
+            url = reverse(url_name)
+            response = self.client.post(
+                url, data={"shop_id": disabled_shop.id}, format="json"
+            )
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_400_BAD_REQUEST,
+                f"{url_name} accepted a disabled shop",
+            )
+            self.assertIn("shop_id", response.data)

@@ -65,6 +65,7 @@ smallboxdataSellProfitsLastMonth();
 smallboxdataSellProfitsCurrentWeek();
 chartSellProfitsLastWeek();
 chartSellProfitsThisWeek();
+smallboxdataMoneyToRecover();
 const today = new Date();
     const startDate = today.toISOString().split('T')[0]; // Fecha de inicio: hoy
     const endDate = today.toISOString().split('T')[0];   // Fecha de fin: hoy
@@ -285,6 +286,22 @@ function smallboxdataSellProfitsCurrentWeek() {
             const smallBox = document.getElementById('SellProfitscurrentweek');
             if (smallBox) {
                 smallBox.textContent = formatMetricNumber(sellCount) + " $";
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+
+function smallboxdataMoneyToRecover() {
+    // El dinero a recuperar no depende de un periodo: es lo que vale hoy el stock de
+    // la tienda, precio de venta por cantidad, de cada producto que queda.
+    axios.post('/business-gestion/dashboard/money-to-recover/', { ...getShopIdFilter() })
+        .then(response => {
+            const moneyToRecover = response.data.result.total || 0;
+            const smallBox = document.getElementById('money-to-recover');
+            if (smallBox) {
+                smallBox.textContent = formatMetricNumber(moneyToRecover) + "$";
             }
         })
         .catch(error => {
