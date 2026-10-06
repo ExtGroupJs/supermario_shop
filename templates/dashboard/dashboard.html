@@ -398,8 +398,26 @@
         },
         options: {
             scales: {
-                y: {
-                    beginAtZero: true
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        // El eje Y son importes de dinero, así que lleva el $ delante.
+                        callback: function (value) {
+                            return "$" + value;
+                        }
+                    }
+                }]
+            },
+            tooltips: {
+                callbacks: {
+                    // El tooltip del gráfico también es dinero: $ delante del importe.
+                    label: function (tooltipItem, data) {
+                        const label = data.datasets[tooltipItem.datasetIndex].label || "";
+                        const amount = Number(tooltipItem.yLabel).toLocaleString("es-ES", {
+                            maximumFractionDigits: 3,
+                        });
+                        return label + ": $" + amount;
+                    }
                 }
             }
         }
@@ -434,8 +452,26 @@
         },
         options: {
             scales: {
-                y: {
-                    beginAtZero: true
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        // El eje Y son importes de dinero, así que lleva el $ delante.
+                        callback: function (value) {
+                            return "$" + value;
+                        }
+                    }
+                }]
+            },
+            tooltips: {
+                callbacks: {
+                    // El tooltip del gráfico también es dinero: $ delante del importe.
+                    label: function (tooltipItem, data) {
+                        const label = data.datasets[tooltipItem.datasetIndex].label || "";
+                        const amount = Number(tooltipItem.yLabel).toLocaleString("es-ES", {
+                            maximumFractionDigits: 3,
+                        });
+                        return label + ": $" + amount;
+                    }
                 }
             }
         }

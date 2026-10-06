@@ -41,6 +41,15 @@ function formatMetricNumber(value) {
 }
 
 /**
+ * Formatea una cantidad de dinero siempre con el símbolo de $ delante, para que en
+ * el dashboard no haya importes que se lean con el $ detrás y otros sin él. Las
+ * cantidades que no son dinero (las ventas) siguen usando formatMetricNumber.
+ */
+function formatMoney(value) {
+    return "$" + formatMetricNumber(value);
+}
+
+/**
  * Suma los totales de todos los buckets devueltos por un endpoint agrupado por
  * frecuencia. El dashboard pide periodos (semana, mes) que pueden quedar partidos en
  * mas de un bucket por el truncado, y un tile tiene que mostrar el total del periodo
@@ -164,7 +173,7 @@ function smallboxdataSellProfits() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('sell-profits-total');
             if (smallBox) {
-                smallBox.textContent = formatMetricNumber(sellProfitsValue) + "$";
+                smallBox.textContent = formatMoney(sellProfitsValue);
             }
         })
         .catch(error => {
@@ -206,7 +215,7 @@ function smallboxdataSellProfitsLastMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciaslastmes');
             if (smallBox) {
-                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
+                smallBox.textContent = formatMoney(investmentValue);
             }
         })
         .catch(error => {
@@ -245,7 +254,7 @@ function smallboxdataSellProfitsCurrentMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciascurrentmes');
             if (smallBox) {
-                smallBox.textContent = formatMetricNumber(SellProfitsValue) + "$";
+                smallBox.textContent = formatMoney(SellProfitsValue);
             }
         })
         .catch(error => {
@@ -285,7 +294,7 @@ function smallboxdataSellProfitsCurrentWeek() {
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('SellProfitscurrentweek');
             if (smallBox) {
-                smallBox.textContent = formatMetricNumber(sellCount) + " $";
+                smallBox.textContent = formatMoney(sellCount);
             }
         })
         .catch(error => {
@@ -301,7 +310,7 @@ function smallboxdataMoneyToRecover() {
             const moneyToRecover = response.data.result.total || 0;
             const smallBox = document.getElementById('money-to-recover');
             if (smallBox) {
-                smallBox.textContent = formatMetricNumber(moneyToRecover) + "$";
+                smallBox.textContent = formatMoney(moneyToRecover);
             }
         })
         .catch(error => {
@@ -347,9 +356,9 @@ function daterangeSellProfits(startDate, endDate) {
              const dateRangeSales = document.getElementById('dateRangeSales');
              const dateRangeDiscounts = document.getElementById('dateRangeDiscounts');
              if (dateRangeProfits && dateRangeSales && dateRangeDiscounts) {
-                     dateRangeProfits.textContent = formatMetricNumber(sellCount - response.data.discounts) + " $";
+                     dateRangeProfits.textContent = formatMoney(sellCount - response.data.discounts);
                 dateRangeSales.textContent = itemCount;
-                     dateRangeDiscounts.textContent = formatMetricNumber(response.data.discounts) + " $";
+                     dateRangeDiscounts.textContent = formatMoney(response.data.discounts);
 
 
              }
