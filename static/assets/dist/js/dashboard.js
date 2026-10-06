@@ -318,6 +318,22 @@ function smallboxdataMoneyToRecover() {
         });
 }
 
+function smallboxdataMoneyToRecover() {
+    // El dinero a recuperar no depende de un periodo: es lo que vale hoy el stock de
+    // la tienda, precio de venta por cantidad, de cada producto que queda.
+    axios.post('/business-gestion/dashboard/money-to-recover/', { ...getShopIdFilter() })
+        .then(response => {
+            const moneyToRecover = response.data.result.total || 0;
+            const smallBox = document.getElementById('money-to-recover');
+            if (smallBox) {
+                smallBox.textContent = formatMetricNumber(moneyToRecover) + "$";
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+
 function daterangeSellProfits(startDate, endDate) {
     // Asegúrate de que las fechas están en el formato correcto
     const formattedStartDate = new Date(startDate);
