@@ -702,9 +702,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
     def test_report_shows_the_client_name_without_the_shop(self):
         """El comprobante muestra el nombre del cliente, no el __str__ con la tienda."""
         client = baker.make(Client, name="Juan Perez", phone="5841111111")
-        sell_group = self._make_group_for_report(
-            total=Decimal("30.00"), client=client
-        )
+        sell_group = self._make_group_for_report(total=Decimal("30.00"), client=client)
         self.user.groups.add(Groups.SHOP_OWNER)
         self.client.force_login(self.user)
 
@@ -738,9 +736,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
     def test_report_never_reports_a_negative_total(self):
         """Un descuento mayor que el total se recorta en cero."""
-        sell_group = self._make_group_for_report(
-            total=Decimal("10.00"), discount=50
-        )
+        sell_group = self._make_group_for_report(total=Decimal("10.00"), discount=50)
         self.user.groups.add(Groups.SHOP_OWNER)
         self.client.force_login(self.user)
 
@@ -805,9 +801,11 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         """La fecha va en la linea superior, antes de la lista de grupos."""
         self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
 
-        lines = self._period_report(
-            start_date="2026-03-01", end_date="2026-03-10"
-        ).json()["report"].split("\n")
+        lines = (
+            self._period_report(start_date="2026-03-01", end_date="2026-03-10")
+            .json()["report"]
+            .split("\n")
+        )
 
         period_line = next(
             i for i, line in enumerate(lines) if line.startswith("Periodo:")
@@ -815,7 +813,9 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         first_group_line = next(
             i for i, line in enumerate(lines) if line.startswith("Id de venta:")
         )
-        total_line = next(i for i, line in enumerate(lines) if line.startswith("TOTAL:"))
+        total_line = next(
+            i for i, line in enumerate(lines) if line.startswith("TOTAL:")
+        )
         self.assertLess(period_line, first_group_line)
         self.assertLess(first_group_line, total_line)
         self.assertIn("01-Mar-2026", lines[period_line])

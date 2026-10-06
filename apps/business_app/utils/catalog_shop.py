@@ -13,9 +13,8 @@ def in_stock_shop_products(shop_id):
     `Product` on its own. Rows whose product was soft deleted must not keep a
     brand or a model in the public catalog.
     """
-    return (
-        ShopProducts.objects.filter(shop_id=shop_id, quantity__gt=0)
-        .filter(product__deleted__isnull=True)
+    return ShopProducts.objects.filter(shop_id=shop_id, quantity__gt=0).filter(
+        product__deleted__isnull=True
     )
 
 

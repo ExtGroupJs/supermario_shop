@@ -115,9 +115,7 @@ class TestBrandCatalogViewSet(BaseTestClass):
     def test_catalog_excludes_brand_whose_only_product_is_out_of_stock(self):
         self._clear_shops()
         self._seed_shop_brand(principal=True, enabled=True, name="Principal")
-        self._seed_shop_brand(
-            principal=False, enabled=True, name="SoldOut", quantity=0
-        )
+        self._seed_shop_brand(principal=False, enabled=True, name="SoldOut", quantity=0)
 
         response = self.client.get(self.url)
 
@@ -157,9 +155,7 @@ class TestBrandCatalogViewSet(BaseTestClass):
 
     def test_catalog_excludes_brand_whose_product_is_soft_deleted(self):
         self._clear_shops()
-        shop, _ = self._seed_shop_brand(
-            principal=True, enabled=True, name="Deleted"
-        )
+        shop, _ = self._seed_shop_brand(principal=True, enabled=True, name="Deleted")
         ShopProducts.objects.filter(shop=shop).first().product.delete()
 
         response = self.client.get(self.url)

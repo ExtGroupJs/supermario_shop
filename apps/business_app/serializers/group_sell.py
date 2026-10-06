@@ -94,12 +94,12 @@ class GroupSellSerializer(serializers.ModelSerializer):
             return ""
         return object.for_date.strftime("%d-%b-%Y %I:%M %p")
 
-    def get_net_total(self, object): # TODO get in the queryset as an annotation
+    def get_net_total(self, object):  # TODO get in the queryset as an annotation
         """What the sale is actually worth, once the discount is taken off."""
         net = Decimal(object.total or 0) - Decimal(object.discount or 0)
         return max(net, Decimal("0.00")).quantize(two_decimals)
 
-    def get_sells_count(self, object): # TODO get in the queryset as an annotation
+    def get_sells_count(self, object):  # TODO get in the queryset as an annotation
         """
         How many products the group contains.
 

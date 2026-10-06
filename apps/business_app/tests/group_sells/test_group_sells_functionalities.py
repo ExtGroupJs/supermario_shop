@@ -40,7 +40,9 @@ class TestGroupSellViewSetFunctionalities(BaseTestClass):
         return sell_group, sell
 
     def _payload(self, response, group_id):
-        return next(item for item in response.json()["results"] if item["id"] == group_id)
+        return next(
+            item for item in response.json()["results"] if item["id"] == group_id
+        )
 
     def test_get_protocol(self):
         """Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado"""
@@ -277,7 +279,9 @@ class TestGroupSellViewSetFunctionalities(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         listed_ids = [item["id"] for item in response.json()["results"]]
-        self.assertLess(listed_ids.index(rich_group.id), listed_ids.index(cheap_group.id))
+        self.assertLess(
+            listed_ids.index(rich_group.id), listed_ids.index(cheap_group.id)
+        )
 
     def test_seller_only_sees_the_sales_of_its_own_shop(self):
         """Un vendedor solo ve los grupos de su propia tienda"""
@@ -324,9 +328,7 @@ class TestGroupSellViewSetFunctionalities(BaseTestClass):
         self.user.groups.add(Groups.SHOP_SELLER)
         self.client.force_login(self.user)
 
-        response = self.client.get(
-            reverse("group-sells-detail", args=[other_group.id])
-        )
+        response = self.client.get(reverse("group-sells-detail", args=[other_group.id]))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_seller_sees_its_own_shop_product_name_without_the_shop_suffix(self):

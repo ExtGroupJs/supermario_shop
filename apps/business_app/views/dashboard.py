@@ -79,9 +79,7 @@ class DashboardViewSet(
                 **{f"{SELL_GROUP_DATE_FIELD}__date__gte": start_date}
             )
         if end_date:
-            groups = groups.filter(
-                **{f"{SELL_GROUP_DATE_FIELD}__date__lte": end_date}
-            )
+            groups = groups.filter(**{f"{SELL_GROUP_DATE_FIELD}__date__lte": end_date})
         if shop is not None:
             groups = groups.filter(
                 pk__in=Sell.objects.filter(shop_product__shop=shop).values(
@@ -148,7 +146,9 @@ class DashboardViewSet(
         total_discount = discounted_groups.aggregate(total=Sum("discount")).get("total")
         if total_discount:
             result["discounts"] = total_discount
-            result["sell_group_ids"] = list(discounted_groups.values_list("id", flat=True))
+            result["sell_group_ids"] = list(
+                discounted_groups.values_list("id", flat=True)
+            )
         else:
             result["discounts"] = 0
 
@@ -180,15 +180,11 @@ class DashboardViewSet(
                     )(SELL_GROUP_DATE_FIELD)
                 )
                 .values("frequency")
-                .annotate(
-                    total=Sum("total") - Sum("discount")
-                )
+                .annotate(total=Sum("total") - Sum("discount"))
                 .order_by("frequency")
             )
         else:
-            tmp_queryset = groups.aggregate(
-                total=Sum("total") - Sum("discount")
-            )
+            tmp_queryset = groups.aggregate(total=Sum("total") - Sum("discount"))
             results = {
                 "frequency": "None",
                 "total": tmp_queryset.get("total"),
@@ -196,9 +192,7 @@ class DashboardViewSet(
 
         result = {"result": results}
         discounted_groups = groups.filter(discount__gt=0)
-        total_discount = discounted_groups.aggregate(total=Sum("discount")).get(
-            "total"
-        )
+        total_discount = discounted_groups.aggregate(total=Sum("discount")).get("total")
         if total_discount:
             result["discounts"] = total_discount
             result["sell_group_ids"] = list(
