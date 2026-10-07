@@ -169,9 +169,21 @@ class TestMigration0023FixSwappedBrandModel:
         teléfonos_brand = baker.make(Brand, name="Teléfonos4")
         samsung_model = baker.make(Model, name="Samsung4", brand=teléfonos_brand)
 
+        # Segundo par invertido. La restricción unique_product_model (name+model)
+        # impide repetir nombre con el mismo modelo, así que el duplicado comparte
+        # nombre pero cuelga de otro modelo invertido.
+        samsung_brand_2 = baker.make(Brand, name="Samsung4L")
+        teléfonos_model_2 = baker.make(
+            Model, name="Teléfonos4L", brand=samsung_brand_2
+        )
+        teléfonos_brand_2 = baker.make(Brand, name="Teléfonos4L")
+        samsung_model_2 = baker.make(
+            Model, name="Samsung4L", brand=teléfonos_brand_2
+        )
+
         # Crear múltiples productos con el mismo nombre (case real en BD)
         product1 = baker.make(Product, name="Galaxy A06", model=samsung_model)
-        product2 = baker.make(Product, name="Galaxy A06", model=samsung_model)
+        product2 = baker.make(Product, name="Galaxy A06", model=samsung_model_2)
         baker.make(
             ShopProducts, shop=shop, product=product1, cost_price=0.5, sell_price=1.0
         )
@@ -187,8 +199,8 @@ class TestMigration0023FixSwappedBrandModel:
         product2.refresh_from_db()
         assert product1.model.id == teléfonos_model.id
         assert product1.model.brand.id == samsung_brand.id
-        assert product2.model.id == teléfonos_model.id
-        assert product2.model.brand.id == samsung_brand.id
+        assert product2.model.id == teléfonos_model_2.id
+        assert product2.model.brand.id == samsung_brand_2.id
 
     def test_preserves_valid_brand_model_relationships(self):
         """Verifica que la migración no toca relaciones Brand/Model correctas."""
