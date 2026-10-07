@@ -127,7 +127,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         for log in logs_when_input:
             self.assertEqual(
                 log.extra_log_info,
-                f"(Entrada del {input_created.for_date.strftime('%d-%h-%Y')})",
+                f"(Entrada {input_created.id})",
             )
 
         # testing the deletion of a shop product input group
@@ -155,7 +155,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         for log in latest_logs:
             self.assertEqual(
                 log.extra_log_info,
-                f"(Entrada del {input_created.for_date.strftime('%d-%h-%Y')} cancelada)",
+                f"(Entrada {input_created.id} cancelada)",
             )
 
     def test_for_date_must_be_not_future_date(self):
@@ -377,10 +377,10 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         self.assertEqual(updated_logs_sp2.count(), 2)
 
         expected_entry_log = (
-            f"(Entrada del {created_group.for_date.strftime('%d-%h-%Y')})"
+            f"(Entrada {created_group.id})"
         )
         expected_cancel_log = (
-            f"(Entrada del {created_group.for_date.strftime('%d-%h-%Y')} cancelada)"
+            f"(Entrada {created_group.id} cancelada)"
         )
 
         self.assertEqual(updated_logs_sp1.first().extra_log_info, expected_entry_log)
@@ -540,7 +540,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         self.assertEqual(shop_product_2.quantity, initial_quantity_2 + input_quantity_2)
 
         expected_entry_log = (
-            f"(Entrada del {input_group.for_date.strftime('%d-%h-%Y')})"
+            f"(Entrada {input_group.id})"
         )
         created_logs = GenericLog.objects.filter(
             performed_action=GenericLog.ACTION.UPDATED,
@@ -568,7 +568,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         self.assertEqual(shop_product_2.quantity, initial_quantity_2 + input_quantity_2)
 
         expected_cancel_log = (
-            f"(Entrada del {input_group.for_date.strftime('%d-%h-%Y')} cancelada)"
+            f"(Entrada {input_group.id} cancelada)"
         )
         cancel_logs = GenericLog.objects.filter(
             performed_action=GenericLog.ACTION.UPDATED,

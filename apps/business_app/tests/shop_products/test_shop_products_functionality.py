@@ -32,9 +32,13 @@ class TestShopProductsViewSet(BaseTestClass):
         ShopProducts.objects.all().delete(
             force_policy=0
         )  # this is because in migrations 0021 and 0022 we create ShopProducts
+        # The catalog only publishes rows of the enabled principal shop with stock.
+        shop = baker.make(Shop, principal=True, enabled=True)
         with freeze_time(datetime.now() - timedelta(days=40)):
             baker.make(
                 ShopProducts,
+                shop=shop,
+                quantity=baker.random_gen.gen_integer(min_int=1, max_int=10),
                 cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
                 sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
             )
@@ -57,9 +61,13 @@ class TestShopProductsViewSet(BaseTestClass):
         """
         Se puede acceder con cualquier rol, siempre y cuando sea un usuario registrado
         """
+        # The catalog only publishes rows of the enabled principal shop with stock.
+        shop = baker.make(Shop, principal=True, enabled=True)
         with freeze_time(datetime.now() - timedelta(days=29)):
             baker.make(
                 ShopProducts,
+                shop=shop,
+                quantity=baker.random_gen.gen_integer(min_int=1, max_int=10),
                 cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
                 sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
             )
@@ -80,9 +88,12 @@ class TestShopProductsViewSet(BaseTestClass):
         self,
     ):
         """ """
+        # The catalog only publishes rows of the enabled principal shop with stock.
+        shop = baker.make(Shop, principal=True, enabled=True)
         with freeze_time(datetime.now() - timedelta(days=40)):
             baker.make(
                 ShopProducts,
+                shop=shop,
                 cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
                 sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
                 quantity=baker.random_gen.gen_integer(min_int=1, max_int=10),
@@ -103,9 +114,12 @@ class TestShopProductsViewSet(BaseTestClass):
         """
         Prueba que se puede acceder al catálogo sin estar registrado
         """
+        # The catalog only publishes rows of the enabled principal shop with stock.
+        shop = baker.make(Shop, principal=True, enabled=True)
         with freeze_time(datetime.now() - timedelta(days=29)):
             baker.make(
                 ShopProducts,
+                shop=shop,
                 cost_price=baker.random_gen.gen_integer(min_int=1, max_int=2),
                 sell_price=baker.random_gen.gen_integer(min_int=3, max_int=5),
                 quantity=baker.random_gen.gen_integer(min_int=1, max_int=10),
