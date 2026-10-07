@@ -431,9 +431,9 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertEqual(updated_logs_sp1.count(), 2)
         self.assertEqual(updated_logs_sp2.count(), 2)
 
-        expected_sell_log = f"(Venta del {created_group.for_date.strftime('%d-%h-%Y')})"
+        expected_sell_log = f"(Venta {created_group.id})"
         expected_cancel_log = (
-            f"(Venta del {created_group.for_date.strftime('%d-%h-%Y')} cancelada)"
+            f"(Venta {created_group.id} cancelada)"
         )
 
         self.assertEqual(updated_logs_sp1.first().extra_log_info, expected_sell_log)
