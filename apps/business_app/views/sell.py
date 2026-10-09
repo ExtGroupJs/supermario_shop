@@ -72,12 +72,25 @@ class SellViewSet(
         row is deleted, because the deleted sell can no longer report its own
         product, price and group. Both writes and the delete share one transaction
         so a failure cannot leave a group annotated for a sale that still exists.
+
+        When the removed sell is the last one of its group, the group is removed
+        too: an empty group has no product to render and would linger as a sale
+        with nothing in it, so there is no note worth keeping either.
         """
         instance = self.get_object()
         serializer = self.get_serializer(instance)
+        sell_group = instance.sell_group
         with transaction.atomic():
-            serializer.mark_deleted_sell(instance)
+            # ``exclude`` asks the database for the real remaining sells of the
+            # group instead of trusting the instance loaded with the sell.
+            is_last_sell = sell_group is not None and not sell_group.sells.exclude(
+                pk=instance.pk
+            ).exists()
+            if not is_last_sell:
+                serializer.mark_deleted_sell(instance)
             self.perform_destroy(instance)
+            if is_last_sell:
+                sell_group.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_queryset(self):
