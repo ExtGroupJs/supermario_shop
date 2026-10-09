@@ -110,6 +110,43 @@ class SellGroupSerializer(serializers.ModelSerializer):
         """Plain text receipt of a sell group, ready to be copied to the clipboard."""
         return "\n".join(self._report_lines(sell_group))
 
+    def _warehouse_report_lines(self, sell_group):
+        """
+        Warehouse copy of the receipt: what has to be picked, without the money.
+
+        It keeps the same product block of the sale receipt (name and quantity),
+        but drops the client, the payment method and every amount, because the
+        warehouse only needs to know which products and how many units leave the
+        shop.
+        """
+        date_str = sell_group.for_date.astimezone(
+            timezone.get_current_timezone()
+        ).strftime("%d-%b-%Y %I:%M %p")
+
+        lines = [
+            "COMPROBANTE PARA ALMACÉN",
+            f"Nro: {sell_group.id}",
+            f"Fecha: {date_str}",
+            "------------------------------",
+            "PRODUCTOS:",
+        ]
+
+        for index, sell in enumerate(sell_group.sells.all(), start=1):
+            product_name = sell.shop_product.product.__str__()
+            lines += [
+                f"{index}. {product_name}",
+                f"   Cantidad: {sell.quantity}",
+            ]
+
+        lines += [
+            "------------------------------",
+        ]
+        return lines
+
+    def get_warehouse_report(self, sell_group):
+        """Plain text warehouse receipt of a sell group, ready to be copied."""
+        return "\n".join(self._warehouse_report_lines(sell_group))
+
     @staticmethod
     def _summary_report_lines(sell_groups, period, net_total):
         """One line per sell group plus the grand total of the whole period.

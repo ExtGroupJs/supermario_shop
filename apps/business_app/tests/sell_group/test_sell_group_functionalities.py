@@ -757,6 +757,71 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
         )
 
+    def test_warehouse_report_lists_products_and_quantities_without_money(self):
+        """El comprobante de almacen solo trae productos y cantidades, sin dinero."""
+        sell_group = self._make_group_for_report(
+            total=Decimal("30.00"),
+            discount=5,
+            extra_info="Entrega en la tarde",
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse(
+            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        report = response.json()["report"]
+        lines = report.split("\n")
+        self.assertEqual(lines[0], "COMPROBANTE PARA ALMACÉN")
+        self.assertIn(f"Nro: {sell_group.id}", report)
+        self.assertIn("1. Filtro de Aire", report)
+        self.assertIn("   Cantidad: 3", report)
+        self.assertIn("Notas: Entrega en la tarde", report)
+        # Nada relativo a dinero: ni precio unitario, ni subtotal, ni descuento, ni total.
+        self.assertNotIn("Precio", report)
+        self.assertNotIn("Subtotal", report)
+        self.assertNotIn("Descuento", report)
+        self.assertNotIn("Total", report)
+
+    def test_warehouse_report_omits_client_and_payment_method(self):
+        """El comprobante de almacen no muestra el cliente ni el metodo de pago."""
+        client = baker.make(Client, name="Juan Perez", phone="5841111111")
+        sell_group = self._make_group_for_report(
+            total=Decimal("30.00"),
+            client=client,
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse(
+            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
+        )
+        report = self.client.get(url).json()["report"]
+        self.assertNotIn("Cliente:", report)
+        self.assertNotIn("Juan Perez", report)
+        self.assertNotIn("Metodo de pago:", report)
+        self.assertNotIn("Zelle", report)
+
+    def test_warehouse_report_endpoint_follows_the_same_permissions_as_the_list(self):
+        """
+        El comprobante de almacen no abre permisos nuevos: el action hereda los del
+        viewset, asi que SHOP_SELLER tambien puede generarlo.
+        """
+        sell_group = self._make_group_for_report(total=Decimal("30.00"))
+        url = reverse(
+            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
+        )
+
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
+        self._test_permissions(
+            url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
+        )
+
     def _make_group_at(self, when, **kwargs):
         """Sell group dated at ``when``, ready to be reported."""
         return self._make_group_for_report(for_date=when, **kwargs)
@@ -973,3 +1038,131 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self._test_permissions(
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
         )
+
+    # ------------------------------------------------------------------
+    # Listing: filters, search and ordering declared on the viewset
+    # ------------------------------------------------------------------
+
+    def _login_as_seller(self):
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+    def _make_group_with_sells(self, shop_product, quantities, **kwargs):
+        """Sell group holding one sell per quantity, ready to be listed."""
+        sell_group = baker.make(SellGroup, **kwargs)
+        for quantity in quantities:
+            baker.make(
+                Sell,
+                sell_group=sell_group,
+                shop_product=shop_product,
+                quantity=quantity,
+            )
+        return sell_group
+
+    def test_list_search_returns_the_group_once_when_several_sells_match(self):
+        """La busqueda recorre los sells del grupo: dos lineas del mismo producto
+        no deben repetir el grupo en el listado."""
+        matching_shop_product = baker.make(
+            ShopProducts,
+            product=baker.make(Product, name="Filtro de Aceite"),
+            cost_price=1,
+            sell_price=Decimal("10.00"),
+            quantity=50,
+        )
+        other_shop_product = baker.make(
+            ShopProducts,
+            product=baker.make(Product, name="Bujia de Encendido"),
+            cost_price=1,
+            sell_price=Decimal("10.00"),
+            quantity=50,
+        )
+        wanted = self._make_group_with_sells(matching_shop_product, [2, 3])
+        self._make_group_with_sells(other_shop_product, [1])
+        self._login_as_seller()
+
+        response = self.client.get(
+            reverse("sell-groups-list"), {"search": "Filtro de Aceite"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        self.assertEqual(payload["count"], 1)
+        self.assertEqual(payload["results"][0]["id"], wanted.id)
+
+    def test_list_filters_by_shop_through_the_sells_without_repeating_groups(self):
+        """El filtro de tienda se resuelve a traves de los sells, asi que un grupo
+        con varias ventas en esa tienda se devuelve una sola vez."""
+        requested_shop = baker.make(Shop)
+        product_in_shop = baker.make(
+            ShopProducts,
+            shop=requested_shop,
+            product=baker.make(Product, name="Pastillas de Freno"),
+            cost_price=1,
+            sell_price=Decimal("10.00"),
+            quantity=50,
+        )
+        product_in_other_shop = baker.make(
+            ShopProducts,
+            product=baker.make(Product, name="Disco de Freno"),
+            cost_price=1,
+            sell_price=Decimal("10.00"),
+            quantity=50,
+        )
+        wanted = self._make_group_with_sells(product_in_shop, [2, 3])
+        self._make_group_with_sells(product_in_other_shop, [1])
+        self._login_as_seller()
+
+        response = self.client.get(
+            reverse("sell-groups-list"),
+            {"sells__shop_product__shop": requested_shop.id},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        self.assertEqual(payload["count"], 1)
+        self.assertEqual(payload["results"][0]["id"], wanted.id)
+
+    def test_list_filters_by_for_date_and_seller(self):
+        """Los lookups declarados en ``filterset_fields`` filtran el listado."""
+        shop_product = baker.make(
+            ShopProducts,
+            product=baker.make(Product, name="Filtro de Aire"),
+            cost_price=1,
+            sell_price=Decimal("10.00"),
+            quantity=50,
+        )
+        today_group = self._make_group_with_sells(
+            shop_product, [1], for_date=datetime(2026, 3, 10, 9, 0), seller=self.user
+        )
+        older_group = self._make_group_with_sells(
+            shop_product, [1], for_date=datetime(2026, 3, 9, 9, 0)
+        )
+        self._login_as_seller()
+        url = reverse("sell-groups-list")
+
+        by_date = self.client.get(url, {"for_date__date": "2026-03-10"}).json()
+        self.assertEqual(by_date["count"], 1)
+        self.assertEqual(by_date["results"][0]["id"], today_group.id)
+
+        by_seller = self.client.get(url, {"seller": self.user.id}).json()
+        self.assertEqual(by_seller["count"], 1)
+        self.assertEqual(by_seller["results"][0]["id"], today_group.id)
+
+        by_total = self.client.get(url, {"for_date__date__lte": "2026-03-09"}).json()
+        self.assertEqual(by_total["count"], 1)
+        self.assertEqual(by_total["results"][0]["id"], older_group.id)
+
+    def test_list_ordering_ignores_fields_that_are_not_in_the_model(self):
+        """``client_name`` y ``sells`` salen del serializer, no de la tabla: no
+        deben ordenar (ni reventar con un 500) cuando llegan en el query string."""
+        self._make_group_for_report()
+        self._login_as_seller()
+        url = reverse("sell-groups-list")
+
+        for ordering in ("client_name", "sells", "-for_date", "total"):
+            response = self.client.get(url, {"ordering": ordering})
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_200_OK,
+                msg=f"ordering=<{ordering}> returned {response.status_code}",
+            )
