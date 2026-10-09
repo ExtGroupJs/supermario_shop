@@ -136,7 +136,7 @@ class TestSellViewSetFunctionalities(BaseTestClass):
         )
         self.assertEqual(data["client_name"], "")
 
-    def _make_group_with_sell(self, total, discount=0, extra_info=""):
+    def _make_group_with_sell(self, total, discount=0, extra_info="", extra_sells=0):
         sell_group = baker.make(
             SellGroup, total=total, discount=discount, extra_info=extra_info
         )
@@ -151,12 +151,26 @@ class TestSellViewSetFunctionalities(BaseTestClass):
             ),
             quantity=3,
         )
+        # Sells that keep the group alive when the tested sell is removed: a group
+        # without sells is deleted together with its last one.
+        for _ in range(extra_sells):
+            baker.make(
+                Sell,
+                sell_group=sell_group,
+                shop_product=baker.make(
+                    ShopProducts,
+                    cost_price=1,
+                    sell_price=Decimal("10.00"),
+                    quantity=50,
+                ),
+                quantity=1,
+            )
         return sell_group, sell
 
     def test_destroy_sell_appends_cancellation_note_to_its_group(self):
         """Al borrar una venta, su grupo queda anotado con BORRADO producto fecha."""
         sell_group, sell = self._make_group_with_sell(
-            total=Decimal("30.00"), extra_info="Entrega en la tarde"
+            total=Decimal("30.00"), extra_info="Entrega en la tarde", extra_sells=1
         )
         self.user.groups.add(Groups.SHOP_OWNER)
         self.client.force_login(self.user)
@@ -166,6 +180,7 @@ class TestSellViewSetFunctionalities(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Sell.objects.filter(id=sell.id).exists())
 
+        # The group survives because it still has another sell.
         sell_group.refresh_from_db()
         product = sell.shop_product.product.__str__()
         today = timezone.now().strftime("%d-%b-%Y")
@@ -176,7 +191,9 @@ class TestSellViewSetFunctionalities(BaseTestClass):
 
     def test_destroy_sell_reduces_the_group_total_by_the_removed_amount(self):
         """El total del grupo descuenta lo que aportaba la venta borrada."""
-        sell_group, sell = self._make_group_with_sell(total=Decimal("30.00"))
+        sell_group, sell = self._make_group_with_sell(
+            total=Decimal("30.00"), extra_sells=1
+        )
         self.user.groups.add(Groups.SHOP_OWNER)
         self.client.force_login(self.user)
 
@@ -189,7 +206,9 @@ class TestSellViewSetFunctionalities(BaseTestClass):
 
     def test_destroy_sell_never_leaves_the_group_total_negative(self):
         """Un total desincronizado no puede dejar al grupo en negativo."""
-        sell_group, sell = self._make_group_with_sell(total=Decimal("5.00"))
+        sell_group, sell = self._make_group_with_sell(
+            total=Decimal("5.00"), extra_sells=1
+        )
         self.user.groups.add(Groups.SHOP_OWNER)
         self.client.force_login(self.user)
 
@@ -202,7 +221,7 @@ class TestSellViewSetFunctionalities(BaseTestClass):
     def test_destroying_every_sell_of_a_group_keeps_one_note_per_line(self):
         """Cada baja agrega su propio renglón, sin pisar las anteriores."""
         sell_group, first_sell = self._make_group_with_sell(
-            total=Decimal("60.00"), extra_info="Nota inicial"
+            total=Decimal("60.00"), extra_info="Nota inicial", extra_sells=1
         )
         second_sell = baker.make(
             Sell,
@@ -219,6 +238,7 @@ class TestSellViewSetFunctionalities(BaseTestClass):
             url = reverse("sell-products-detail", kwargs={"pk": sell.id})
             self.client.delete(url)
 
+        # The third sell keeps the group alive, so the notes are still readable.
         sell_group.refresh_from_db()
         lines = sell_group.extra_info.split("\n")
         self.assertEqual(len(lines), 3)
@@ -226,6 +246,27 @@ class TestSellViewSetFunctionalities(BaseTestClass):
         self.assertTrue(lines[1].startswith("BORRADO "))
         self.assertTrue(lines[2].startswith("BORRADO "))
         self.assertEqual(sell_group.total, Decimal("0.00"))
+
+    def test_destroy_last_sell_of_a_group_removes_the_empty_group(self):
+        """El grupo no sobrevive a su ultima venta: se borra junto con ella."""
+        sell_group, sell = self._make_group_with_sell(total=Decimal("30.00"))
+        shop_product = sell.shop_product
+        shop_product.refresh_from_db()
+        quantity_after_selling = shop_product.quantity
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-products-detail", kwargs={"pk": sell.id})
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Sell.objects.filter(id=sell.id).exists())
+        self.assertFalse(SellGroup.objects.filter(id=sell_group.id).exists())
+        # The inventory restore still happens for the cancelled sell.
+        shop_product.refresh_from_db()
+        self.assertEqual(
+            shop_product.quantity, quantity_after_selling + sell.quantity
+        )
 
     def test_destroy_sell_without_group_does_not_break(self):
         """Una venta sin grupo se borra sin intentar anotar nada."""
