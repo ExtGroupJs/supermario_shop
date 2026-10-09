@@ -9,6 +9,7 @@ const sellGroupsUrl = "/business-gestion/sell-groups/";
 const load = document.getElementById("load");
 const parsedResultsBody = document.getElementById("parsed-results-body");
 const createButton = document.getElementById("btn-create-sales");
+const preventaButton = document.getElementById("btn-create-preventa");
 const thresholdInput = document.getElementById("similarityThreshold");
 const thresholdValue = document.getElementById("similarityValue");
 const saleTotalLabel = document.getElementById("sale-total");
@@ -30,6 +31,10 @@ function bindEvents() {
 
   $("#btn-create-sales").on("click", async function () {
     await crearVentas();
+  });
+
+  $("#btn-create-preventa").on("click", async function () {
+    await crearPreVenta();
   });
 
   $("#similarityThreshold").on("input", function () {
@@ -145,6 +150,7 @@ async function analizarMensaje() {
 
   showLoader();
   createButton.disabled = true;
+  if (preventaButton) preventaButton.disabled = true;
   parsedEntries = [];
 
   try {
@@ -411,6 +417,7 @@ function renderStatus(entry) {
 function renderNoResults(message) {
   parsedResultsBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">${escapeHtml(message)}</td></tr>`;
   createButton.disabled = true;
+  if (preventaButton) preventaButton.disabled = true;
   renderSaleTotal();
 }
 
@@ -434,6 +441,7 @@ function updateCreateButtonState() {
     document.querySelectorAll(".entry-check:checked"),
   );
   createButton.disabled = checkedEntries.length === 0;
+  if (preventaButton) preventaButton.disabled = checkedEntries.length === 0;
 }
 
 function getSelectedEntries() {
@@ -578,34 +586,8 @@ async function crearVentas() {
       discount,
       extraInfo: composedExtraInfo,
     });
-    const comprobanteHtml = buildComprobanteHtml(comprobanteText);
 
-    const result = await Swal.fire({
-      icon: "success",
-      title: "Venta creada",
-      html: comprobanteHtml,
-      width: 700,
-      showDenyButton: true,
-      confirmButtonText: "Copiar comprobante",
-      denyButtonText: "Cerrar",
-    });
-
-    if (result.isConfirmed) {
-      const copied = await copiarComprobante(comprobanteText);
-      if (copied) {
-        await Swal.fire({
-          icon: "success",
-          title: "Comprobante copiado",
-          text: "El comprobante se copió al portapapeles.",
-        });
-      } else {
-        await Swal.fire({
-          icon: "error",
-          title: "No se pudo copiar",
-          text: "No fue posible copiar el comprobante automáticamente.",
-        });
-      }
-    }
+    await mostrarComprobanteConCopia("Venta creada", comprobanteText);
 
     // Reset
     document.getElementById("form-parse-message").reset();
@@ -635,6 +617,7 @@ function buildComprobanteText({
   paymentMethod,
   discount,
   extraInfo,
+  title = "COMPROBANTE DE VENTA",
 }) {
   const paymentMethodName = paymentMethod === "Z" ? "Zelle" : "USD";
 
@@ -660,12 +643,17 @@ function buildComprobanteText({
     })
     .join("\n\n");
 
-  const lines = [
-    "COMPROBANTE DE VENTA",
-    `Nro: ${String(saleId || "N/A")}`,
-    `Fecha: ${dateStr}`,
-    `Cliente: ${clientName}`,
-    `Metodo de pago: ${paymentMethodName}`,
+  const lines = [title, `Nro: ${String(saleId || "N/A")}`, `Fecha: ${dateStr}`];
+
+  if (clientName) {
+    lines.push(`Cliente: ${clientName}`);
+  }
+
+  if (paymentMethod) {
+    lines.push(`Metodo de pago: ${paymentMethodName}`);
+  }
+
+  lines.push(
     "------------------------------",
     "PRODUCTOS:",
     productLines,
@@ -674,7 +662,7 @@ function buildComprobanteText({
     `Descuento: $${Number(discount || 0).toFixed(2)}`,
     `Total: $${netTotal.toFixed(2)}`,
     `Notas: ${extraInfo || ""}`,
-  ];
+  );
 
   return lines.join("\n");
 }
@@ -714,4 +702,80 @@ function escapeHtml(text) {
   const div = document.createElement("div");
   div.innerText = text;
   return div.innerHTML;
+}
+
+async function mostrarComprobanteConCopia(titulo, comprobanteText) {
+  const result = await Swal.fire({
+    icon: "success",
+    title: titulo,
+    html: buildComprobanteHtml(comprobanteText),
+    width: 700,
+    showDenyButton: true,
+    confirmButtonText: "Copiar comprobante",
+    denyButtonText: "Cerrar",
+  });
+
+  if (result.isConfirmed) {
+    const copied = await copiarComprobante(comprobanteText);
+    if (copied) {
+      await Swal.fire({
+        icon: "success",
+        title: "Comprobante copiado",
+        text: "El comprobante se copió al portapapeles.",
+      });
+    } else {
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo copiar",
+        text: "No fue posible copiar el comprobante automáticamente.",
+      });
+    }
+  }
+}
+
+// Create a pre-sale receipt locally, without calling the backend.
+async function crearPreVenta() {
+  const selectedIndexes = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  ).map((cb) => Number(cb.dataset.index));
+
+  if (!selectedIndexes.length) {
+    Swal.fire({
+      icon: "warning",
+      title: "Sin selección",
+      text: "No hay productos seleccionados para pre-vender.",
+    });
+    return;
+  }
+
+  const discount = parseFloat(document.getElementById("discount").value) || 0;
+  const manualExtraInfo = document.getElementById("extra_info").value || "";
+  const composedExtraInfo = `${manualExtraInfo ? ` ${manualExtraInfo}` : ""}`;
+
+  const sells = selectedIndexes
+    .map((index) => parsedEntries[index])
+    .filter((entry) => entry && entry.chosenMatch)
+    .map((entry) => ({
+      shop_product: entry.chosenMatch.id,
+      quantity: Number(entry.quantity),
+      extra_info: composedExtraInfo,
+    }));
+
+  if (!sells.length) {
+    Swal.fire({
+      icon: "warning",
+      title: "Sin ventas válidas",
+      text: "No hay ventas válidas para pre-vender.",
+    });
+    return;
+  }
+
+  const comprobanteText = buildComprobanteText({
+    sells,
+    discount,
+    extraInfo: composedExtraInfo,
+    title: "COMPROBANTE DE PRE-VENTA",
+  });
+
+  await mostrarComprobanteConCopia("Pre-venta generada", comprobanteText);
 }

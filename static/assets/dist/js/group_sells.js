@@ -101,12 +101,17 @@ $(document).ready(function () {
         data: "id",
         title: "Acciones",
         render: (data, type, row) => {
-          return `<button type="button" title="Ver detalle" class="btn bg-primary" onclick="toggleGroupSells(${data})">
-                    <i class="nav-icon fas fa-plus"></i>
+          return `<div class="btn-group">
+                    <button type="button" title="Ver detalle" class="btn bg-olive" onclick="toggleGroupSells(${data})">
+                      <i class="fas fa-plus"></i>
                     </button>
-                    <button type="button" title="Generar informe" class="btn bg-info ml-1" onclick="generarInformeVenta('${data}')">
-                    <i class="nav-icon fas fa-file-invoice"></i>
-                    </button>`;
+                    <button type="button" title="Generar informe" class="btn bg-olive" onclick="generarInformeVenta('${data}')">
+                      <i class="fas fa-file-invoice"></i>
+                    </button>
+                    <button type="button" title="Comprobante para almacén" class="btn bg-olive" onclick="generarComprobanteAlmacen('${data}')">
+                      <i class="fas fa-warehouse"></i>
+                    </button>
+                  </div>`;
         },
       },
     ],
@@ -292,72 +297,93 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Generar el comprobante de un grupo de ventas
-function generarInformeVenta(sellGroupId) {
-  const reportButton = event.target.closest("button");
-  const originalHtml = reportButton ? reportButton.innerHTML : "";
-  if (reportButton) {
-    reportButton.disabled = true;
-    reportButton.innerHTML =
+// Fetch a plain text receipt from the backend and show it with a copy action.
+async function fetchComprobante(
+  button,
+  path,
+  { successTitle, emptyMessage, errorTitle },
+) {
+  const originalHtml = button ? button.innerHTML : "";
+  if (button) {
+    button.disabled = true;
+    button.innerHTML =
       '<i class="nav-icon fas fa-spinner fa-spin"></i> Generando...';
   }
 
-  axios
-    .get(`${urlSellGroup}${sellGroupId}/report/`)
-    .then(async (response) => {
-      const reportText = (response.data?.report || "").trim();
-      if (!reportText) {
-        throw new Error("El informe esta vacio");
-      }
+  try {
+    const response = await axios.get(path);
+    const reportText = (response.data?.report || "").trim();
+    if (!reportText) {
+      throw new Error(emptyMessage);
+    }
 
-      const result = await Swal.fire({
-        icon: "success",
-        title: `Comprobante de la venta ${sellGroupId}`,
-        html: buildInformeHtml(reportText),
-        width: 700,
-        showDenyButton: true,
-        confirmButtonText: "Copiar comprobante",
-        denyButtonText: "Cerrar",
-        didOpen: () => {
-          const comprobante = document.getElementById("sale-comprobante");
-          if (comprobante) {
-            comprobante.scrollTop = 0;
-          }
-        },
-      });
-
-      if (result.isConfirmed) {
-        const copied = await copiarComprobante(reportText);
-        if (copied) {
-          await Swal.fire({
-            icon: "success",
-            title: "Comprobante copiado",
-            text: "El comprobante se copio al portapapeles.",
-          });
-        } else {
-          await Swal.fire({
-            icon: "error",
-            title: "No se pudo copiar",
-            text: "No fue posible copiar el comprobante automaticamente.",
-          });
+    const result = await Swal.fire({
+      icon: "success",
+      title: successTitle,
+      html: buildInformeHtml(reportText),
+      width: 700,
+      showDenyButton: true,
+      confirmButtonText: "Copiar comprobante",
+      denyButtonText: "Cerrar",
+      didOpen: () => {
+        const comprobante = document.getElementById("sale-comprobante");
+        if (comprobante) {
+          comprobante.scrollTop = 0;
         }
-      }
-    })
-    .catch((error) => {
-      Swal.fire({
-        icon: "error",
-        title: "Error generando el informe",
-        text:
-          "No fue posible generar el comprobante: " +
-          (error.response?.data?.detail || error.message),
-      });
-    })
-    .finally(() => {
-      if (reportButton) {
-        reportButton.disabled = false;
-        reportButton.innerHTML = originalHtml;
-      }
+      },
     });
+
+    if (result.isConfirmed) {
+      const copied = await copiarComprobante(reportText);
+      if (copied) {
+        await Swal.fire({
+          icon: "success",
+          title: "Comprobante copiado",
+          text: "El comprobante se copio al portapapeles.",
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "No se pudo copiar",
+          text: "No fue posible copiar el comprobante automaticamente.",
+        });
+      }
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: errorTitle,
+      text:
+        "No fue posible generar el comprobante: " +
+        (error.response?.data?.detail || error.message),
+    });
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = originalHtml;
+    }
+  }
+}
+
+// Generar el comprobante de un grupo de ventas
+function generarInformeVenta(sellGroupId) {
+  const button = event.target.closest("button");
+  fetchComprobante(button, `${urlSellGroup}${sellGroupId}/report/`, {
+    successTitle: `Comprobante de la venta ${sellGroupId}`,
+    emptyMessage: "El informe esta vacio",
+    errorTitle: "Error generando el informe",
+  });
+}
+
+// Generar el comprobante para almacen de un grupo de ventas (sin cliente,
+// metodo de pago ni dinero).
+function generarComprobanteAlmacen(sellGroupId) {
+  const button = event.target.closest("button");
+  fetchComprobante(button, `${urlSellGroup}${sellGroupId}/warehouse-report/`, {
+    successTitle: `Comprobante para almacén de la venta ${sellGroupId}`,
+    emptyMessage: "El comprobante esta vacio",
+    errorTitle: "Error generando el comprobante para almacén",
+  });
 }
 
 function buildInformeHtml(reportText) {
