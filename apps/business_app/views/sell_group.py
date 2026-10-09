@@ -214,6 +214,24 @@ class SellGroupViewSet(
             {"report": self.get_serializer(sell_group).get_report(sell_group)}
         )
 
+    @action(detail=True, methods=["GET"], url_path="warehouse-report")
+    def warehouse_report(self, request, pk=None):
+        """
+        Warehouse receipt of a sell group: products and quantities, no money.
+
+        It is built out of the same sells the sales receipt lists, but the client,
+        the payment method and every amount are left out because this copy is only
+        used to prepare the goods that leave the shop.
+        """
+        sell_group = self.get_object()
+        return Response(
+            {
+                "report": self.get_serializer(sell_group).get_warehouse_report(
+                    sell_group
+                )
+            }
+        )
+
     @action(detail=False, methods=["GET"], url_path="period-report")
     def period_report(self, request):
         """

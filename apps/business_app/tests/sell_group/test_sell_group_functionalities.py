@@ -757,6 +757,71 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
         )
 
+    def test_warehouse_report_lists_products_and_quantities_without_money(self):
+        """El comprobante de almacen solo trae productos y cantidades, sin dinero."""
+        sell_group = self._make_group_for_report(
+            total=Decimal("30.00"),
+            discount=5,
+            extra_info="Entrega en la tarde",
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse(
+            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        report = response.json()["report"]
+        lines = report.split("\n")
+        self.assertEqual(lines[0], "COMPROBANTE PARA ALMACÉN")
+        self.assertIn(f"Nro: {sell_group.id}", report)
+        self.assertIn("1. Filtro de Aire", report)
+        self.assertIn("   Cantidad: 3", report)
+        self.assertIn("Notas: Entrega en la tarde", report)
+        # Nada relativo a dinero: ni precio unitario, ni subtotal, ni descuento, ni total.
+        self.assertNotIn("Precio", report)
+        self.assertNotIn("Subtotal", report)
+        self.assertNotIn("Descuento", report)
+        self.assertNotIn("Total", report)
+
+    def test_warehouse_report_omits_client_and_payment_method(self):
+        """El comprobante de almacen no muestra el cliente ni el metodo de pago."""
+        client = baker.make(Client, name="Juan Perez", phone="5841111111")
+        sell_group = self._make_group_for_report(
+            total=Decimal("30.00"),
+            client=client,
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse(
+            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
+        )
+        report = self.client.get(url).json()["report"]
+        self.assertNotIn("Cliente:", report)
+        self.assertNotIn("Juan Perez", report)
+        self.assertNotIn("Metodo de pago:", report)
+        self.assertNotIn("Zelle", report)
+
+    def test_warehouse_report_endpoint_follows_the_same_permissions_as_the_list(self):
+        """
+        El comprobante de almacen no abre permisos nuevos: el action hereda los del
+        viewset, asi que SHOP_SELLER tambien puede generarlo.
+        """
+        sell_group = self._make_group_for_report(total=Decimal("30.00"))
+        url = reverse(
+            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
+        )
+
+        allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
+        self._test_permissions(
+            url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
+        )
+
     def _make_group_at(self, when, **kwargs):
         """Sell group dated at ``when``, ready to be reported."""
         return self._make_group_for_report(for_date=when, **kwargs)
