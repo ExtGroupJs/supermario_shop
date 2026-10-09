@@ -119,7 +119,7 @@ $(document).ready(function () {
         },
       },
     ],
-    
+
     // La columna Fecha se elimino de la tabla, asi que el orden descendente se
     // aplica sobre el grupo (columna oculta): los grupos mas recientes salen primero.
     order: [[0, "desc"]],
@@ -225,7 +225,9 @@ async function generarReporteVentas(startDate, endDate) {
   const reportButton = $("#period-report-button");
   const originalHtml = reportButton.html();
   reportButton.prop("disabled", true);
-  reportButton.html('<i class="nav-icon fas fa-spinner fa-spin"></i> Generando...');
+  reportButton.html(
+    '<i class="nav-icon fas fa-spinner fa-spin"></i> Generando...',
+  );
 
   const params = {};
   if (startDate) {
@@ -240,7 +242,9 @@ async function generarReporteVentas(startDate, endDate) {
   }
 
   try {
-    const response = await axios.get(`${urlSellGroup}period-report/`, { params });
+    const response = await axios.get(`${urlSellGroup}period-report/`, {
+      params,
+    });
     const reportText = (response.data?.report || "").trim();
     if (!reportText) {
       throw new Error("El reporte esta vacio");
@@ -424,7 +428,11 @@ async function copiarComprobante(text) {
 
 function toggleGroupSells(groupId) {
   const table = $("#tabla-de-Datos").DataTable();
-  const row = table.rows().data().toArray().find((r) => r.id == groupId);
+  const row = table
+    .rows()
+    .data()
+    .toArray()
+    .find((r) => r.id == groupId);
   if (!row || !row.sells) {
     return;
   }
@@ -440,11 +448,11 @@ function toggleGroupSells(groupId) {
           <td>$${Number(s.total_priced || 0).toFixed(2)}</td>
           <td>${escapeHtml(s.seller__first_name || "")}</td>
         </tr>
-      `
+      `,
     )
     .join("");
   Swal.fire({
-    title: `Ventas del grupo ${groupId}`,
+    title: `Compras en la venta ${groupId}`,
     html: `
       <div style="max-height:400px;overflow:auto;">
         <table class="table table-bordered table-sm" style="width:100%">
