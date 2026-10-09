@@ -101,12 +101,14 @@ $(document).ready(function () {
         data: "id",
         title: "Acciones",
         render: (data, type, row) => {
-          return `<button type="button" title="Ver detalle" class="btn bg-primary" onclick="toggleGroupSells(${data})">
-                    <i class="nav-icon fas fa-plus"></i>
+          return `<div class="btn-group">
+                    <button type="button" title="Ver detalle" class="btn bg-olive" onclick="toggleGroupSells(${data})">
+                      <i class="fas fa-plus"></i>
                     </button>
-                    <button type="button" title="Generar informe" class="btn bg-info ml-1" onclick="generarInformeVenta('${data}')">
-                    <i class="nav-icon fas fa-file-invoice"></i>
-                    </button>`;
+                    <button type="button" title="Generar informe" class="btn bg-olive" onclick="generarInformeVenta('${data}')">
+                      <i class="fas fa-file-invoice"></i>
+                    </button>
+                  </div>`;
         },
       },
     ],
