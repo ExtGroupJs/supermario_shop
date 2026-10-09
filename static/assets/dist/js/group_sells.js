@@ -103,7 +103,7 @@ $(document).ready(function () {
         render: (data, type, row) => {
           return `<div class="btn-group">
                     <button type="button" title="Ver detalle" class="btn bg-olive" onclick="toggleGroupSells(${data})">
-                      <i class="fas fa-plus"></i>
+                      <i class="fas fa-eye"></i>
                     </button>
                     <button type="button" title="Generar informe" class="btn bg-olive" onclick="generarInformeVenta('${data}')">
                       <i class="fas fa-file-invoice"></i>
