@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
+from django.db import transaction
 from django.db.models import Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -40,27 +41,67 @@ class SellGroupViewSet(
         CommonOrderingFilter,
     ]
     permission_classes = [SellViewSetPermission]
+
+    # A group has no shop nor product of its own: it belongs to the shop of the
+    # products it sold, so every product level lookup travels through the sells
+    # relation. Those joins can match more than one sell of the same group, hence
+    # the ``distinct()`` applied by ``get_queryset``.
     filterset_fields = {
-        # "shop_product": ["exact"],
-        # "seller": ["exact"],
-        # "shop_product__product": ["exact"],
-        # "shop_product__product__model": ["exact"],
-        # "shop_product__product__model__brand": ["exact"],
-        # "shop_product__sell_price": ["gte", "lte", "exact"],
-        # "quantity": ["gte", "lte", "exact"],
-        # "created_timestamp": ["gte", "lte"],
-        # "updated_timestamp": ["gte", "lte"],
+        "for_date": ["gte", "lte", "date__gte", "date__lte", "date"],
+        "created_timestamp": ["gte", "lte"],
+        "seller": ["exact"],
+        "client": ["exact"],
+        "payment_method": ["exact"],
+        "discount": ["exact"],
+        "total": ["gte", "lte"],
+        "sells__shop_product": ["exact"],
+        "sells__shop_product__shop": ["exact"],
+        "sells__shop_product__product": ["exact"],
+        "sells__shop_product__product__model": ["exact"],
+        "sells__shop_product__product__model__brand": ["exact"],
     }
 
     search_fields = [
-        # "shop_product__product__name",
-        # "shop_product__product__model__name",
-        # "shop_product__product__model__brand__name",
-        # "seller__username",
-        # "extra_info",
+        "id",
+        "extra_info",
+        "client__name",
+        "client__phone",
+        "seller__username",
+        "sells__shop_product__product__name",
+        "sells__shop_product__product__model__name",
+        "sells__shop_product__product__model__brand__name",
     ]
 
-    ordering_fields = SellGroupSerializer.Meta.fields
+    # Only columns of the model: ``sells`` and ``client_name`` are serializer
+    # output (a reverse relation and a write only field), ordering by them makes
+    # the database raise a FieldError instead of sorting anything.
+    ordering_fields = (
+        "id",
+        "for_date",
+        "seller",
+        "client",
+        "total",
+        "discount",
+        "payment_method",
+        "created_timestamp",
+        "updated_timestamp",
+    )
+
+    def get_queryset(self):
+        """
+        Groups with their seller, client and sells ready to be serialized.
+
+        The listing serializes the sells of every group and the reports print the
+        client name, so the joins are declared upfront instead of being queried
+        row by row. ``distinct()`` is what keeps the joined search and filters
+        (``sells__*``) from repeating a group once per matching sell.
+        """
+        return (
+            SellGroup.objects.all()
+            .select_related("client", "seller")
+            .prefetch_related("sells")
+            .distinct()
+        )
 
     def _filter_by_shop(self, queryset, shop_id):
         """
@@ -131,11 +172,15 @@ class SellGroupViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         sells = serializer.validated_data.pop("sells")
-        created_sell_group = self.perform_create(serializer)
-        for sell in sells:
-            sell["sell_group"] = created_sell_group
-            sell["seller"] = created_sell_group.seller
-            Sell.objects.create(**sell)
+        # The group and its sells are one single unit of work: creating the group
+        # fires the signals that move the inventory, so a child sell failing half
+        # way must not leave a group behind already charged against the stock.
+        with transaction.atomic():
+            created_sell_group = self.perform_create(serializer)
+            for sell in sells:
+                sell["sell_group"] = created_sell_group
+                sell["seller"] = created_sell_group.seller
+                Sell.objects.create(**sell)
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -146,9 +191,13 @@ class SellGroupViewSet(
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        for sell in instance.sells.all():
-            sell.delete()
-        self.perform_destroy(instance)
+        # Every sell puts its quantity back through the post_delete signal, so the
+        # sells, the inventory restores and the group removal succeed or fail
+        # together instead of leaving a cancelled sale with its stock missing.
+        with transaction.atomic():
+            for sell in instance.sells.all():
+                sell.delete()
+            self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["GET"], url_path="report")
