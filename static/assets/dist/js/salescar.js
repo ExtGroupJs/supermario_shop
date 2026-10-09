@@ -18,6 +18,7 @@ function buildComprobanteText({
   paymentMethod,
   discount,
   extraInfo,
+  title = "COMPROBANTE DE VENTA",
 }) {
   const paymentMethodName = paymentMethod === "Z" ? "Zelle" : "USD";
   const grossTotal = productos.reduce(
@@ -41,12 +42,22 @@ function buildComprobanteText({
     })
     .join("\n\n");
 
-  return [
-    "COMPROBANTE DE VENTA",
+  const headerLines = [
+    title,
     `Nro: ${String(saleId || "N/A")}`,
     `Fecha: ${dateStr}`,
-    `Cliente: ${clientName}`,
-    `Metodo de pago: ${paymentMethodName}`,
+  ];
+
+  if (clientName) {
+    headerLines.push(`Cliente: ${clientName}`);
+  }
+
+  if (paymentMethod) {
+    headerLines.push(`Metodo de pago: ${paymentMethodName}`);
+  }
+
+  return [
+    ...headerLines,
     "------------------------------",
     "PRODUCTOS:",
     productLines,
@@ -94,6 +105,35 @@ function escapeHtml(text) {
   const div = document.createElement("div");
   div.innerText = text;
   return div.innerHTML;
+}
+
+async function mostrarComprobanteConCopia(titulo, comprobanteText) {
+  const result = await Swal.fire({
+    icon: "success",
+    title: titulo,
+    html: buildComprobanteHtml(comprobanteText),
+    width: 700,
+    showDenyButton: true,
+    confirmButtonText: "Copiar comprobante",
+    denyButtonText: "Cerrar",
+  });
+
+  if (result.isConfirmed) {
+    const copied = await copiarComprobante(comprobanteText);
+    if (copied) {
+      await Swal.fire({
+        icon: "success",
+        title: "Comprobante copiado",
+        text: "El comprobante se copio al portapapeles.",
+      });
+    } else {
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo copiar",
+        text: "No fue posible copiar el comprobante automaticamente.",
+      });
+    }
+  }
 }
 
 // Cargar productos al inicio
@@ -307,34 +347,8 @@ $("#crearVenta").on("click", function () {
         discount: descuento,
         extraInfo,
       });
-      const comprobanteHtml = buildComprobanteHtml(comprobanteText);
 
-      const result = await Swal.fire({
-        icon: "success",
-        title: "Venta creada con éxito",
-        html: comprobanteHtml,
-        width: 700,
-        showDenyButton: true,
-        confirmButtonText: "Copiar comprobante",
-        denyButtonText: "Cerrar",
-      });
-
-      if (result.isConfirmed) {
-        const copied = await copiarComprobante(comprobanteText);
-        if (copied) {
-          await Swal.fire({
-            icon: "success",
-            title: "Comprobante copiado",
-            text: "El comprobante se copio al portapapeles.",
-          });
-        } else {
-          await Swal.fire({
-            icon: "error",
-            title: "No se pudo copiar",
-            text: "No fue posible copiar el comprobante automaticamente.",
-          });
-        }
-      }
+      await mostrarComprobanteConCopia("Venta creada con éxito", comprobanteText);
 
       productosSeleccionados = [];
       $("#productosTable tbody").empty();
@@ -352,4 +366,28 @@ $("#crearVenta").on("click", function () {
         text: "Error al completar la venta: " + error.message,
       });
     });
+});
+
+// Crear pre-venta (solo comprobante local, sin llamada al backend)
+$("#crearPreVenta").on("click", async function () {
+  if (productosSeleccionados.length === 0) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: `No hay productos seleccionados para pre-vender.`,
+    });
+    return;
+  }
+
+  const descuento = parseInt($("#descuento").val()) || 0;
+  const extraInfo = $("#extra_info").val() || "";
+
+  const comprobanteText = buildComprobanteText({
+    productos: productosSeleccionados,
+    discount: descuento,
+    extraInfo,
+    title: "COMPROBANTE DE PRE-VENTA",
+  });
+
+  await mostrarComprobanteConCopia("Pre-venta generada", comprobanteText);
 });
