@@ -435,14 +435,12 @@ function toggleGroupSells(groupId) {
   const sells = row.sells;
   const sellsHtml = sells
     .map(
-      (s, i) => `
+      (s) => `
         <tr>
-          <td>${i + 1}</td>
           <td>${escapeHtml(s.product_name || "")}</td>
           <td>${s.quantity}</td>
           <td>$${Number(s.sell_price || 0).toFixed(2)}</td>
           <td>$${Number(s.total_priced || 0).toFixed(2)}</td>
-          <td>${escapeHtml(s.seller__first_name || "")}</td>
         </tr>
       `,
     )
@@ -454,12 +452,10 @@ function toggleGroupSells(groupId) {
         <table class="table table-bordered table-sm" style="width:100%">
           <thead>
             <tr>
-              <th>#</th>
               <th>Producto</th>
               <th>Cantidad</th>
               <th>Precio unitario</th>
               <th>Monto total</th>
-              <th>Vendedor</th>
             </tr>
           </thead>
           <tbody>${sellsHtml}</tbody>
