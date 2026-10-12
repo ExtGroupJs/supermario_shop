@@ -600,6 +600,21 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertIsNone(created_group.client)
         self.assertEqual(Client.objects.count(), 0)
 
+    def test_create_sell_group_without_note_leaves_it_empty(self):
+        """La nota adicional no es obligatoria: el grupo se crea sin enviarla."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        payload = self._make_sell_payload(shop=self.user.shop)
+        payload.pop("extra_info")
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertIn(created_group.extra_info, (None, ""))
+
     def test_create_sell_group_without_phone_creates_client_from_its_name(self):
         """Sin teléfono el Client se crea igual, usando el nombre como clave."""
         self.user.groups.add(Groups.SHOP_SELLER)

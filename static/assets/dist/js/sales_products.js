@@ -166,7 +166,7 @@ function sellProduct(shopProductId, availableQuantity) {
 
       const payload = {
         shop_product: shopProductId,
-        extra_info: extraInfo || "string", // Usar "string" si no se proporciona información
+        extra_info: extraInfo || "",
         quantity: quantity,
       };
 

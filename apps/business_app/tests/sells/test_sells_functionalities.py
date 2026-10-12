@@ -136,6 +136,25 @@ class TestSellViewSetFunctionalities(BaseTestClass):
         )
         self.assertEqual(data["client_name"], "")
 
+    def test_create_sell_without_note_leaves_it_empty(self):
+        """La nota adicional no es obligatoria: la venta se crea sin enviarla."""
+        shop_product = baker.make(
+            ShopProducts, shop=self.user.shop, cost_price=1, sell_price=3, quantity=10
+        )
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+
+        url = reverse("sell-products-list")
+        response = self.client.post(
+            url,
+            data={"shop_product": shop_product.id, "quantity": 1},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        sell = Sell.objects.get(id=response.json()["id"])
+        self.assertIn(sell.extra_info, (None, ""))
+
     def _make_group_with_sell(self, total, discount=0, extra_info="", extra_sells=0):
         sell_group = baker.make(
             SellGroup, total=total, discount=discount, extra_info=extra_info
