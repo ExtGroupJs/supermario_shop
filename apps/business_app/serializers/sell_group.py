@@ -200,11 +200,12 @@ class SellGroupSerializer(serializers.ModelSerializer):
     def create(self, validated_data: dict):
         """Resolve the sell group client from the name/phone pair sent by the sales views.
 
-        The client is looked up by phone (its natural unique key), so the same phone
-        always maps to the same client. When the phone is unknown a new client is
-        created; when it is already registered only its name is refreshed. Without a
-        phone there is no reliable key to match a client, so the name is ignored and
-        the sell group is stored without client.
+        The phone is the natural unique key, so the same phone always maps to the same
+        client. The sales views let the phone be empty, so when it is missing the name
+        is used instead as a best-effort key, matched inside the shop the products were
+        sold from. When no client matches, a new one is created; when a client already
+        exists, only its name is refreshed. Without a name either there is nothing to
+        resolve and the sell group is stored without client.
         """
         client_name = validated_data.pop("client_name", "").strip()
         client_phone = validated_data.pop("client_phone", "").strip()
@@ -217,15 +218,23 @@ class SellGroupSerializer(serializers.ModelSerializer):
 
         if client_phone:
             client = Client.objects.filter(phone=client_phone).first()
-            if client is None:
-                client = Client.objects.create(
-                    name=client_name,
-                    phone=client_phone,
-                    shop=shop,
-                )
-            elif client_name and client.name != client_name:
-                client.name = client_name
-                client.save(update_fields=["name"])
+        elif client_name:
+            client = Client.objects.filter(name__iexact=client_name, shop=shop).first()
+        else:
+            # No name and no phone: there is no key at all to match or create a client.
+            client = None
+
+        if client is None and (client_phone or client_name):
+            client = Client.objects.create(
+                name=client_name,
+                phone=client_phone or None,
+                shop=shop,
+            )
+        elif client is not None and client_name and client.name != client_name:
+            client.name = client_name
+            client.save(update_fields=["name"])
+
+        if client is not None:
             validated_data["client"] = client
         return super().create(validated_data)
 

@@ -600,6 +600,56 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertIsNone(created_group.client)
         self.assertEqual(Client.objects.count(), 0)
 
+    def test_create_sell_group_without_phone_creates_client_from_its_name(self):
+        """Sin teléfono el Client se crea igual, usando el nombre como clave."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+        client_name = self.faker.name()
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(
+            url,
+            data=self._make_sell_payload(
+                shop=self.user.shop,
+                client_name=client_name,
+                client_phone="",
+            ),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        created_client = Client.objects.get(name=client_name)
+        self.assertIsNone(created_client.phone)
+        self.assertEqual(created_client.shop, self.sold_shop_product.shop)
+
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.client, created_client)
+
+    def test_create_sell_group_without_phone_reuses_the_client_with_the_same_name(self):
+        """Sin teléfono, un nombre ya registrado en el shop no duplica el Client."""
+        self.user.groups.add(Groups.SHOP_SELLER)
+        self.client.force_login(self.user)
+        client_name = self.faker.name()
+        existing_client = baker.make(Client, name=client_name, phone=None, shop=self.user.shop)
+
+        url = reverse("sell-groups-list")
+        response = self.client.post(
+            url,
+            data=self._make_sell_payload(
+                shop=self.user.shop,
+                client_name=client_name,
+                client_phone="",
+            ),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(
+            Client.objects.filter(name__iexact=client_name, shop=self.user.shop).count(), 1
+        )
+        created_group = SellGroup.objects.get(id=response.json()["id"])
+        self.assertEqual(created_group.client, existing_client)
+
     def test_create_sell_group_client_belongs_to_the_shop_of_the_sold_product(self):
         """El Client se crea en el shop del primer shop_product, no en el del vendedor."""
         self.user.groups.add(Groups.SHOP_SELLER)
