@@ -21,7 +21,7 @@ class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
         Prefetch(
             "shopproducts_set",
             queryset=ShopProducts.objects.filter(
-                deleted__isnull=True
+                deleted__isnull=True, shop__enabled=True
             ).select_related("shop"),
         )
     ).annotate(
