@@ -161,7 +161,13 @@ def sales(request):
 
 @user_passes_test(is_owner)
 def group_sells(request):
-    return render(request, "sales/group_sells.html")
+    # The delete button is shown only to admins/owners: sellers never reach
+    # this page today, but the flag keeps the action tied to the same roles
+    # the API would accept a destroy from.
+    can_delete = request.user.is_superuser or request.user.groups.filter(
+        id__in=[Groups.SUPER_ADMIN.value, Groups.SHOP_OWNER.value]
+    ).exists()
+    return render(request, "sales/group_sells.html", {"can_delete_group": can_delete})
 
 
 @user_passes_test(is_owner)

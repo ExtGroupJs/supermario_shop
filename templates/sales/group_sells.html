@@ -120,6 +120,9 @@
 <script src="{% static 'assets/plugins/jquery-validation/localization/messages_es.js' %}"></script>
 <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
 
+<script>
+  window.canDeleteGroupSell = {{ can_delete_group|yesno:"true,false" }};
+</script>
 <script src="{% static 'assets/dist/js/group_sells.js' %}"></script>
 <script src="{% static 'assets/plugins/select2/js/select2.full.min.js' %}"></script>
 <script src="{% static 'assets/plugins/moment/moment.min.js' %}"></script>

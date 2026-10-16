@@ -111,9 +111,9 @@ $(document).ready(function () {
                     <button type="button" title="Comprobante para almacén" class="btn bg-olive" onclick="generarComprobanteAlmacen('${data}')">
                       <i class="fas fa-warehouse"></i>
                     </button>
-                    <button type="button" title="Eliminar" class="btn bg-olive" onclick="deleteGroupSell('${data}')">
+                    ${window.canDeleteGroupSell ? `<button type="button" title="Eliminar" class="btn bg-olive" onclick="deleteGroupSell('${data}')">
                       <i class="fas fa-trash"></i>
-                    </button>
+                    </button>` : ""}
                   </div>`;
         },
       },
