@@ -147,10 +147,7 @@ function poblarListas() {
     .get("/business-gestion/pallets/", { params: { page_size: 1000 } })
     .then(function (response) {
       response.data.results.forEach(function (element) {
-        var option = new Option(
-          `${element.rack}${element.section}${element.number}`,
-          element.id,
-        );
+        var option = new Option(element.pallet_label, element.id);
         $pallet.add(option);
       });
     });
