@@ -4,6 +4,21 @@
 
 Django 5.1.1 + DRF 3.15.2 auto parts shop (Geely vehicles). Python 3.11. Session-based auth. Spanish locale (`es-es`). `USE_TZ = False`, timezone `America/Havana`.
 
+## SDD Workflow (Spec-Driven Development)
+
+When you have a new issue (or feature request) to implement:
+
+0. **Create issue + branch first**:
+   - ALWAYS create a GitHub issue for the request (title + description with scope/acceptance criteria) unless one already exists for it. Use `github.issue_write` (method `create`), label `BE-feature` when it is a backend feature, assign the current git user.
+   - If the current git branch is `dev` or `main`, create and switch to a feature branch BEFORE any code/spec change: `git checkout -b feature/<issue-id>-<kebab-slug>`. On any other branch, work in place.
+1. **Understand**: Parse issue title/description/acceptance criteria. Extract scope, affected entities, roles (SUPER_ADMIN/SHOP_OWNER/SHOP_SELLER), business rules, side effects.
+2. **Research (graph first)**: Use `search_graph` to find similar models/viewsets/serializers, `get_code_snippet` to read exact implementation, `trace_path` to detect callers/side effects, `check_index_coverage` if making exhaustive claims. Follow project conventions from existing code.
+3. **Create spec**: Under `specs/<ISSUE-ID>-<kebab-slug>/` create `spec.md` with Goal, User Story, Requirements, Acceptance Criteria (testable), Out of Scope, Business Rules/Permissions, Affected Entities.
+4. **Create design**: `design.md` citing exact existing files as template, detailing models/serializers (write+read), viewsets (mixins, filter_backends, permissions, get_queryset, perform_create), URLs, filters, logging, role-based filtering, tests to add/update, minimal touchpoints.
+5. **Create tasks**: `tasks.md` with atomic executable checkboxes (prefer tests first), verification steps, ruff check.
+6. **Implement**: Do tasks one by one, mark complete, run targeted tests, proceed only if green. Minimal changes, no new layers unless justified by existing pattern.
+7. **Verify**: Run related tests + `ruff check .`, summarize files touched and results.
+
 ## Codebase Knowledge Graph (codebase-memory-mcp)
 
 This repo uses codebase-memory-mcp (local-first MCP server). A committed index snapshot lives in `.codebase-memory/graph.db.zst`; if it is stale or missing, run `codebase-memory-mcp cli index_repository --repo-path "$PWD" --mode full --persistence true` (or ask the user to run it in OpenCode).

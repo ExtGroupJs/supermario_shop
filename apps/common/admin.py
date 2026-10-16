@@ -87,6 +87,7 @@ class GenericModelAdmin(admin.ModelAdmin):
                         or (field.one_to_one and field.auto_created)
                     ),
                     "is_problematic_for_edit": field.many_to_many,
+                    "is_editable": getattr(field, "editable", False),
                     "is_char_field": isinstance(field, models.CharField),
                     "is_filterable": isinstance(
                         field,
@@ -107,6 +108,7 @@ class GenericModelAdmin(admin.ModelAdmin):
                     "is_m2m": False,
                     "is_problematic_for_list": False,
                     "is_problematic_for_edit": False,
+                    "is_editable": False,
                     "is_char_field": False,
                     "is_filterable": False,
                 }
@@ -118,6 +120,7 @@ class GenericModelAdmin(admin.ModelAdmin):
             if field not in self.EXCLUDED_FIELDS
             and not self._field_info[field]["is_problematic_for_edit"]
             and not self._field_info[field]["is_reverse"]
+            and self._field_info[field]["is_editable"]
         ]
 
         # Calcular campos para listado
