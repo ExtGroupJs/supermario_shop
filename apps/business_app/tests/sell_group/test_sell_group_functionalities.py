@@ -1231,3 +1231,24 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
                 status.HTTP_200_OK,
                 msg=f"ordering=<{ordering}> returned {response.status_code}",
             )
+
+    def test_sell_records_product_models_on_the_client(self):
+        client_obj = baker.make(Client)
+        product_model = baker.make("business_app.Model")
+        shop_product = baker.make(
+            ShopProducts,
+            sell_price=5,
+            quantity=10,
+            product=baker.make(Product, model=product_model),
+        )
+        sell_group = baker.make(SellGroup)
+        sell_group.client = client_obj
+        sell_group.save(update_fields=["client"])
+        baker.make(
+            Sell,
+            sell_group=sell_group,
+            shop_product=shop_product,
+            seller=self.user,
+            quantity=1,
+        )
+        self.assertIn(product_model, client_obj.models.all())
