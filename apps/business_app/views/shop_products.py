@@ -22,7 +22,7 @@ from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
-from django.db.models import F, Value, Q, Sum
+from django.db.models import CharField, F, Value, Q, Sum
 from django.db.models.functions import Concat
 
 
@@ -51,6 +51,12 @@ class ShopProductsViewSet(
             Value(" - "),
             F("product__model__name"),
         ),
+        pallet_label=Concat(
+            F("pallet__rack"),
+            F("pallet__section"),
+            F("pallet__number"),
+            output_field=CharField(),
+        ),
         sales_count=Sum("sells__quantity"),
     ).all()
     filterset_fields = {
@@ -78,6 +84,8 @@ class ShopProductsViewSet(
         "product_name",
         "model_brand",
         "shop_name",
+        "pallet",
+        "pallet_label",
         "extra_info",
         "quantity",
         "sell_price",
