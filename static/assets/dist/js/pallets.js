@@ -119,7 +119,7 @@ function initTable() {
             <button type="button" title="Editar" class="btn bg-olive active" onclick="editPalletById('${row.id}')">
               <i class="fas fa-edit"></i>
             </button>
-            <button type="button" title="Eliminar" class="btn bg-olive" onclick="deletePallet('${row.id}','${row.rack}${row.section}${row.number}')">
+            <button type="button" title="Eliminar" class="btn bg-olive" onclick="deletePallet('${row.id}', '${row.pallet_label || (row.rack + row.section + row.number)}')">
               <i class="fas fa-trash"></i>
             </button>
           </div>`;
@@ -430,7 +430,7 @@ function editPalletById(id) {
         "block";
 
       $("#modal-crear-pallets .modal-title").text(
-        `Editar Pallet ${pallet.rack}${pallet.section}${pallet.number}`,
+        `Editar Pallet ${pallet.pallet_label || pallet.rack + pallet.section + pallet.number}`,
       );
       $("#modal-crear-pallets").modal("show");
     })
