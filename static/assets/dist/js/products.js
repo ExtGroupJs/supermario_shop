@@ -131,7 +131,25 @@ $(document).ready(function () {
         },
       },
       { data: "model_name", title: "Modelo" },
-      { data: "description", title: "Descripción" },
+      {
+        data: "description",
+        title: "Descripción",
+        render: (data, type, row) => {
+          let desc = data || "";
+          const shops = row.shop_locations || row.shops_info || [];
+          if (Array.isArray(shops) && shops.length) {
+            const lines = shops.map(
+              (s) => `- ${s.shop_name || s.name || ""} (${s.quantity || 0})`
+            );
+            if (desc) {
+              desc = desc + "<br>" + lines.join("<br>");
+            } else {
+              desc = lines.join("<br>");
+            }
+          }
+          return desc;
+        },
+      },
       {
         data: "id",
         title: "Acciones",
