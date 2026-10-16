@@ -6,8 +6,11 @@ Django 5.1.1 + DRF 3.15.2 auto parts shop (Geely vehicles). Python 3.11. Session
 
 ## SDD Workflow (Spec-Driven Development)
 
-When you have a new issue to implement:
+When you have a new issue (or feature request) to implement:
 
+0. **Create issue + branch first**:
+   - ALWAYS create a GitHub issue for the request (title + description with scope/acceptance criteria) unless one already exists for it. Use `github.issue_write` (method `create`), label `BE-feature` when it is a backend feature, assign the current git user.
+   - If the current git branch is `dev` or `main`, create and switch to a feature branch BEFORE any code/spec change: `git checkout -b feature/<issue-id>-<kebab-slug>`. On any other branch, work in place.
 1. **Understand**: Parse issue title/description/acceptance criteria. Extract scope, affected entities, roles (SUPER_ADMIN/SHOP_OWNER/SHOP_SELLER), business rules, side effects.
 2. **Research (graph first)**: Use `search_graph` to find similar models/viewsets/serializers, `get_code_snippet` to read exact implementation, `trace_path` to detect callers/side effects, `check_index_coverage` if making exhaustive claims. Follow project conventions from existing code.
 3. **Create spec**: Under `specs/<ISSUE-ID>-<kebab-slug>/` create `spec.md` with Goal, User Story, Requirements, Acceptance Criteria (testable), Out of Scope, Business Rules/Permissions, Affected Entities.
