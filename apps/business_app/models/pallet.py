@@ -22,4 +22,6 @@ class Pallet(models.Model):
         ]
 
     def __str__(self):
+        if not self.rack and not self.section and not self.number:
+            return "Showroom"
         return f"{self.rack}{self.section}{self.number}"

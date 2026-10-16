@@ -96,6 +96,7 @@
             <thead>
                 <tr>
                     <th>Producto</th>
+                    <th>Pallet</th>
                     <th>Cantidad</th>
                     <th>Precio</th>
                     <th>Importe</th>
@@ -107,6 +108,14 @@
 
   <!-- Sección de detalles de venta -->
   <div class="row">
+    <div class="col-md-4 col-sm-6 col-12">
+      <div class="form-group">
+        <label for="client_select">Cliente registrado:</label>
+        <select id="client_select" class="form-control" style="width: 100%;">
+          <option value="">— Nuevo cliente —</option>
+        </select>
+      </div>
+      </div>
     <div class="col-md-4 col-sm-6 col-12">
       <div class="form-group">
         <label for="client">Cliente <span class="text-danger">*</span>:</label>

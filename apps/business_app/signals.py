@@ -44,3 +44,12 @@ def add_to_inventory(sender, instance, **kwargs):
 @receiver(post_delete, sender=Input)
 def cancel_input(sender, instance, **kwargs):
     update_inventory(inc_pos_dec_neg=-1, instance=instance)
+
+
+@receiver(post_save, sender=Sell)
+def remember_client_models(sender, instance, **kwargs):
+    # A client that buys from us keeps the models of the bought products on
+    # their record, so the shop knows which vehicle models they drive.
+    client = getattr(instance.sell_group, "client", None)
+    if client is not None:
+        client.models.add(instance.shop_product.product.model)

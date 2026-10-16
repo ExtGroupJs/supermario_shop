@@ -6,9 +6,12 @@ const csrfToken = document.cookie
 
 let selectedShopId = localStorage.getItem("selectedShopId");
 let url = "/business-gestion/shop-products/";
+const clientsUrl = "/client-gestion/clients/";
 
 let productosSeleccionados = [];
 let importe_total = 0;
+let clientesRegistrados = [];
+let selectedClientId = null;
 const defaultProductImage = document.getElementById("productImagen")?.src || "";
 
 function buildComprobanteText({
@@ -139,7 +142,64 @@ async function mostrarComprobanteConCopia(titulo, comprobanteText) {
 // Cargar productos al inicio
 $(document).ready(function () {
   cargarProductos();
+  cargarClientes();
 });
+
+// Clientes registrados: se ofrecen en un select2 y, al elegir uno, sus datos
+// se copian a los campos de nombre/telefono (quedan de solo lectura). Si se
+// deja "Nuevo cliente", los campos se habilitan para escribir nombre y numero.
+function cargarClientes() {
+  const params = { page_size: 1000 };
+  if (selectedShopId) {
+    params.shop = selectedShopId;
+  }
+
+  axios
+    .get(clientsUrl, { params })
+    .then((res) => {
+      clientesRegistrados = res.data.results || [];
+      const select = $("#client_select");
+
+      clientesRegistrados.forEach((cliente) => {
+        const label = cliente.phone
+          ? `${cliente.name} - ${cliente.phone}`
+          : cliente.name;
+        select.append(new Option(label, cliente.id));
+      });
+
+      select.select2({
+        dropdownParent: $("#ventaForm"),
+        theme: "bootstrap4",
+        placeholder: "— Nuevo cliente —",
+        allowClear: true,
+        width: "100%",
+      });
+      select.on("change", onClienteChange);
+    })
+    .catch((error) => {
+      console.error("Error al cargar clientes:", error);
+    });
+}
+
+function onClienteChange() {
+  const id = $("#client_select").val();
+
+  if (!id) {
+    selectedClientId = null;
+    $("#client").val("").prop("readonly", false);
+    $("#client_phone").val("").prop("readonly", false);
+    return;
+  }
+
+  const cliente = clientesRegistrados.find((c) => String(c.id) === String(id));
+  if (!cliente) {
+    return;
+  }
+
+  selectedClientId = cliente.id;
+  $("#client").val(cliente.name).prop("readonly", true);
+  $("#client_phone").val(cliente.phone || "").prop("readonly", true);
+}
 
 // Función para cargar productos
 function cargarProductos() {
@@ -226,11 +286,13 @@ $("#agregarProducto").on("click", function () {
   const precio = especificProducto.sell_price;
   const status = "preventa";
   const importe = especificProducto.sell_price * cantidad;
+  const pallet = especificProducto.pallet_label || "";
 
   if (!existe()) {
     productosSeleccionados.push({
       id: productoId,
       producto,
+      pallet,
       cantidad,
       precio,
       importe,
@@ -268,6 +330,7 @@ function actualizarTabla() {
     tbody.append(`
             <tr>
                 <td>${item.producto}</td>
+                <td>${item.pallet || ""}</td>
                 <td>${item.cantidad}</td>
                 <td>$${item.precio}</td>
                 <td>$${item.importe}</td>
@@ -333,6 +396,13 @@ $("#crearVenta").on("click", function () {
     })),
   };
 
+  // Un cliente ya registrado se envia por su id; uno nuevo por nombre/telefono.
+  if (selectedClientId) {
+    payload.client = selectedClientId;
+    delete payload.client_name;
+    delete payload.client_phone;
+  }
+
   axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
   axios
     .post("/business-gestion/sell-groups/", payload)
@@ -354,8 +424,10 @@ $("#crearVenta").on("click", function () {
       $("#productosTable tbody").empty();
       $("#descuento").val("");
       $("#extra_info").val("");
-      $("#client").val("");
-      $("#client_phone").val("");
+      $("#client").val("").prop("readonly", false);
+      $("#client_phone").val("").prop("readonly", false);
+      selectedClientId = null;
+      $("#client_select").val("").trigger("change.select2");
       $("#payment_method").val("U"); // Restablecer a USD por defecto
     })
     .catch((error) => {

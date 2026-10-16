@@ -133,6 +133,19 @@ $(document).ready(function () {
       { data: "model_name", title: "Modelo" },
       { data: "description", title: "Descripción" },
       {
+        data: "shop_locations",
+        title: "Tienda(s)",
+        render: (data) => {
+          if (!Array.isArray(data) || data.length === 0) {
+            return "";
+          }
+          return data
+            .map((s) => `- ${s.shop_name || s.name || ""} (${s.quantity || 0})`)
+            .join("<br>");
+        },
+        orderable: false,
+      },
+      {
         data: "id",
         title: "Acciones",
         render: (data, type, row) => {

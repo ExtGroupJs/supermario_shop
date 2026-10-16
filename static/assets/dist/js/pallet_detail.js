@@ -17,7 +17,7 @@ function loadPalletHeader(palletId) {
     .then((response) => {
       const pallet = response.data;
       document.getElementById("pallet-title").innerText =
-        `Pallet ${pallet.rack}${pallet.section}${pallet.number}`;
+        `Pallet ${pallet.pallet_label || (pallet.rack + pallet.section + pallet.number)}`;
       document.getElementById("pallet-subtitle").innerText =
         `Tienda: ${pallet.shop_name || "-"}`;
     })
