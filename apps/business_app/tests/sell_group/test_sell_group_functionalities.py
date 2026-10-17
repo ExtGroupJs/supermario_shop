@@ -2,6 +2,7 @@ import pytest
 from django.urls import reverse
 
 from apps.business_app.models.product import Product
+from apps.business_app.models.pallet import Pallet
 from apps.business_app.models.sell import Sell
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.models.shop import Shop
@@ -846,6 +847,8 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertIn("1. Filtro de Aire", report)
         self.assertIn("   Cantidad: 3", report)
         self.assertIn("Notas: Entrega en la tarde", report)
+        # El producto de la venta no tiene pallet asignado: no se inventa la linea.
+        self.assertNotIn("Pallet:", report)
         # Nada relativo a dinero: ni precio unitario, ni subtotal, ni descuento, ni total.
         self.assertNotIn("Precio", report)
         self.assertNotIn("Subtotal", report)
@@ -871,6 +874,33 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertNotIn("Juan Perez", report)
         self.assertNotIn("Metodo de pago:", report)
         self.assertNotIn("Zelle", report)
+
+    def test_warehouse_report_shows_the_pallet_below_the_quantity(self):
+        """El comprobante de almacen indica el pallet debajo de la cantidad, si lo hay."""
+        sell_group = baker.make(SellGroup, total=Decimal("30.00"))
+        pallet = baker.make(Pallet, rack=1, section="A", number=2)
+        baker.make(
+            Sell,
+            sell_group=sell_group,
+            shop_product=baker.make(
+                ShopProducts,
+                product=baker.make(Product, name="Filtro de Aire"),
+                cost_price=1,
+                sell_price=Decimal("10.00"),
+                quantity=50,
+                pallet=pallet,
+            ),
+            quantity=3,
+        )
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        url = reverse(
+            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
+        )
+        report = self.client.get(url).json()["report"]
+
+        self.assertIn("   Cantidad: 3\n   Pallet: 1A2", report)
 
     def test_warehouse_report_endpoint_follows_the_same_permissions_as_the_list(self):
         """
