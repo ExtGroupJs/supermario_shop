@@ -114,10 +114,10 @@ class SellGroupSerializer(serializers.ModelSerializer):
         """
         Warehouse copy of the receipt: what has to be picked, without the money.
 
-        It keeps the same product block of the sale receipt (name and quantity),
-        but drops the client, the payment method and every amount, because the
-        warehouse only needs to know which products and how many units leave the
-        shop.
+        It keeps the same product block of the sale receipt (name, quantity and the
+        pallet to pick from, when the shop product has one), but drops the client,
+        the payment method and every amount, because the warehouse only needs to
+        know which products and how many units leave the shop.
         """
         date_str = sell_group.for_date.astimezone(
             timezone.get_current_timezone()
@@ -137,6 +137,9 @@ class SellGroupSerializer(serializers.ModelSerializer):
                 f"{index}. {product_name}",
                 f"   Cantidad: {sell.quantity}",
             ]
+            pallet = sell.shop_product.pallet
+            if pallet is not None:
+                lines.append(f"   Pallet: {pallet}")
 
         lines += [
             "------------------------------",
