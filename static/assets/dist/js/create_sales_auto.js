@@ -6,6 +6,7 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 const shopProductsUrl = "/business-gestion/shop-products/";
 const sellGroupsUrl = "/business-gestion/sell-groups/";
+const clientsUrl = "/client-gestion/clients/";
 const load = document.getElementById("load");
 const parsedResultsBody = document.getElementById("parsed-results-body");
 const createButton = document.getElementById("btn-create-sales");
@@ -16,9 +17,12 @@ const saleTotalLabel = document.getElementById("sale-total");
 
 let parsedEntries = [];
 let selectedShopProducts = [];
+let clientesRegistrados = [];
+let selectedClientId = null;
 
 $(function () {
   poblarTiendas();
+  cargarClientesRegistrados();
   bindEvents();
   renderSaleTotal();
 });
@@ -47,6 +51,24 @@ function bindEvents() {
 
   $("#discount").on("input", function () {
     renderSaleTotal();
+  });
+
+  $("#client_select").on("change", function () {
+    const selectedId = $(this).val();
+    if (selectedId) {
+      const cliente = clientesRegistrados.find(
+        (c) => String(c.id) === String(selectedId),
+      );
+      selectedClientId = selectedId;
+      $("#client").val(cliente ? cliente.name || "" : "").prop("readonly", true);
+      $("#client_phone")
+        .val(cliente ? cliente.phone || "" : "")
+        .prop("readonly", true);
+    } else {
+      selectedClientId = null;
+      $("#client").val("").prop("readonly", false);
+      $("#client_phone").val("").prop("readonly", false);
+    }
   });
 
   $(document).on("change", ".manual-match-select", function () {
@@ -573,6 +595,11 @@ async function crearVentas() {
     client_phone: clientPhone,
     sells,
   };
+  if (selectedClientId) {
+    payload.client = selectedClientId;
+    delete payload.client_name;
+    delete payload.client_phone;
+  }
 
   try {
     const response = await axios.post(sellGroupsUrl, payload);
@@ -598,6 +625,15 @@ async function crearVentas() {
     document.getElementById("client").value = "";
     document.getElementById("client_phone").value = "";
     thresholdValue.textContent = `${thresholdInput.value}%`;
+    // Reset client selection
+    selectedClientId = null;
+    const clientSelect = document.getElementById("client_select");
+    if (clientSelect) {
+      clientSelect.value = "";
+      try {
+        $("#client_select").trigger("change.select2");
+      } catch (e) {}
+    }
   } catch (error) {
     hideLoader();
     const detail = error.response?.data
@@ -608,6 +644,29 @@ async function crearVentas() {
     updateCreateButtonState();
     hideLoader();
   }
+}
+
+function cargarClientesRegistrados() {
+  axios
+    .get(clientsUrl)
+    .then(function (response) {
+      clientesRegistrados = response.data.results || response.data || [];
+      const clientSelect = document.getElementById("client_select");
+      if (!clientSelect) return;
+      clientSelect.innerHTML = '<option value="">— Nuevo cliente —</option>';
+      clientesRegistrados.forEach(function (cliente) {
+        const option = document.createElement("option");
+        option.value = cliente.id;
+        option.textContent = cliente.name ? cliente.name : `Cliente #${cliente.id}`;
+        clientSelect.appendChild(option);
+      });
+      try {
+        $("#client_select").select2();
+      } catch (e) {}
+    })
+    .catch(function (error) {
+      console.error("Error al cargar clientes", error);
+    });
 }
 
 function buildComprobanteText({
@@ -770,12 +829,28 @@ async function crearPreVenta() {
     return;
   }
 
+  const clientName = (document.getElementById("client").value || "").trim();
+  const paymentMethod = document.getElementById("payment_method").value;
+
   const comprobanteText = buildComprobanteText({
     sells,
+    clientName,
+    paymentMethod,
     discount,
     extraInfo: composedExtraInfo,
     title: "COMPROBANTE DE PRE-VENTA",
   });
 
   await mostrarComprobanteConCopia("Pre-venta generada", comprobanteText);
+  // Reset client selection
+  document.getElementById("client").value = "";
+  document.getElementById("client_phone").value = "";
+  selectedClientId = null;
+  const clientSelect = document.getElementById("client_select");
+  if (clientSelect) {
+    clientSelect.value = "";
+    try {
+      $("#client_select").trigger("change.select2");
+    } catch (e) {}
+  }
 }
