@@ -143,6 +143,7 @@ class SellGroupSerializer(serializers.ModelSerializer):
 
         lines += [
             "------------------------------",
+            f"Notas: {sell_group.extra_info or ''}",
         ]
         return lines
 
