@@ -16,8 +16,9 @@ When you have a new issue (or feature request) to implement:
 3. **Create spec**: Under `specs/<ISSUE-ID>-<kebab-slug>/` create `spec.md` with Goal, User Story, Requirements, Acceptance Criteria (testable), Out of Scope, Business Rules/Permissions, Affected Entities.
 4. **Create design**: `design.md` citing exact existing files as template, detailing models/serializers (write+read), viewsets (mixins, filter_backends, permissions, get_queryset, perform_create), URLs, filters, logging, role-based filtering, tests to add/update, minimal touchpoints.
 5. **Create tasks**: `tasks.md` with atomic executable checkboxes (prefer tests first), verification steps, ruff check.
-6. **Implement**: Do tasks one by one, mark complete, run targeted tests, proceed only if green. Minimal changes, no new layers unless justified by existing pattern.
-7. **Verify**: Run related tests + `ruff check .`, summarize files touched and results.
+6. **Get approval**: STOP and ask the user (human developer) to review and explicitly approve `tasks.md` before writing any implementation code. Do not implement until they answer with an explicit approval.
+7. **Implement**: Do tasks one by one, mark complete, run targeted tests, proceed only if green. Minimal changes, no new layers unless justified by existing pattern.
+8. **Verify**: Run related tests + `ruff check .`, summarize files touched and results.
 
 ## Codebase Knowledge Graph (codebase-memory-mcp)
 
