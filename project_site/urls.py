@@ -58,7 +58,7 @@ urlpatterns = [
     path("accounts/login/", pages.first_login, name="account_login"),
     path("register/", pages.register, name="register"),
     path("index/", login_required(pages.user_redirect), name="index"),
-    path("", pages.root_catalog, name="catalog"),
+    path("", pages.wholesale_catalog, name="catalog"),
     path("brands/", login_required(pages.brands), name="brands"),
     path("clients/", login_required(pages.clients), name="clients"),
     path("models/", login_required(pages.models), name="models"),
@@ -75,6 +75,12 @@ urlpatterns = [
         "create_shop_products/",
         login_required(pages.create_shop_products),
         name="create_shop_products",
+    ),
+    path("pallets/", login_required(pages.pallets), name="pallets"),
+    path(
+        "pallets/<int:pallet_id>/detalle/",
+        login_required(pages.pallet_detail),
+        name="pallet_detail",
     ),
     path("shop_products/", login_required(pages.shop_products), name="shop_products"),
     path(
@@ -122,6 +128,7 @@ urlpatterns = [
         "sales_products/", login_required(pages.sales_products), name="sales_products"
     ),
     path("sales/", login_required(pages.sales), name="sales"),
+    path("group_sells/", login_required(pages.group_sells), name="group_sells"),
     path("inputs/", login_required(pages.inputs), name="inputs"),
     path("sales_tienda/", login_required(pages.sales_tienda), name="sales_tienda"),
     path("salescar/", login_required(pages.salescar), name="salescar"),

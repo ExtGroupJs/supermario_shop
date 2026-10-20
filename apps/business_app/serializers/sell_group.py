@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
@@ -5,11 +7,31 @@ from rest_framework import serializers
 
 from apps.business_app.models.sell_group import SellGroup
 from apps.business_app.serializers.sell import SellSerializer
+from apps.clients_app.models.client import Client
+
+two_decimals = Decimal("0.01")
+
+
+def _payment_method_label(payment_method):
+    """Human readable payment method, the wording the receipt has always printed.
+
+    The column stores the choice code ("U"/"Z"), which means nothing to the person
+    reading a report, so both the receipt and the period summary resolve it here.
+    """
+    if payment_method == SellGroup.PAYMENT_METODS.ZELLE:
+        return "Zelle"
+    return "USD"
 
 
 class SellGroupSerializer(serializers.ModelSerializer):
     updated_timestamp = serializers.SerializerMethodField()
     sells = SellSerializer(many=True)
+    client_name = serializers.CharField(
+        write_only=True, required=False, allow_blank=True
+    )
+    client_phone = serializers.CharField(
+        write_only=True, required=False, allow_blank=True
+    )
 
     class Meta:
         model = SellGroup
@@ -23,16 +45,202 @@ class SellGroupSerializer(serializers.ModelSerializer):
             "for_date",
             "sells",
             "client",
+            "total",
+            "client_name",
+            "client_phone",
         )
         read_only_fields = ("id",)
 
     def get_updated_timestamp(self, object):
         return object.updated_timestamp.strftime("%d-%h-%Y a las  %I:%M %p")
 
+    def _report_lines(self, sell_group):
+        """
+        Describe a sell group the same way the receipt printed right after a sale.
+
+        Kept as plain text lines so the report can be copied to the clipboard as it
+        is, and the rows can be assembled server side, where the sell data needed to
+        build it is actually available.
+        """
+        payment_method = _payment_method_label(sell_group.payment_method)
+        client_name = sell_group.client.name if sell_group.client else ""
+        date_str = sell_group.for_date.astimezone(
+            timezone.get_current_timezone()
+        ).strftime("%d-%b-%Y %I:%M %p")
+
+        lines = [
+            "COMPROBANTE DE VENTA",
+            f"Nro: {sell_group.id}",
+            f"Fecha: {date_str}",
+            f"Cliente: {client_name}",
+            f"Metodo de pago: {payment_method}",
+            "------------------------------",
+            "PRODUCTOS:",
+        ]
+
+        for index, sell in enumerate(sell_group.sells.all(), start=1):
+            # The sells are read straight from the model, so the price and the
+            # product name have to be resolved here instead of being read off the
+            # annotations the sells listing adds in its queryset.
+            unit_price = Decimal(str(sell.shop_product.sell_price or 0))
+            quantity = sell.quantity
+            subtotal = unit_price * quantity
+            product_name = sell.shop_product.product.__str__()
+            lines += [
+                f"{index}. {product_name}",
+                f"   Cantidad: {quantity}",
+                f"   Precio: ${unit_price.quantize(two_decimals)}",
+                f"   Subtotal: ${subtotal.quantize(two_decimals)}",
+            ]
+
+        discount = Decimal(sell_group.discount)
+        total = Decimal(sell_group.total or 0)
+        net_total = max(total - discount, Decimal("0.00"))
+
+        lines += [
+            "------------------------------",
+            f"Subtotal: ${total.quantize(two_decimals)}",
+            f"Descuento: ${discount.quantize(two_decimals)}",
+            f"Total: ${net_total.quantize(two_decimals)}",
+            f"Notas: {sell_group.extra_info or ''}",
+        ]
+        return lines
+
+    def get_report(self, sell_group):
+        """Plain text receipt of a sell group, ready to be copied to the clipboard."""
+        return "\n".join(self._report_lines(sell_group))
+
+    def _warehouse_report_lines(self, sell_group):
+        """
+        Warehouse copy of the receipt: what has to be picked, without the money.
+
+        It keeps the same product block of the sale receipt (name, quantity and the
+        pallet to pick from, when the shop product has one), but drops the client,
+        the payment method and every amount, because the warehouse only needs to
+        know which products and how many units leave the shop.
+        """
+        date_str = sell_group.for_date.astimezone(
+            timezone.get_current_timezone()
+        ).strftime("%d-%b-%Y %I:%M %p")
+
+        lines = [
+            "COMPROBANTE PARA ALMACÉN",
+            f"Nro: {sell_group.id}",
+            f"Fecha: {date_str}",
+            "------------------------------",
+            "PRODUCTOS:",
+        ]
+
+        for index, sell in enumerate(sell_group.sells.all(), start=1):
+            product_name = sell.shop_product.product.__str__()
+            lines += [
+                f"{index}. {product_name}",
+                f"   Cantidad: {sell.quantity}",
+            ]
+            pallet = sell.shop_product.pallet
+            if pallet is not None:
+                lines.append(f"   Pallet: {pallet}")
+
+        lines += [
+            "------------------------------",
+            f"Notas: {sell_group.extra_info or ''}",
+        ]
+        return lines
+
+    def get_warehouse_report(self, sell_group):
+        """Plain text warehouse receipt of a sell group, ready to be copied."""
+        return "\n".join(self._warehouse_report_lines(sell_group))
+
+    @staticmethod
+    def _summary_report_lines(sell_groups, period, net_total):
+        """One line per sell group plus the grand total of the whole period.
+
+        ``sell_groups`` only has to carry the group level data, so the caller can
+        feed it a plain values queryset and never load the individual sells.
+        """
+        header = [
+            "REPORTE DE VENTAS",
+            f"Periodo: {period}",
+            "------------------------------",
+            "Ventas específicas:\n",
+        ]
+        body = []
+        for sell_group in sell_groups:
+            net = max(
+                Decimal(sell_group["total"] or 0)
+                - Decimal(sell_group["discount"] or 0),
+                Decimal("0.00"),
+            )
+            date_str = sell_group["for_date"].strftime("%d-%b-%Y %I:%M %p")
+            payment_method = _payment_method_label(sell_group["payment_method"])
+            body.append(
+                f"Id: {sell_group['id']} ({date_str}) | "
+                f"Cliente: {sell_group['client_name'] or '-'} | "
+                f"Total: ${net.quantize(two_decimals)} {payment_method}"
+                "\n"
+            )
+
+        footer = [
+            "------------------------------",
+            f"TOTAL: ${net_total.quantize(two_decimals)}",
+            f"Cant. de Ventas: {len(sell_groups)}",
+        ]
+        return header + (body or ["Sin ventas en el periodo"]) + footer
+
+    def get_summary_report(self, sell_groups, period, net_total):
+        """Plain text summary of the sell groups of a period, ready to be copied."""
+        return "\n".join(self._summary_report_lines(sell_groups, period, net_total))
+
     def validate_sells(self, value: list):
         if len(value) < 1:
             raise ValidationError("La venta debe contener al menos un elemento")
+        # ``shop_product`` is already a ShopProducts instance here, so the shop of the
+        # first item is the shop the whole sell group belongs to. It is resolved at
+        # validation time because the view pops "sells" out of validated_data before
+        # saving, and it is reused by create() to place the client on that same shop.
+        self._shop = getattr(value[0].get("shop_product"), "shop", None)
         return value
+
+    def create(self, validated_data: dict):
+        """Resolve the sell group client from the name/phone pair sent by the sales views.
+
+        The phone is the natural unique key, so the same phone always maps to the same
+        client. The sales views let the phone be empty, so when it is missing the name
+        is used instead as a best-effort key, matched inside the shop the products were
+        sold from. When no client matches, a new one is created; when a client already
+        exists, only its name is refreshed. Without a name either there is nothing to
+        resolve and the sell group is stored without client.
+        """
+        client_name = validated_data.pop("client_name", "").strip()
+        client_phone = validated_data.pop("client_phone", "").strip()
+        shop = getattr(self, "_shop", None)
+
+        if shop is None:
+            # A client always belongs to a shop, so without one there is nothing
+            # to resolve and the sell group is stored without client.
+            return super().create(validated_data)
+
+        if client_phone:
+            client = Client.objects.filter(phone=client_phone).first()
+        elif client_name:
+            client = Client.objects.filter(name__iexact=client_name, shop=shop).first()
+        else:
+            # No name and no phone: there is no key at all to match or create a client.
+            client = None
+
+        if client is None and (client_phone or client_name):
+            client = Client.objects.create(
+                name=client_name,
+                phone=client_phone or None,
+                shop=shop,
+            )
+        elif client is not None and client_name and client.name != client_name:
+            client.name = client_name
+            client.save(update_fields=["name"])
+
+        if client is not None:
+            validated_data["client"] = client
+        return super().create(validated_data)
 
     def validate_for_date(self, value):
         if value > timezone.now():

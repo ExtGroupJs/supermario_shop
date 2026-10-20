@@ -40,17 +40,32 @@ function formatMetricNumber(value) {
     });
 }
 
-// url del endpoint principal
-// const url = "/business-gestion/dashboard/shop-product-investment/";
+/**
+ * Formatea una cantidad de dinero siempre con el símbolo de $ delante, para que en
+ * el dashboard no haya importes que se lean con el $ detrás y otros sin él. Las
+ * cantidades que no son dinero (las ventas) siguen usando formatMetricNumber.
+ */
+function formatMoney(value) {
+    return "$" + formatMetricNumber(value);
+}
+
+/**
+ * Suma los totales de todos los buckets devueltos por un endpoint agrupado por
+ * frecuencia. El dashboard pide periodos (semana, mes) que pueden quedar partidos en
+ * mas de un bucket por el truncado, y un tile tiene que mostrar el total del periodo
+ * pedido, no el del primer bucket.
+ */
+function sumFrequencyTotals(result) {
+    if (!Array.isArray(result)) return 0;
+    return result.reduce((total, bucket) => total + (Number(bucket.total) || 0), 0);
+}
+
 $(document).ready(function () {
   updateNoShopWarning();
 
   const shopId = localStorage.getItem("selectedShopId");
   if (!shopId) return; // No cargar métricas si no hay tienda seleccionada
 
-smallboxdataInvestment();
-smallboxdataInvestmentLastMonth();
-smallboxdataInvestmentCurrentMonth();
 smallboxdataSellCurrentWeek();
 smallboxdataSellCurrentMonth();
 smallboxdataSellProfits();
@@ -59,112 +74,13 @@ smallboxdataSellProfitsLastMonth();
 smallboxdataSellProfitsCurrentWeek();
 chartSellProfitsLastWeek();
 chartSellProfitsThisWeek();
+smallboxdataMoneyToRecover();
 const today = new Date();
     const startDate = today.toISOString().split('T')[0]; // Fecha de inicio: hoy
     const endDate = today.toISOString().split('T')[0];   // Fecha de fin: hoy
 
     daterangeSellProfits(startDate, endDate);
 });
-
-function smallboxdataInvestment() {
-    axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
-    axios.post("/business-gestion/dashboard/shop-product-investment/", { ...getShopIdFilter() })
-        .then(response => {
-            // Obtener el valor de inversiones de la respuesta
-            const investmentValue = response.data.investments;
-
-            // Modificar el contenido del small-box con el valor de la inversión
-            const smallBox = document.getElementById('inversion');
-            if (smallBox) {
-                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-}
-
-
-function smallboxdataInvestmentLastMonth() {
-    // Obtener la fecha actual
-    const today = new Date();
-    
-    // Calcular el primer día del mes actual
-    const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    
-    // Calcular el último día del mes anterior
-    const lastDayOfLastMonth = new Date(firstDayOfCurrentMonth - 1);
-    
-    // Calcular el primer día del mes anterior
-    const firstDayOfLastMonth = new Date(lastDayOfLastMonth.getFullYear(), lastDayOfLastMonth.getMonth(), 1);
-    
-    // Formatear las fechas a YYYY-MM-DD
-    firstDayOfLastMonth.setHours(0, 0, 0, 0);
-    lastDayOfLastMonth.setHours(0, 0, 0, 0);
-    const startDate = firstDayOfLastMonth.toISOString().split('T')[0];
-    const endDate = lastDayOfLastMonth.toISOString().split('T')[0];
-
-    // Parámetros para la solicitud
-    const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
-        ...getShopIdFilter()
-    };
-
-    axios.post('/business-gestion/dashboard/shop-product-investment/', params)
-        .then(response => {
-            // Obtener el valor de inversiones de la respuesta
-            const investmentValue = response.data.investments;
-
-            // Modificar el contenido del small-box con el valor de la inversión
-            const smallBox = document.getElementById('inversionxmes');
-            if (smallBox) {
-                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-}
-
-function smallboxdataInvestmentCurrentMonth() {
-    // Obtener la fecha actual
-    const today = new Date();
-    
-    // Calcular el primer día del mes actual
-    const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    
-    // Calcular el último día del mes actual
-    const lastDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    
-    // Formatear las fechas a YYYY-MM-DD
-    firstDayOfCurrentMonth.setHours(0, 0, 0, 0);
-    lastDayOfCurrentMonth.setHours(0, 0, 0, 0);
-    const startDate = firstDayOfCurrentMonth.toISOString().split('T')[0];
-    const endDate = lastDayOfCurrentMonth.toISOString().split('T')[0];
-
-    // Parámetros para la solicitud
-    const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
-        ...getShopIdFilter()
-    };
-
-    axios.post('/business-gestion/dashboard/shop-product-investment/', params)
-        .then(response => {
-            // Obtener el valor de inversiones de la respuesta
-            const investmentValue = response.data.investments;
-
-            // Modificar el contenido del small-box con el valor de la inversión
-            const smallBox = document.getElementById('inversioncurrentmes');
-            if (smallBox) {
-                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-}
 
 function smallboxdataSellCurrentWeek() {
     // Obtener la fecha actual
@@ -186,16 +102,19 @@ function smallboxdataSellCurrentWeek() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         "frequency": "week",
         ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-sells-count/', params)
         .then(response => {
-            // Obtener el valor de ventas de la respuesta
-            const sellCount =  response.data.result[0] ? response.data.result[0].total : 0;
+            // Suman los buckets porque el periodo pedido puede caer en mas de uno:
+            // la semana va de domingo a sabado y TruncWeek agrupa de lunes a domingo,
+            // asi que esa semana se parte en dos y solo con el primer bucket se
+            // perderian las ventas del domingo.
+            const sellCount = sumFrequencyTotals(response.data.result);
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('sellweek');
             if (smallBox) {
@@ -223,17 +142,16 @@ function smallboxdataSellCurrentMonth() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         "frequency": "month",
         ...getShopIdFilter()
     };
 
     axios.post('/business-gestion/dashboard/shop-product-sells-count/', params)
         .then(response => {
-            // Obtener el valor de ventas de la respuesta
-            
-            const sellCount =  response.data.result[0] ? response.data.result[0].total : 0;
+            // Suman los buckets por si el rango cae en mas de un mes.
+            const sellCount = sumFrequencyTotals(response.data.result);
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('sellmount');
             if (smallBox) {
@@ -255,7 +173,7 @@ function smallboxdataSellProfits() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('sell-profits-total');
             if (smallBox) {
-                smallBox.textContent = formatMetricNumber(sellProfitsValue) + "$";
+                smallBox.textContent = formatMoney(sellProfitsValue);
             }
         })
         .catch(error => {
@@ -284,8 +202,8 @@ function smallboxdataSellProfitsLastMonth() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         ...getShopIdFilter()
     };
 
@@ -297,7 +215,7 @@ function smallboxdataSellProfitsLastMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciaslastmes');
             if (smallBox) {
-                smallBox.textContent = formatMetricNumber(investmentValue) + "$";
+                smallBox.textContent = formatMoney(investmentValue);
             }
         })
         .catch(error => {
@@ -323,8 +241,8 @@ function smallboxdataSellProfitsCurrentMonth() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         ...getShopIdFilter()
     };
 
@@ -336,7 +254,7 @@ function smallboxdataSellProfitsCurrentMonth() {
             // Modificar el contenido del small-box con el valor de la inversión
             const smallBox = document.getElementById('gananciascurrentmes');
             if (smallBox) {
-                smallBox.textContent = formatMetricNumber(SellProfitsValue) + "$";
+                smallBox.textContent = formatMoney(SellProfitsValue);
             }
         })
         .catch(error => {
@@ -364,8 +282,8 @@ function smallboxdataSellProfitsCurrentWeek() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         ...getShopIdFilter()
     };
 
@@ -376,7 +294,39 @@ function smallboxdataSellProfitsCurrentWeek() {
             // Modificar el contenido del small-box con el valor de las ventas
             const smallBox = document.getElementById('SellProfitscurrentweek');
             if (smallBox) {
-                smallBox.textContent = formatMetricNumber(sellCount) + " $";
+                smallBox.textContent = formatMoney(sellCount);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+
+function smallboxdataMoneyToRecover() {
+    // El dinero a recuperar no depende de un periodo: es lo que vale hoy el stock de
+    // la tienda, precio de venta por cantidad, de cada producto que queda.
+    axios.post('/business-gestion/dashboard/money-to-recover/', { ...getShopIdFilter() })
+        .then(response => {
+            const moneyToRecover = response.data.result.total || 0;
+            const smallBox = document.getElementById('money-to-recover');
+            if (smallBox) {
+                smallBox.textContent = formatMoney(moneyToRecover);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+
+function smallboxdataMoneyToRecover() {
+    // El dinero a recuperar no depende de un periodo: es lo que vale hoy el stock de
+    // la tienda, precio de venta por cantidad, de cada producto que queda.
+    axios.post('/business-gestion/dashboard/money-to-recover/', { ...getShopIdFilter() })
+        .then(response => {
+            const moneyToRecover = response.data.result.total || 0;
+            const smallBox = document.getElementById('money-to-recover');
+            if (smallBox) {
+                smallBox.textContent = formatMetricNumber(moneyToRecover) + "$";
             }
         })
         .catch(error => {
@@ -397,8 +347,8 @@ function daterangeSellProfits(startDate, endDate) {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": start,
-        "updated_timestamp__lte": end,
+        "created_timestamp__gte": start,
+        "created_timestamp__lte": end,
         "frequency": "day",
         ...getShopIdFilter()
     };
@@ -422,9 +372,9 @@ function daterangeSellProfits(startDate, endDate) {
              const dateRangeSales = document.getElementById('dateRangeSales');
              const dateRangeDiscounts = document.getElementById('dateRangeDiscounts');
              if (dateRangeProfits && dateRangeSales && dateRangeDiscounts) {
-                     dateRangeProfits.textContent = formatMetricNumber(sellCount - response.data.discounts) + " $";
+                     dateRangeProfits.textContent = formatMoney(sellCount - response.data.discounts);
                 dateRangeSales.textContent = itemCount;
-                     dateRangeDiscounts.textContent = formatMetricNumber(response.data.discounts) + " $";
+                     dateRangeDiscounts.textContent = formatMoney(response.data.discounts);
 
 
              }
@@ -452,26 +402,25 @@ function chartSellProfitsLastWeek() {
     const endDate = lastDayOfLastWeek.toISOString().split('T')[0];
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         "frequency": "day",  // Cambiamos a "day" para obtener datos diarios
         ...getShopIdFilter()
     };
 
-    axios.post('/business-gestion/dashboard/sell-profits/', params)
+    axios.post('/business-gestion/dashboard/sell-group-totals/', params)
         .then(response => {
-            // Procesar las ganancias por día
-            const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
+            // Procesar los totales de grupos de venta por día (SellGroup.total)
+            const dailyTotals = response.data.result;
 
-           
             // Limpiar datos anteriores
             profitsChart.data.labels = [];
             profitsChart.data.datasets[0].data = [];
 
             // Llenar datos de la gráfica
-            dailyProfits.forEach(day => {
-                 profitsChart.data.labels.push(getDayOfWeek(day.frequency)); // Asegúrate de que 'date' es la propiedad correcta
-                profitsChart.data.datasets[0].data.push(day.total); // Asegúrate de que 'total' es la propiedad correcta
+            dailyTotals.forEach(day => {
+                profitsChart.data.labels.push(getDayOfWeek(day.frequency));
+                profitsChart.data.datasets[0].data.push(day.total);
             });
 
             // Actualizar la gráfica
@@ -501,24 +450,24 @@ function chartSellProfitsThisWeek() {
 
     // Parámetros para la solicitud
     const params = {
-        "updated_timestamp__gte": startDate,
-        "updated_timestamp__lte": endDate,
+        "created_timestamp__gte": startDate,
+        "created_timestamp__lte": endDate,
         "frequency": "day",  // Cambiamos a "day" para obtener datos diarios
         ...getShopIdFilter()
     };
 
-    axios.post('/business-gestion/dashboard/sell-profits/', params)
+    axios.post('/business-gestion/dashboard/sell-group-totals/', params)
         .then(response => {
-            // Procesar las ganancias por día
-            const dailyProfits = response.data.result; // Asumiendo que la respuesta es un array de objetos con ganancias por día
-console.log('✌️dailyProfits --->', dailyProfits);
+            // Procesar los totales de grupos de venta por día (SellGroup.total)
+            const dailyTotals = response.data.result;
+
             // Limpiar datos anteriores
             profitsChartThisWeek.data.labels = [];
             profitsChartThisWeek.data.datasets[0].data = [];
             // Llenar datos de la gráfica
-            dailyProfits.forEach(day => {
-                profitsChartThisWeek.data.labels.push(getDayOfWeek(day.frequency)); // Asegúrate de que 'date' es la propiedad correcta
-                profitsChartThisWeek.data.datasets[0].data.push(day.total); // Asegúrate de que 'total' es la propiedad correcta
+            dailyTotals.forEach(day => {
+                profitsChartThisWeek.data.labels.push(getDayOfWeek(day.frequency));
+                profitsChartThisWeek.data.datasets[0].data.push(day.total);
             });
 
             // Actualizar la gráfica

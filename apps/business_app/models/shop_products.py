@@ -5,6 +5,7 @@ from safedelete import SOFT_DELETE
 
 from apps.business_app.models.shop import Shop
 from apps.business_app.models.product import Product
+from apps.business_app.models.pallet import Pallet
 from apps.common.mixins.generic_log import GenericLogMixin
 from apps.common.models import BaseModel
 from django.core.exceptions import ValidationError
@@ -19,13 +20,21 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     product = models.ForeignKey(
         to=Product, on_delete=models.DO_NOTHING, verbose_name="Producto"
     )
+    pallet = models.ForeignKey(
+        to=Pallet,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Pallet",
+    )
     extra_info = models.TextField(
         verbose_name="Información Extra", null=True, blank=True
     )
     quantity = models.PositiveIntegerField(verbose_name="Cantidad", default=0)
     cost_price = models.FloatField(
         verbose_name="Precio de costo",
-        validators=[validators.MinValueValidator(limit_value=0.2)],
+        null=True,
+        blank=True,
     )
     sell_price = models.FloatField(
         verbose_name="Precio de venta",
@@ -46,7 +55,7 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
 
     def clean(self):
         super().clean()
-        if self.cost_price >= self.sell_price:
+        if self.cost_price is not None and self.cost_price >= self.sell_price:
             raise ValidationError(
                 "El Precio de Costo debe ser menor que Precio de Venta."
             )
@@ -73,22 +82,13 @@ class ShopProducts(GenericLogMixin, SafeDeleteModel, BaseModel):
     def save(self, *args, **kwargs):
         if self.wholesale_price is None:
             self.wholesale_price = self.sell_price
-            # 1. Check if django-safedelete is performing a soft delete action
+        # 1. Check if django-safedelete is performing a soft delete action
         is_safedelete = kwargs.get("keep_deleted", False) or getattr(
             self, "deleted", None
         )
 
-        # 2. Only validate if it's a normal save (not a deletion)
-        if not is_safedelete:
+        update_fields = kwargs.get("update_fields", None)
+        # 2. Only validate if it's a normal save (not a deletion) and not a partial update
+        if not is_safedelete and update_fields is None:
             self.full_clean()  # Valida el modelo antes de guardar
         super().save(*args, **kwargs)
-
-    def investment(self):
-        from apps.business_app.models.sell import Sell
-
-        related_sells = Sell.objects.filter(shop_product=self)
-        accumulated_selled = 0
-        for sell in related_sells:
-            accumulated_selled += self.cost_price * sell.quantity
-        accumulated_selled += self.cost_price * self.quantity
-        return accumulated_selled

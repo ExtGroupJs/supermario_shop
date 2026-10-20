@@ -39,11 +39,10 @@ $(document).ready(function () {
             ],
             //Adding server-side processing
             serverSide: true,
-            search: {
-                return: true,
-            },
+            // Live search debounce is handled by serverSideAjax.
+            searchDelay: 0,
             processing: true,
-            ajax: function (data, callback, settings) {
+            ajax: serverSideAjax(function (data, callback, settings) {
                 dir = "";
                 if (data.order[0].dir == "desc") {
                     dir = "-"
@@ -59,6 +58,7 @@ $(document).ready(function () {
                 }).then(res => {
                     callback({
 
+                        draw: data.draw,
                         recordsTotal: res.data.count,
                         recordsFiltered: res.data.count,
                         data: res.data.results
@@ -67,7 +67,7 @@ $(document).ready(function () {
                 }).catch(error => {
                     alert(error)
                 })
-            },
+            }),
             columns: [
 
                 { data: "name", "title": "Nombre" },

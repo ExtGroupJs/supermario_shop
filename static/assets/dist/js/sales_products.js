@@ -21,8 +21,10 @@ $(document).ready(function () {
     dom: '<"top"l>Bfrtip',
     buttons: [],
     serverSide: true,
+    // Live search debounce is handled by serverSideAjax.
+    searchDelay: 0,
     processing: true,
-    ajax: function (data, callback, settings) {
+    ajax: serverSideAjax(function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
 
       const params = {};
@@ -42,6 +44,7 @@ $(document).ready(function () {
         .get(url, { params })
         .then((res) => {
           callback({
+            draw: data.draw,
             recordsTotal: res.data.count,
             recordsFiltered: res.data.count,
             data: res.data.results,
@@ -50,7 +53,7 @@ $(document).ready(function () {
         .catch((error) => {
           alert(error);
         });
-    },
+    }),
     columns: [
       { data: "shop.name", title: "Tienda" },
       { data: "product.__str__", title: "Producto" },
@@ -163,7 +166,7 @@ function sellProduct(shopProductId, availableQuantity) {
 
       const payload = {
         shop_product: shopProductId,
-        extra_info: extraInfo || "string", // Usar "string" si no se proporciona información
+        extra_info: extraInfo || "",
         quantity: quantity,
       };
 

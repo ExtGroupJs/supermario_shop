@@ -57,90 +57,48 @@
     <section class="content">
       <div class="container-fluid">
         <!-- Small boxes (Stat box) -->
+        <!-- Cada tile ocupa col-lg-4: con 6 tiles son dos filas de 3 y cada fila
+             completa las 12 columnas de Bootstrap, sin huecos a la derecha. Antes
+             mezclaban col-lg-3 y col-lg-2 (3+2+3+2+3+2 = 15 de 12), por lo que la
+             fila se partia y dejaba columnas sin usar. -->
         <div class="row">
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-info">
-              <div class="inner">
-                <h3 id = "inversion">-</h3>
-
-                <p>Inversión</p>
-              </div>
-              <div class="icon">
-                <i class="nav-icon fas fa-chart-line"></i>
-              </div>
-              <a href="{% url 'shop_products' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-success">
-              <div class="inner">
-                <h3 id = "inversionxmes">-</h3>
-
-                <p>Inversion mes anterior</p>
-              </div>
-              <div class="icon">
-                <i class="ion ion-stats-bars"></i>
-              </div>
-              <a href="{% url 'shop_products' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
-             </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-warning">
-              <div class="inner">
-                <h3 id = "inversioncurrentmes">-</h3>
-
-                <p>Inversion mes actual</p>
-              </div>
-              <div class="icon">
-                <i class="ion ion-person-add"></i>
-              </div>
-              <a href="{% url 'shop_products' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-danger">
               <div class="inner">
                 <h3 id = "sellweek">-</h3>
 
-                <p>Ventas semana</p>
+                <p>Ventas esta semana</p>
               </div>
               <div class="icon">
                 <i class="nav-icon fas fa-calendar-minus"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
-          <!-- ./col -->
-          <div class="col-lg-2 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-indigo">
               <div class="inner">
                 <h3 id = "sellmount">-</h3>
 
-                <p>Ventas mes</p>
+                <p>Ventas este mes</p>
               </div>
               <div class="icon">
                 <i class="nav-icon fas fa-calendar-alt"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
-          <div class="col-lg-3 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-orange">
               <div class="inner">
                 <h3 id = "sell-profits-total">-</h3>
 
-                <p>Ganancia total</p>
+                <p>Ingresos totales</p>
               </div>
               <div class="icon">
                 <i class="nav-icon fas fa-chart-line"></i>
@@ -151,47 +109,47 @@
             </div>
           </div>
           <!-- ./col -->
-          <div class="col-lg-2 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-olive">
               <div class="inner">
                 <h3 id = "gananciaslastmes">-</h3>
 
-                <p>Ganancias mes anterior</p>
+                <p>Ingresos mes anterior</p>
               </div>
               <div class="icon">
                 <i class="ion ion-stats-bars"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
              </div>
           </div>
           <!-- ./col -->
-          <div class="col-lg-3 col-6">
+          <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-pink">
               <div class="inner">
                 <h3 id = "gananciascurrentmes">-</h3>
 
-                <p>Ganancias mes actual</p>
+                <p>Ingresos mes actual</p>
               </div>
               <div class="icon">
                 <i class="ion ion-person-add"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
               </div>
           </div>
 
-   <div class="col-lg-2 col-6">
+   <div class="col-lg-4 col-6">
             <!-- small box -->
             <div class="small-box bg-lightblue">
               <div class="inner">
                 <h3 id = "SellProfitscurrentweek">-</h3>
-                <p>Ganancias semana actual</p>
+                <p>Ingresos semana actual</p>
               </div>
               <div class="icon">
                 <i class="nav-icon fas fa-calendar-minus"></i>
               </div>
-              <a href="{% url 'sales' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{% url 'group_sells' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
             </div>            
           </div>                  
           </div>
@@ -210,7 +168,7 @@
            <!-- AREA CHART -->
             <div class="card card-primary">
               <div class="card-header">
-                <h3 class="card-title">Ventas de la Semana Anterior</h3>
+                <h3 class="card-title">Ventas semana anterior</h3>
 
                 <div class="card-tools">
                   <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -240,7 +198,7 @@
            <!-- AREA CHART -->
             <div class="card card-success">
               <div class="card-header">
-                <h3 class="card-title">Ventas de la Semana Actual</h3>
+                <h3 class="card-title">Ventas esta semana</h3>
 
                 <div class="card-tools">
                   <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -266,6 +224,26 @@
 
           </section>
           
+          </div>
+          <!-- /.row (gráficas) -->
+
+          <!-- Dinero a recuperar: suma de sell_price * cantidad de cada producto de la tienda -->
+          <div class="row">
+            <div class="col-12">
+              <div class="small-box bg-teal">
+                <div class="inner">
+                  <h3 id="money-to-recover">-</h3>
+                  <p>Ingreso esperado de los productos</p>
+                </div>
+                <div class="icon">
+                  <i class="nav-icon fas fa-hand-holding-usd"></i>
+                </div>
+                <a href="{% url 'shop_products' %}" class="small-box-footer">Más información <i class="fas fa-arrow-circle-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <!-- /.row (dinero a recuperar) -->
+
      </section>
     <!-- /.content -->
   </div>
@@ -296,7 +274,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content ">
             <div class="modal-header bg-primary">
-                <h5 class="modal-title" id="salesDataModalLabel">Ganancias por Fecha</h5>
+                <h5 class="modal-title" id="salesDataModalLabel">Ingresos por fecha</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -322,7 +300,7 @@
                       <i class="ion ion-android-arrow-up text-success"></i> -
 
                     </span>
-                    <span class="text-muted">Ganancias</span>
+                    <span class="text-muted">Ingresos</span>
                   </p>
                 </div>
              <div class="d-flex justify-content-between align-items-center border-bottom mb-3">
@@ -395,8 +373,8 @@
         data: {
             labels: [], // Etiquetas de los días
             datasets: [{
-                label: 'Ganancias Diarias',
-                data: [], // Datos de ganancias
+                label: 'Ingresos',
+                data: [], // Datos de totales de grupos
                 backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
                         'rgba(54, 162, 235, 0.2)',
@@ -420,8 +398,26 @@
         },
         options: {
             scales: {
-                y: {
-                    beginAtZero: true
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        // El eje Y son importes de dinero, así que lleva el $ delante.
+                        callback: function (value) {
+                            return "$" + value;
+                        }
+                    }
+                }]
+            },
+            tooltips: {
+                callbacks: {
+                    // El tooltip del gráfico también es dinero: $ delante del importe.
+                    label: function (tooltipItem, data) {
+                        const label = data.datasets[tooltipItem.datasetIndex].label || "";
+                        const amount = Number(tooltipItem.yLabel).toLocaleString("es-ES", {
+                            maximumFractionDigits: 3,
+                        });
+                        return label + ": $" + amount;
+                    }
                 }
             }
         }
@@ -431,8 +427,8 @@
         data: {
             labels: [], // Etiquetas de los días
             datasets: [{
-                label: 'Ganancias Diarias',
-                data: [], // Datos de ganancias
+                label: 'Ingresos',
+                data: [], // Datos de totales de grupos
                 backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
                         'rgba(54, 162, 235, 0.2)',
@@ -456,8 +452,26 @@
         },
         options: {
             scales: {
-                y: {
-                    beginAtZero: true
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        // El eje Y son importes de dinero, así que lleva el $ delante.
+                        callback: function (value) {
+                            return "$" + value;
+                        }
+                    }
+                }]
+            },
+            tooltips: {
+                callbacks: {
+                    // El tooltip del gráfico también es dinero: $ delante del importe.
+                    label: function (tooltipItem, data) {
+                        const label = data.datasets[tooltipItem.datasetIndex].label || "";
+                        const amount = Number(tooltipItem.yLabel).toLocaleString("es-ES", {
+                            maximumFractionDigits: 3,
+                        });
+                        return label + ": $" + amount;
+                    }
                 }
             }
         }

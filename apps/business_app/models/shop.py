@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models import Q
-from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 
@@ -55,8 +54,8 @@ class Shop(models.Model):
                 Shop.objects.filter(principal=True).exclude(pk=self.pk).exists()
             )
             if another_principal_exists:
-                raise ValidationError(
-                    {"principal": "Solo puede existir una tienda principal."}
+                Shop.objects.filter(principal=True).exclude(pk=self.pk).update(
+                    principal=False
                 )
 
     def save(self, *args, **kwargs):

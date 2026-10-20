@@ -29,15 +29,10 @@ $(function () {
         digits: true, // Solo números
         min: 0,
       },
-      cost_price: {
-        required: true,
-        number: true, // Solo números
-        min: 0,
-      },
       sell_price: {
         required: true,
         number: true, // Solo números
-        greaterThan: "#cost_price", // El precio de venta debe ser mayor que el precio de costo
+        min: 0,
       },
       extra_info: {
         required: false, // Campo no obligatorio
@@ -48,17 +43,10 @@ $(function () {
         required: "Este campo es obligatorio.",
         digits: "Por favor, introduzca solo números.",
       },
-      cost_price: {
-        required: "Este campo es obligatorio.",
-        number: "Por favor, introduzca un número válido.",
-        min: "Por favor, valores mayores o iguales a 0.",
-      },
       sell_price: {
         required: "Este campo es obligatorio.",
         number: "Por favor, introduzca un número válido.",
         min: "Por favor, valores mayores o iguales a 0.",
-        greaterThan:
-          "El precio de venta debe ser mayor que el precio de costo.",
       },
     },
     submitHandler: function (form) {
@@ -71,8 +59,8 @@ $(function () {
       let data = new FormData();
       data.append("shop", document.getElementById("shop").value);
       data.append("product", document.getElementById("product").value);
+      data.append("pallet", document.getElementById("pallet").value);
       data.append("quantity", document.getElementById("quantity").value);
-      data.append("cost_price", document.getElementById("cost_price").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       data.append("extra_info", document.getElementById("extra_info").value);
 
@@ -120,20 +108,11 @@ $(function () {
   });
 });
 
-// Método para validar que el precio de venta sea mayor que el precio de costo
-$.validator.addMethod(
-  "greaterThan",
-  function (value, element, param) {
-    return this.optional(element) || Number(value) > Number($(param).val());
-  },
-  "El precio de venta debe ser mayor que el precio de costo."
-);
-
 function poblarListas() {
   let selectedShopId = localStorage.getItem("selectedShopId");
   // Poblar la lista de tiendas
   var $shop = document.getElementById("shop");
-  axios.get("/business-gestion/shops/").then(function (response) {
+  axios.get("/business-gestion/shops/", { params: { enabled: true } }).then(function (response) {
     response.data.results.forEach(function (element) {
       // Si hay una tienda seleccionada, la seleccionamos en el dropdown
       if (selectedShopId && element.id == selectedShopId) {
@@ -159,6 +138,18 @@ function poblarListas() {
     })
     .then(() => {
       cargarProductoEspecifico($product.value);
+    });
+
+  // Poblar la lista de pallets
+  var $pallet = document.getElementById("pallet");
+  $pallet.add(new Option("Seleccione un pallet", ""));
+  axios
+    .get("/business-gestion/pallets/", { params: { page_size: 1000 } })
+    .then(function (response) {
+      response.data.results.forEach(function (element) {
+        var option = new Option(element.pallet_label, element.id);
+        $pallet.add(option);
+      });
     });
 }
 

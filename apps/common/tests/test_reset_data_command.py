@@ -116,7 +116,7 @@ class TestResetDataCommand(BaseTestClass):
             },
         )
 
-    def test_shop_product_investment_remains_the_same_when_removed_sells(self):
+    def test_shop_product_quantity_is_not_restored_when_removed_sells(self):
         shop = baker.make(Shop)
 
         random_equal_cost = baker.random_gen.gen_integer(min_int=10, max_int=20)
@@ -128,25 +128,10 @@ class TestResetDataCommand(BaseTestClass):
             sell_price=random_equal_cost + 1,  # is irrelevant for this test
             quantity=random_initial_qty,
         )
-        url = reverse("dashboard-shop-product-investment")
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            int(response.data.get("investments")),
-            random_equal_cost
-            * random_initial_qty,  # Initial investment only depends on the cost price of the product
-        )
 
         first_sell_qty = random_initial_qty - int(random_initial_qty / 2)
         baker.make(Sell, shop_product=shop_product, quantity=first_sell_qty)
 
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            int(response.data.get("investments")),
-            random_equal_cost
-            * random_initial_qty,  # despite a part is sold the investment remains
-        )
         shop_product.refresh_from_db()
 
         self.assertEqual(shop_product.quantity, random_initial_qty - first_sell_qty)
@@ -158,16 +143,8 @@ class TestResetDataCommand(BaseTestClass):
         )  # the signal on Sell was not triggered
 
         self.assertEqual(Sell.objects.count(), 0)
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(
-            int(response.data.get("investments")),
-            random_equal_cost
-            * shop_product.quantity,  # now de investment depends on the remaining quantity of the shop_product
-        )
-
-    def test_shop_product_investment_remains_the_same_when_removed_sell_groups(self):
+    def test_shop_product_quantity_is_not_restored_when_removed_sell_groups(self):
         shop = baker.make(Shop)
 
         random_equal_cost = baker.random_gen.gen_integer(min_int=10, max_int=20)
@@ -178,15 +155,6 @@ class TestResetDataCommand(BaseTestClass):
             cost_price=random_equal_cost,
             sell_price=random_equal_cost + 1,
             quantity=random_initial_qty,
-        )
-
-        url = reverse("dashboard-shop-product-investment")
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            int(response.data.get("investments")),
-            random_equal_cost
-            * random_initial_qty,  # Initial investment only depends on the cost price of the product
         )
 
         sell_group = baker.make(SellGroup)
@@ -201,13 +169,6 @@ class TestResetDataCommand(BaseTestClass):
                 quantity=1,
             )
 
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            int(response.data.get("investments")),
-            random_equal_cost
-            * random_initial_qty,  # despite a part is sold the investment remains
-        )
         shop_product.refresh_from_db()
 
         self.assertEqual(
@@ -222,12 +183,3 @@ class TestResetDataCommand(BaseTestClass):
 
         self.assertEqual(SellGroup.objects.count(), 0)
         self.assertEqual(Sell.objects.count(), 0)
-
-        response = self.client.post(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertEqual(
-            int(response.data.get("investments")),
-            random_equal_cost
-            * shop_product.quantity,  # now de investment depends on the remaining quantity of the shop_product
-        )

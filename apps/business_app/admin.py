@@ -11,6 +11,7 @@ from apps.business_app.models.input_group import (
 )
 from apps.business_app.models.input import Input
 from apps.business_app.models.shop_products import ShopProducts
+from apps.business_app.models.pallet import Pallet
 from apps.common.admin import GenericModelAdmin
 from safedelete.admin import SafeDeleteAdmin
 
@@ -50,6 +51,17 @@ class ShopAdmin(GenericModelAdmin):
 
 @admin.register(ShopProducts)
 class ShopProductsAdmin(SafeDeleteTimestampedAdmin):
+    EXCLUDED_FIELDS_FOR_EDITING = {
+        "created_timestamp",
+        "updated_timestamp",
+        "deleted",
+        "deleted_by_cascade",
+        "cost_price",
+    }
+
+
+@admin.register(Pallet)
+class PalletAdmin(GenericModelAdmin):
     pass
 
 

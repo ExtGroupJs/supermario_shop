@@ -87,7 +87,7 @@ function bindEvents() {
 async function poblarTiendas() {
   try {
     const selectedShopId = localStorage.getItem("selectedShopId");
-    const response = await axios.get("/business-gestion/shops/");
+    const response = await axios.get("/business-gestion/shops/", { params: { enabled: true } });
     allShops = response.data.results || [];
 
     originShopSelect.innerHTML = "";

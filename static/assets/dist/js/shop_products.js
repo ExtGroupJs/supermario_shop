@@ -194,7 +194,7 @@ async function exportShopProductsToExcel(dt) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Entradas de Producto");
   const imageColumnIndex = visibleColumns.findIndex(
-    (column) => column.title === "Foto"
+    (column) => column.title === "Foto",
   );
 
   worksheet.columns = visibleColumns.map((column, index) => ({
@@ -228,7 +228,10 @@ async function exportShopProductsToExcel(dt) {
 
           worksheetRow.getCell(imageColumnIndex + 1).value = "";
           worksheet.addImage(imageId, {
-            tl: { col: imageColumnIndex + 0.15, row: worksheetRow.number - 0.85 },
+            tl: {
+              col: imageColumnIndex + 0.15,
+              row: worksheetRow.number - 0.85,
+            },
             ext: { width: 48, height: 48 },
             editAs: "oneCell",
           });
@@ -268,7 +271,7 @@ $(document).ready(function () {
         action: function (e, dt, node, config) {
           $("#modal-crear-shop-products").modal("show");
         },
-      },     
+      },
       {
         text: "Excel",
         action: async function (e, dt, node, config) {
@@ -303,7 +306,7 @@ $(document).ready(function () {
           });
         },
       },
-       {
+      {
         extend: "colvis",
         text: "Ver",
         columns: ":not(:last-child)",
@@ -313,8 +316,10 @@ $(document).ready(function () {
       },
     ],
     serverSide: true,
+    // Live search debounce is handled by serverSideAjax.
+    searchDelay: 0,
     processing: true,
-    ajax: function (data, callback, settings) {
+    ajax: serverSideAjax(function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
       dir = "";
       if (data.order[0].dir == "desc") {
@@ -344,6 +349,7 @@ $(document).ready(function () {
         .get(url, { params })
         .then((res) => {
           callback({
+            draw: data.draw,
             recordsTotal: res.data.count,
             recordsFiltered: res.data.count,
             data: res.data.results,
@@ -354,7 +360,7 @@ $(document).ready(function () {
           load.hidden = true;
           alert(error);
         });
-    },
+    }),
     columns: [
       { data: "shop_name", title: "Tienda" },
       {
@@ -364,10 +370,18 @@ $(document).ready(function () {
       },
       { data: "product_name", title: "Producto" },
       { data: "model_brand", title: "Marca - Modelo" },
+      {
+        data: "pallet_label",
+        title: "Pallet",
+        defaultContent: "-",
+      },
       { data: "quantity", title: "Cantidad" },
-      { data: "cost_price", title: "Precio de Costo" },
       { data: "sell_price", title: "Precio de Venta" },
-      { data: "sell_price_for_catalog", title: "Precio Catálogo", defaultContent: "-" },
+      {
+        data: "sell_price_for_catalog",
+        title: "Precio Catálogo",
+        defaultContent: "-",
+      },
       { data: "updated_timestamp", title: "Fecha" },
       {
         data: "extra_info",
@@ -385,6 +399,9 @@ $(document).ready(function () {
         data: "id",
         title: "Acciones",
         render: (data, type, row) => {
+          const productId = row.product?.id ?? row.product ?? row.product_id ?? "";
+          const productName = row.product_name || row.product || "Producto";
+
           return `<div class="btn-group">
            <button type="button" title="Agregar Cantidad" class="btn bg-olive" onclick="agregarCantidad('${row.id}','${row.quantity}')">
                 <i class="fas fa-plus"></i>
@@ -395,6 +412,9 @@ $(document).ready(function () {
             <button type="button" title="Marcar como New" class="btn bg-olive" onclick="marcarComoNew('${row.id}')">
                <i class="nav-icon fas fa-clipboard-check"></i>
               </button>
+            <button type="button" title="Editar Producto" class="btn bg-olive" data-toggle="modal" data-target="#modal-crear-products" data-product-id="${productId}" data-product-name="${productName}" data-type="edit-product">
+                      <i class="fas fa-box-open"></i>
+                    </button>
             <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-shop-products" data-id="${row.id}" data-type="edit" data-name="${row.product}" id="${row.id}">
                       <i class="fas fa-edit"></i>
                     </button>                  
@@ -417,7 +437,7 @@ $(document).ready(function () {
       }
     },
 
-    order: [[6, "desc"]],
+    order: [[5, "desc"]],
   });
   function convertirFecha(fecha, hora) {
     // Dividir la fecha en partes
@@ -469,10 +489,148 @@ $(document).ready(function () {
 // Otras funciones existentes...
 
 let selected_id;
+let productEditId = null;
+
+$(document).on("click", "[data-type='edit-product']", function (event) {
+  event.preventDefault();
+  const productId = $(this).data("product-id");
+  const productName = $(this).data("product-name") || "Producto";
+
+  if (!productId) {
+    return;
+  }
+
+  abrirModalEditarProducto(productId, productName);
+});
+
+function poblarModelosProductoModal(selectedModelId = "") {
+  const $model = document.getElementById("product-modal-model");
+  if (!$model) return Promise.resolve();
+
+  $model.innerHTML = "";
+  return axios.get("/business-gestion/models/").then(function (response) {
+    response.data.results.forEach(function (element) {
+      const option = new Option(element.__str__, element.id);
+      $model.add(option);
+    });
+
+    if (selectedModelId) {
+      $model.value = String(selectedModelId);
+      $("#product-modal-model").trigger("change.select2");
+    }
+  });
+}
+
+function abrirModalEditarProducto(productId, productName) {
+  const modal = $("#modal-crear-products");
+  const form = document.getElementById("form-create-products");
+  const productForm = document.getElementById("form-create-products");
+
+  productEditId = productId;
+  modal.find(".modal-title").text("Editar Producto " + (productName || "Producto"));
+  form.reset();
+
+  load.hidden = false;
+
+  axios
+    .get(`/business-gestion/products/${productId}/`)
+    .then(function (response) {
+      const product = response.data;
+      const selectedModelId = product.model || "";
+      productForm.elements.name.value = product.name || "";
+      productForm.elements.description.value = product.description || "";
+      productForm.elements.model.value = selectedModelId;
+
+      return poblarModelosProductoModal(selectedModelId).then(function () {
+        if (product.image) {
+          document.getElementById("product-modal-image-preview").src = product.image;
+        }
+        load.hidden = true;
+        modal.modal("show");
+      });
+    })
+    .catch(function () {
+      load.hidden = true;
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo cargar la información del producto.",
+      });
+    });
+}
+
+$("#modal-crear-products").on("hide.bs.modal", (event) => {
+  const form = event.currentTarget.querySelector("form");
+  if (form) form.reset();
+  productEditId = null;
+  const elements = [...(form?.elements || [])];
+  elements.forEach((elem) => elem.classList.remove("is-invalid"));
+  const preview = document.getElementById("product-modal-image-preview");
+  if (preview) {
+    preview.src = "";
+  }
+});
+
+$(document).on("submit", "#form-create-products", function (event) {
+  event.preventDefault();
+
+  const form = document.getElementById("form-create-products");
+  const csrfToken = document.cookie
+    .split(";")
+    .find((c) => c.trim().startsWith("csrftoken="))
+    ?.split("=")[1];
+  axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
+
+  const data = new FormData();
+  data.append("name", form.elements.name.value);
+  data.append("description", form.elements.description.value);
+  data.append("model", form.elements.model.value);
+
+  const imageFile = document.getElementById("product-modal-image").files[0];
+  if (imageFile) {
+    data.append("image", imageFile);
+  }
+
+  load.hidden = false;
+
+  const request = productEditId
+    ? axios.patch(`/business-gestion/products/${productEditId}/`, data)
+    : axios.post("/business-gestion/products/", data);
+
+  request
+    .then((response) => {
+      load.hidden = true;
+      Swal.fire({
+        icon: "success",
+        title: productEditId ? "Producto actualizado con éxito" : "Producto creado con éxito",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      $("#modal-crear-products").modal("hide");
+      $("#tabla-de-Datos").DataTable().ajax.reload();
+    })
+    .catch((error) => {
+      load.hidden = true;
+      let dict = error.response?.data || {};
+      let textError = "Revise los siguientes campos: ";
+      for (const key in dict) {
+        textError = textError + ", " + key;
+      }
+
+      Swal.fire({
+        icon: "error",
+        title: "Error al guardar el Producto",
+        text: textError,
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    });
+});
 
 $("#modal-crear-shop-products").on("hide.bs.modal", (event) => {
   const form = event.currentTarget.querySelector("form");
   form.reset();
+  $("#pallet").val("").trigger("change.select2");
   edit_shopProducts = false;
   const elements = [...form.elements];
   elements.forEach((elem) => elem.classList.remove("is-invalid"));
@@ -500,18 +658,24 @@ $("#modal-crear-shop-products").on("show.bs.modal", function (event) {
         const shopProduct = response.data;
         modal.find(".modal-title").text("Editar " + shopProduct.product_name);
         form.elements.quantity.value = shopProduct.quantity;
-        form.elements.cost_price.value = shopProduct.cost_price;
         form.elements.sell_price.value = shopProduct.sell_price;
-        form.elements.sell_price_for_catalog.value = shopProduct.sell_price_for_catalog || "";
+        form.elements.sell_price_for_catalog.value =
+          shopProduct.sell_price_for_catalog || "";
         form.elements.extra_info.value = shopProduct.extra_info;
         form.elements.shop.value = shopProduct.shop;
         form.elements.product.value = shopProduct.product.id;
+        form.elements.pallet.value = shopProduct.pallet || "";
         $("#product").val(shopProduct.product.id).trigger("change.select2");
+        $("#pallet")
+          .val(shopProduct.pallet || "")
+          .trigger("change.select2");
         load.hidden = true;
       })
       .catch(function (error) {});
   } else {
     modal.find(".modal-title").text("Crear Entrada de Producto");
+    form.elements.pallet.value = "";
+    $("#pallet").val("").trigger("change.select2");
     let selectedShopId = localStorage.getItem("selectedShopId");
     if (selectedShopId) {
       form.elements.shop.value = selectedShopId;
@@ -534,14 +698,10 @@ $(function () {
         required: true,
         digits: true, // Solo números
       },
-      cost_price: {
-        required: true,
-        number: true, // Solo números
-      },
       sell_price: {
         required: true,
         number: true, // Solo números
-        greaterThan: "#cost_price", // El precio de venta debe ser mayor que el precio de costo
+        min: 0,
       },
       sell_price_for_catalog: {
         required: false,
@@ -559,15 +719,9 @@ $(function () {
         required: "Este campo es obligatorio.",
         digits: "Por favor, introduzca solo números.",
       },
-      cost_price: {
-        required: "Este campo es obligatorio.",
-        number: "Por favor, introduzca un número válido.",
-      },
       sell_price: {
         required: "Este campo es obligatorio.",
         number: "Por favor, introduzca un número válido.",
-        greaterThan:
-          "El precio de venta debe ser mayor que el precio de costo.",
       },
     },
     submitHandler: function (form) {
@@ -582,15 +736,18 @@ $(function () {
       let data = new FormData();
       data.append("shop", document.getElementById("shop").value);
       data.append("product", document.getElementById("product").value);
+      const palletValue = document.getElementById("pallet").value;
+      if (palletValue !== "") {
+        data.append("pallet", palletValue);
+      }
       data.append("quantity", document.getElementById("quantity").value);
-      data.append("cost_price", document.getElementById("cost_price").value);
       data.append("sell_price", document.getElementById("sell_price").value);
       const spfcVal = document.getElementById("sell_price_for_catalog").value;
       if (spfcVal !== "") data.append("sell_price_for_catalog", spfcVal);
       data.append("extra_info", document.getElementById("extra_info").value);
       data.append(
         "extra_log_info",
-        document.getElementById("extra_log_info").value
+        document.getElementById("extra_log_info").value,
       );
 
       if (edit_shopProducts) {
@@ -676,24 +833,17 @@ $(function () {
   });
 });
 
-// Método para validar que el precio de venta sea mayor que el precio de costo
-$.validator.addMethod(
-  "greaterThan",
-  function (value, element, param) {
-    return this.optional(element) || Number(value) > Number($(param).val());
-  },
-  "El precio de venta debe ser mayor que el precio de costo."
-);
-
 function poblarListas() {
   // Poblar la lista de tiendas
   var $shop = document.getElementById("shop");
-  axios.get("/business-gestion/shops/").then(function (response) {
-    response.data.results.forEach(function (element) {
-      var option = new Option(element.name, element.id);
-      $shop.add(option);
+  axios
+    .get("/business-gestion/shops/", { params: { enabled: true } })
+    .then(function (response) {
+      response.data.results.forEach(function (element) {
+        var option = new Option(element.name, element.id);
+        $shop.add(option);
+      });
     });
-  });
 
   // Poblar la lista de productos
   var $product = document.getElementById("product");
@@ -709,6 +859,19 @@ function poblarListas() {
       if ($product.value != null) {
         cargarProductoEspecifico($product.value);
       }
+    });
+
+  // Poblar la lista de pallets
+  var $pallet = document.getElementById("pallet");
+  $pallet.innerHTML = "";
+  $pallet.add(new Option("Seleccione un pallet", ""));
+  axios
+    .get("/business-gestion/pallets/", { params: { page_size: 1000 } })
+    .then(function (response) {
+      response.data.results.forEach(function (element) {
+        var option = new Option(element.pallet_label, element.id);
+        $pallet.add(option);
+      });
     });
 }
 
@@ -808,9 +971,11 @@ function moveToAnotherShop(id) {
   load.hidden = false;
   // Obtener la tienda seleccionada globalmente
   const selectedShopId = localStorage.getItem("selectedShopId");
-  axios.get("/business-gestion/shops/").then(function (response) {
-    const shops = response.data.results;
-    // Filtrar la tienda de origen (si existe)
+  axios
+    .get("/business-gestion/shops/", { params: { enabled: true } })
+    .then(function (response) {
+      const shops = response.data.results;
+      // Filtrar la tienda de origen (si existe)
     const filteredShops = selectedShopId
       ? shops.filter((shop) => String(shop.id) !== String(selectedShopId))
       : shops;
@@ -841,7 +1006,7 @@ function moveToAnotherShop(id) {
         const quantity = document.getElementById("swal-quantity-input").value;
         if (!shopId || !quantity || quantity <= 0) {
           Swal.showValidationMessage(
-            "Seleccione una tienda y una cantidad válida."
+            "Seleccione una tienda y una cantidad válida.",
           );
           return false;
         }
@@ -853,7 +1018,7 @@ function moveToAnotherShop(id) {
         axios
           .post(
             `/business-gestion/shop-products/${id}/move-to-another-shop/`,
-            result.value
+            result.value,
           )
           .then((res) => {
             load.hidden = true;
@@ -1093,11 +1258,11 @@ $(function () {
     },
     function (start, end) {
       $("#reportrange span").html(
-        start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY")
+        start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY"),
       );
       myDateStart = start.format("YYYY-MM-DD HH:mm:ss");
       myDateEnd = end.format("YYYY-MM-DD HH:mm:ss");
       //  daterangeSellProfits(selectedStartDate,selectedEndDate);
-    }
+    },
   );
 });

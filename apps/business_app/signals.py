@@ -18,11 +18,11 @@ def update_inventory(inc_pos_dec_neg, instance):
         if isinstance(instance, Input) and instance.input_group:
             if inc_pos_dec_neg == -1:
                 extra = " cancelada"
-            extra_log_info = f"(Entrada del {instance.input_group.for_date.strftime('%d-%h-%Y')}{extra})"
+            extra_log_info = f"(Entrada {instance.input_group.id}{extra})"
         elif isinstance(instance, Sell) and instance.sell_group:
             if inc_pos_dec_neg == 1:
                 extra = " cancelada"
-            extra_log_info = f"(Venta del {instance.sell_group.for_date.strftime('%d-%h-%Y')}{extra})"
+            extra_log_info = f"(Venta {instance.sell_group.id}{extra})"
         shop_product.save(update_fields=["quantity"], extra_log_info=extra_log_info)
 
 
@@ -44,3 +44,12 @@ def add_to_inventory(sender, instance, **kwargs):
 @receiver(post_delete, sender=Input)
 def cancel_input(sender, instance, **kwargs):
     update_inventory(inc_pos_dec_neg=-1, instance=instance)
+
+
+@receiver(post_save, sender=Sell)
+def remember_client_models(sender, instance, **kwargs):
+    # A client that buys from us keeps the models of the bought products on
+    # their record, so the shop knows which vehicle models they drive.
+    client = getattr(instance.sell_group, "client", None)
+    if client is not None:
+        client.models.add(instance.shop_product.product.model)

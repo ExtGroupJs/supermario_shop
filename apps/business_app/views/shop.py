@@ -10,7 +10,6 @@ from apps.common.common_ordering_filter import CommonOrderingFilter
 from apps.common.permissions import CommonRolePermission, SellViewSetPermission
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-from django.db.models import Q
 
 
 class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
@@ -24,6 +23,7 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
     ]
     filterset_fields = [
         "catalog_url",
+        "enabled",
     ]
     search_fields = [
         "name",
@@ -39,16 +39,8 @@ class ShopViewSet(viewsets.ModelViewSet, GenericAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.action == "catalog":
-            queryset = queryset.filter(
-                ~Q(name=Shop.WHOLESALE_SHOP_NAME),
-                enabled=True,
-            )
-        elif self.action == "wholesale_catalog":
-            queryset = queryset.filter(
-                Q(name=Shop.WHOLESALE_SHOP_NAME),
-                enabled=True,
-            )
+        if self.action in ["catalog", "wholesale_catalog"]:
+            queryset = queryset.filter(enabled=True)
         return queryset
 
     @action(detail=False, methods=["GET"], permission_classes=[AllowAny])

@@ -43,12 +43,11 @@ $(document).ready(function () {
       },
     ],
     serverSide: true,
-    search: {
-      return: true,
-    },
+    // Live search debounce is handled by serverSideAjax.
+    searchDelay: 0,
     processing: true,
 
-    ajax: function (data, callback, settings) {
+    ajax: serverSideAjax(function (data, callback, settings) {
       const filters = $("#filter-form").serializeArray();
       if (filters[1].value != "") {
         filters[1].value += ":23:59";
@@ -73,6 +72,7 @@ $(document).ready(function () {
         .get(urlSell, { params })
         .then((res) => {
           callback({
+            draw: data.draw,
             recordsTotal: res.data.count,
             recordsFiltered: res.data.count,
             data: res.data.results,
@@ -81,7 +81,7 @@ $(document).ready(function () {
         .catch((error) => {
           alert(error);
         });
-    },
+    }),
     columns: [
       {
         data: "sell_group",
@@ -92,9 +92,8 @@ $(document).ready(function () {
       { data: "quantity", title: "Cantidad" },
       { data: "sell_price", title: "Precio unitario" },
       { data: "total_priced", title: "Monto total" },
-      { data: "profits", title: "Ganancia" },
-      { data: "seller__first_name", title: "Vendedor" },
-      { data: "created_timestamp", title: "Fecha" },
+      { data: "profits", title: "Ingresos" },
+      { data: "payment_method_label", title: "Método de Pago" },
       {
         data: "id",
         title: "Acciones",
@@ -105,17 +104,57 @@ $(document).ready(function () {
         },
       },
     ],
-    order: [[7, "desc"]], // Primero ordena por grupo, luego por fecha
+    // La columna Fecha se elimino de la tabla, asi que el orden descendente se
+    // aplica sobre el grupo (columna oculta): los grupos mas recientes salen primero.
+    order: [[0, "desc"]],
     rowGroup: {
       dataSrc: "sell_group",
       startRender: function (rows, group) {
-        // Obtener el descuento de la primera fila del grupo
-        const discount = rows.data()[0].discounts; // Asegúrate de que "discounts" esté en tus datos
-        return "Grupo de Venta: " + group + " | Descuento: " + " $" + discount;
+        // Group level data is the same on every row of the group, so the first one
+        // carries everything needed to build the header.
+        const first = rows.data()[0];
+        const discount = Number(first.discounts || 0);
+        const total = Number(first.group_total || 0);
+        const clientName = (first.client_name || "").trim();
+        const clientLabel = clientName
+          ? `Venta ${group} (${clientName}):`
+          : `Venta ${group}:`;
+
+        let header = `${clientLabel} Importe: $${total.toFixed(2)}`;
+        if (discount > 0) {
+          // The net amount only makes sense once the discount is taken off the gross.
+          header += ` ($${(total - discount).toFixed(2)}) | Descuento: $${discount.toFixed(2)}`;
+        }
+        const note = (first.group_extra_info || "").trim();
+        if (note) {
+          header += ` | Nota: ${note}`;
+        }
+        // La fecha del grupo va en su propia linea, debajo de la info del grupo.
+        // Se usa for_date (no la fecha de la venta) porque todas las ventas del
+        // grupo comparten ese valor.
+        const groupDate = (first.group_for_date || "").trim();
+        const dateLine = groupDate
+          ? `<div class="text-muted" style="font-size: 0.85rem;">Fecha: ${escapeHtml(groupDate)}</div>`
+          : "";
+        // The label is escaped and kept apart from the button markup; the flex
+        // wrapper pushes the button to the right edge of the full width group row.
+        return `
+          <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="flex-grow-1 mr-2">
+              <div>${escapeHtml(header)}</div>
+              ${dateLine}
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" onclick="generarInformeVenta(${group})">
+              <i class="nav-icon fas fa-file-invoice"></i> Generar informe
+            </button>
+          </div>
+        `;
       },
     },
     columnDefs: [],
   });
+
+  initPeriodReportButton();
 
   // Manejo del formulario de filtros
   $("#filter-form").on("submit", function (event) {
@@ -173,4 +212,222 @@ function function_delete(id, name, quantity, date, seller) {
         });
     }
   });
+}
+
+let urlSellGroup = "/business-gestion/sell-groups/";
+
+/**
+ * Reporte de ventas por periodo: lista los grupos de venta con su monto y el TOTAL.
+ *
+ * El rango se toma de los mismos datepickers de los filtros ("Ventas Desde" y
+ * "Ventas Hasta"), asi no hay dos juegos de fechas que se contradigan. Sin fechas
+ * el reporte cae en el dia de hoy.
+ */
+function initPeriodReportButton() {
+  $("#period-report-button").on("click", function () {
+    const filters = $("#filter-form").serializeArray();
+    const valorDe = (name) => {
+      const filtro = filters.find((item) => item.name === name);
+      return filtro ? filtro.value : "";
+    };
+
+    generarReporteVentas(
+      valorDe("created_timestamp__gte"),
+      valorDe("created_timestamp__lte"),
+    );
+  });
+}
+
+// Generar el reporte de ventas de un periodo, por defecto el dia de hoy
+async function generarReporteVentas(startDate, endDate) {
+  if (startDate && endDate && startDate > endDate) {
+    Swal.fire({
+      icon: "warning",
+      title: "Revise el periodo",
+      text: "La fecha 'Ventas Desde' no puede ser mayor que la fecha 'Ventas Hasta'.",
+    });
+    return;
+  }
+
+  const reportButton = $("#period-report-button");
+  const originalHtml = reportButton.html();
+  reportButton.prop("disabled", true);
+  reportButton.html(
+    '<i class="nav-icon fas fa-spinner fa-spin"></i> Generando...',
+  );
+
+  const params = {};
+  if (startDate) {
+    params.start_date = startDate;
+  }
+  if (endDate) {
+    params.end_date = endDate;
+  }
+  const shopId = localStorage.getItem("selectedShopId");
+  if (shopId) {
+    params.shop = shopId;
+  }
+
+  try {
+    const response = await axios.get(`${urlSellGroup}period-report/`, {
+      params,
+    });
+    const reportText = (response.data?.report || "").trim();
+    if (!reportText) {
+      throw new Error("El reporte esta vacio");
+    }
+
+    const groups = Number(response.data?.groups || 0);
+    const total = response.data?.total || "0.00";
+
+    const result = await Swal.fire({
+      icon: "success",
+      title: `Reporte de ventas (${groups} ${groups === 1 ? "grupo" : "grupos"})`,
+      html: buildInformeHtml(reportText),
+      width: 700,
+      showDenyButton: true,
+      confirmButtonText: "Copiar reporte",
+      denyButtonText: "Cerrar",
+      didOpen: () => {
+        const comprobante = document.getElementById("sale-comprobante");
+        if (comprobante) {
+          comprobante.scrollTop = 0;
+        }
+      },
+    });
+
+    if (result.isConfirmed) {
+      const copied = await copiarComprobante(reportText);
+      if (copied) {
+        await Swal.fire({
+          icon: "success",
+          title: "Reporte copiado",
+          text: `El reporte por $${total} se copio al portapapeles.`,
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "No se pudo copiar",
+          text: "No fue posible copiar el reporte automaticamente.",
+        });
+      }
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error generando el reporte",
+      text:
+        "No fue posible generar el reporte de ventas: " +
+        (error.response?.data?.detail || error.message),
+    });
+  } finally {
+    reportButton.prop("disabled", false);
+    reportButton.html(originalHtml);
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.innerText = text == null ? "" : String(text);
+  return div.innerHTML;
+}
+
+// Generar el comprobante de un grupo de ventas
+function generarInformeVenta(sellGroupId) {
+  const reportButton = event.target.closest("button");
+  const originalHtml = reportButton ? reportButton.innerHTML : "";
+  if (reportButton) {
+    reportButton.disabled = true;
+    reportButton.innerHTML =
+      '<i class="nav-icon fas fa-spinner fa-spin"></i> Generando...';
+  }
+
+  axios
+    .get(`${urlSellGroup}${sellGroupId}/report/`)
+    .then(async (response) => {
+      const reportText = (response.data?.report || "").trim();
+      if (!reportText) {
+        throw new Error("El informe esta vacio");
+      }
+
+      const result = await Swal.fire({
+        icon: "success",
+        title: `Comprobante de la venta ${sellGroupId}`,
+        html: buildInformeHtml(reportText),
+        width: 700,
+        showDenyButton: true,
+        confirmButtonText: "Copiar comprobante",
+        denyButtonText: "Cerrar",
+        didOpen: () => {
+          const comprobante = document.getElementById("sale-comprobante");
+          if (comprobante) {
+            comprobante.scrollTop = 0;
+          }
+        },
+      });
+
+      if (result.isConfirmed) {
+        const copied = await copiarComprobante(reportText);
+        if (copied) {
+          await Swal.fire({
+            icon: "success",
+            title: "Comprobante copiado",
+            text: "El comprobante se copio al portapapeles.",
+          });
+        } else {
+          await Swal.fire({
+            icon: "error",
+            title: "No se pudo copiar",
+            text: "No fue posible copiar el comprobante automaticamente.",
+          });
+        }
+      }
+    })
+    .catch((error) => {
+      Swal.fire({
+        icon: "error",
+        title: "Error generando el informe",
+        text:
+          "No fue posible generar el comprobante: " +
+          (error.response?.data?.detail || error.message),
+      });
+    })
+    .finally(() => {
+      if (reportButton) {
+        reportButton.disabled = false;
+        reportButton.innerHTML = originalHtml;
+      }
+    });
+}
+
+function buildInformeHtml(reportText) {
+  return `
+    <div id="sale-comprobante" style="text-align:left;max-height:360px;overflow:auto;">
+      <pre style="white-space:pre-wrap;font-family:monospace;margin:0;">${escapeHtml(reportText)}</pre>
+    </div>
+  `;
+}
+
+async function copiarComprobante(text) {
+  const content = (text || "").trim();
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(content);
+      return true;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = content;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const successful = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return successful;
+  } catch (error) {
+    return false;
+  }
 }

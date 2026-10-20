@@ -16,6 +16,18 @@ def index(request):
     return render(request, "index.html")
 
 
+def _get_catalog_context():
+    principal_shop = (
+        Shop.objects.filter(principal=True, enabled=True)
+        .exclude(catalog_url__isnull=True)
+        .exclude(catalog_url__exact="")
+        .first()
+    )
+    return {
+        "catalog_shop_url": principal_shop.catalog_url if principal_shop else "",
+    }
+
+
 @user_passes_test(is_owner)
 def usuarios(request):
     return render(request, "user/usuarios.html")
@@ -60,20 +72,11 @@ def create_products(request):
 
 
 def catalog(request):
-    return render(request, "catalogo/catalogo.html")
+    return render(request, "catalogo/catalogo.html", _get_catalog_context())
 
 
 def root_catalog(request):
-    principal_shop = (
-        Shop.objects.filter(principal=True, enabled=True)
-        .exclude(catalog_url__isnull=True)
-        .exclude(catalog_url__exact="")
-        .first()
-    )
-    context = {
-        "catalog_shop_url": principal_shop.catalog_url if principal_shop else "",
-    }
-    return render(request, "catalogo/catalogo.html", context)
+    return render(request, "catalogo/catalogo.html", _get_catalog_context())
 
 
 def catalog_by_shop(request, catalog_url):
@@ -129,6 +132,16 @@ def create_shop_products(request):
     return render(request, "shop_products/create_shop_products.html")
 
 
+@user_passes_test(is_owner)
+def pallets(request):
+    return render(request, "pallets/pallets.html")
+
+
+@user_passes_test(is_owner)
+def pallet_detail(request, pallet_id):
+    return render(request, "pallets/pallet_detail.html", {"pallet_id": pallet_id})
+
+
 def inventario(request):
     return render(request, "inventario/inventario.html")
 
@@ -144,6 +157,17 @@ def sales_products(request):
 @user_passes_test(is_owner)
 def sales(request):
     return render(request, "sales/sales.html")
+
+
+@user_passes_test(is_owner)
+def group_sells(request):
+    # The delete button is shown only to admins/owners: sellers never reach
+    # this page today, but the flag keeps the action tied to the same roles
+    # the API would accept a destroy from.
+    can_delete = request.user.is_superuser or request.user.groups.filter(
+        id__in=[Groups.SUPER_ADMIN.value, Groups.SHOP_OWNER.value]
+    ).exists()
+    return render(request, "sales/group_sells.html", {"can_delete_group": can_delete})
 
 
 @user_passes_test(is_owner)

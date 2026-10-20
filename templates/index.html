@@ -244,6 +244,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   </a>
                 </li>
                 <li class="nav-item">
+                  <a href="{% url 'pallets' %}" class="nav-link">
+                    <i class="far fa-circle text-primary nav-icon"></i>
+                    <p>{% blocktranslate %}Pallets{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
                   <a href="{% url 'inventario_entrada_log' %}" class="nav-link">
                     <i class="far fa-circle text-warning nav-icon"></i>
                     <p>{% blocktranslate %}Gestión de Entradas{% endblocktranslate %}</p>
@@ -259,6 +265,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   <a href="{% url 'sales' %}" class="nav-link">
                     <i class="far fa-circle text-warning nav-icon"></i>
                     <p>{% blocktranslate %}Gestión de Ventas{% endblocktranslate %}</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'group_sells' %}" class="nav-link">
+                    <i class="far fa-circle text-warning nav-icon"></i>
+                    <p>{% blocktranslate %}Ventas por Grupo{% endblocktranslate %}</p>
                   </a>
                 </li>
                 <li class="nav-item">
@@ -511,6 +523,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <script src="{% static 'assets/plugins/chart.js/Chart.min.js' %}"></script>
   <script src="{% static 'assets/plugins/sparklines/sparkline.js' %}"></script>
   <script src="{% static 'assets/dist/js/axios.min.js' %}"></script>
+  <script src="{% static 'assets/dist/js/dt_serverside.js' %}"></script>
   <script>
   document.addEventListener("DOMContentLoaded", function () {
   poblar_tienda();
@@ -566,7 +579,7 @@ function verificarGroups(numeros, verificarTodos = false) {
 function poblar_tienda() {
   var $globalShops = document.getElementById("globalShops");
   var selectedShopId = localStorage.getItem("selectedShopId");
-  axios.get("/business-gestion/shops/").then(function (response) {
+  axios.get("/business-gestion/shops/", { params: { enabled: true } }).then(function (response) {
     response.data.results.forEach(function (element) {
       var option = new Option(element.name, element.id);
       $globalShops.add(option);

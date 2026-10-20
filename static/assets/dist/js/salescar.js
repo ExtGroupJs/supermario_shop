@@ -6,13 +6,200 @@ const csrfToken = document.cookie
 
 let selectedShopId = localStorage.getItem("selectedShopId");
 let url = "/business-gestion/shop-products/";
+const clientsUrl = "/client-gestion/clients/";
 
 let productosSeleccionados = [];
 let importe_total = 0;
+let clientesRegistrados = [];
+let selectedClientId = null;
+const defaultProductImage = document.getElementById("productImagen")?.src || "";
+
+function buildComprobanteText({
+  saleId,
+  productos,
+  clientName,
+  paymentMethod,
+  discount,
+  extraInfo,
+  title = "COMPROBANTE DE VENTA",
+}) {
+  const paymentMethodName = paymentMethod === "Z" ? "Zelle" : "USD";
+  const grossTotal = productos.reduce(
+    (acc, item) => acc + Number(item.precio || 0) * Number(item.cantidad || 0),
+    0,
+  );
+  const netTotal = Math.max(grossTotal - Number(discount || 0), 0);
+  const dateStr = new Date().toLocaleString("es-VE");
+
+  const productLines = productos
+    .map((item, index) => {
+      const unitPrice = Number(item.precio || 0);
+      const quantity = Number(item.cantidad || 0);
+      const subtotal = unitPrice * quantity;
+      return [
+        `${index + 1}. ${item.producto}`,
+        `   Cantidad: ${quantity}`,
+        `   Precio: $${unitPrice.toFixed(2)}`,
+        `   Subtotal: $${subtotal.toFixed(2)}`,
+      ].join("\n");
+    })
+    .join("\n\n");
+
+  const headerLines = [
+    title,
+    `Nro: ${String(saleId || "N/A")}`,
+    `Fecha: ${dateStr}`,
+  ];
+
+  if (clientName) {
+    headerLines.push(`Cliente: ${clientName}`);
+  }
+
+  if (paymentMethod) {
+    headerLines.push(`Metodo de pago: ${paymentMethodName}`);
+  }
+
+  return [
+    ...headerLines,
+    "------------------------------",
+    "PRODUCTOS:",
+    productLines,
+    "------------------------------",
+    `Subtotal: $${grossTotal.toFixed(2)}`,
+    `Descuento: $${Number(discount || 0).toFixed(2)}`,
+    `Total: $${netTotal.toFixed(2)}`,
+    `Notas: ${extraInfo || ""}`,
+  ].join("\n");
+}
+
+function buildComprobanteHtml(comprobanteText) {
+  return `
+    <div id="sale-comprobante" style="text-align:left;max-height:360px;overflow:auto;">
+      <pre style="white-space:pre-wrap;font-family:monospace;margin:0;">${escapeHtml(comprobanteText)}</pre>
+    </div>
+  `;
+}
+
+async function copiarComprobante(comprobanteText) {
+  const text = (comprobanteText || "").trim();
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const successful = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return successful;
+  } catch (error) {
+    return false;
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.innerText = text;
+  return div.innerHTML;
+}
+
+async function mostrarComprobanteConCopia(titulo, comprobanteText) {
+  const result = await Swal.fire({
+    icon: "success",
+    title: titulo,
+    html: buildComprobanteHtml(comprobanteText),
+    width: 700,
+    showDenyButton: true,
+    confirmButtonText: "Copiar comprobante",
+    denyButtonText: "Cerrar",
+  });
+
+  if (result.isConfirmed) {
+    const copied = await copiarComprobante(comprobanteText);
+    if (copied) {
+      await Swal.fire({
+        icon: "success",
+        title: "Comprobante copiado",
+        text: "El comprobante se copio al portapapeles.",
+      });
+    } else {
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo copiar",
+        text: "No fue posible copiar el comprobante automaticamente.",
+      });
+    }
+  }
+}
+
 // Cargar productos al inicio
 $(document).ready(function () {
   cargarProductos();
+  cargarClientes();
 });
+
+// Clientes registrados: se ofrecen en un select2 y, al elegir uno, sus datos
+// se copian a los campos de nombre/telefono (quedan de solo lectura). Si se
+// deja "Nuevo cliente", los campos se habilitan para escribir nombre y numero.
+function cargarClientes() {
+  const params = { page_size: 1000 };
+  if (selectedShopId) {
+    params.shop = selectedShopId;
+  }
+
+  axios
+    .get(clientsUrl, { params })
+    .then((res) => {
+      clientesRegistrados = res.data.results || [];
+      const select = $("#client_select");
+
+      clientesRegistrados.forEach((cliente) => {
+        const label = cliente.phone
+          ? `${cliente.name} - ${cliente.phone}`
+          : cliente.name;
+        select.append(new Option(label, cliente.id));
+      });
+
+      select.select2({
+        dropdownParent: $("#ventaForm"),
+        theme: "bootstrap4",
+        placeholder: "— Nuevo cliente —",
+        allowClear: true,
+        width: "100%",
+      });
+      select.on("change", onClienteChange);
+    })
+    .catch((error) => {
+      console.error("Error al cargar clientes:", error);
+    });
+}
+
+function onClienteChange() {
+  const id = $("#client_select").val();
+
+  if (!id) {
+    selectedClientId = null;
+    $("#client").val("").prop("readonly", false);
+    $("#client_phone").val("").prop("readonly", false);
+    return;
+  }
+
+  const cliente = clientesRegistrados.find((c) => String(c.id) === String(id));
+  if (!cliente) {
+    return;
+  }
+
+  selectedClientId = cliente.id;
+  $("#client").val(cliente.name).prop("readonly", true);
+  $("#client_phone").val(cliente.phone || "").prop("readonly", true);
+}
 
 // Función para cargar productos
 function cargarProductos() {
@@ -28,7 +215,7 @@ function cargarProductos() {
       productos.forEach((producto) => {
         if (producto.quantity > 0) {
           $("#producto").append(
-            new Option(`${producto.__repr__}`, producto.id, false, false)
+            new Option(`${producto.__repr__}`, producto.id, false, false),
           );
         }
       });
@@ -41,23 +228,36 @@ function cargarProductos() {
 }
 let especificProducto;
 function cargarProductoEspecifico(id) {
+  if (!id) {
+    load.hidden = true;
+    return;
+  }
+
   axios
     .get(url + id + "/")
     .then((res) => {
       especificProducto = res.data;
       $("#productoDescripcionExt").text(
-        `Existencia: ${especificProducto.quantity}`
+        `Existencia: ${especificProducto.quantity}`,
       );
       $("#productoDescripcionPrec").text(
-        `Precio: $${especificProducto.sell_price}`
+        `Precio: $${especificProducto.sell_price}`,
       );
-      var nuevaUrl = especificProducto.product.image;
+      const imageElement = document.getElementById("productImagen");
+      const nuevaUrl = especificProducto?.product?.image;
 
-      document.getElementById("productImagen").src = nuevaUrl;
+      if (imageElement) {
+        imageElement.src =
+          nuevaUrl && nuevaUrl !== "null" ? nuevaUrl : defaultProductImage;
+      }
 
       load.hidden = true;
     })
     .catch((error) => {
+      const imageElement = document.getElementById("productImagen");
+      if (imageElement && defaultProductImage) {
+        imageElement.src = defaultProductImage;
+      }
       load.hidden = true;
       console.error("Error al cargar productos:", error);
     });
@@ -86,11 +286,13 @@ $("#agregarProducto").on("click", function () {
   const precio = especificProducto.sell_price;
   const status = "preventa";
   const importe = especificProducto.sell_price * cantidad;
+  const pallet = especificProducto.pallet_label || "";
 
   if (!existe()) {
     productosSeleccionados.push({
       id: productoId,
       producto,
+      pallet,
       cantidad,
       precio,
       importe,
@@ -128,6 +330,7 @@ function actualizarTabla() {
     tbody.append(`
             <tr>
                 <td>${item.producto}</td>
+                <td>${item.pallet || ""}</td>
                 <td>${item.cantidad}</td>
                 <td>$${item.precio}</td>
                 <td>$${item.importe}</td>
@@ -162,21 +365,30 @@ $("#crearVenta").on("click", function () {
 
   const descuento = parseInt($("#descuento").val()) || 0;
   const extraInfo = $("#extra_info").val() || "";
+  const total = Number(importe_total) || 0;
+  const clientName = ($("#client").val() || "").trim();
+  const clientPhone = ($("#client_phone").val() || "").trim();
   const paymentMethod = $("#payment_method").val();
   const sellerId = localStorage.getItem("id");
 
-  // Calcular el importe total
-  let importe_total = productosSeleccionados.reduce(
-    (total, item) => total + item.importe,
-    0
-  );
-  const importe_total_con_descuento = importe_total - descuento;
+  if (!clientName) {
+    load.hidden = true;
+    Swal.fire({
+      icon: "warning",
+      title: "Cliente obligatorio",
+      text: "Debes escribir el nombre del cliente para crear la venta.",
+    });
+    return;
+  }
 
   const payload = {
     discount: descuento,
     extra_info: extraInfo,
     payment_method: paymentMethod,
     seller: sellerId,
+    total: total,
+    client_name: clientName,
+    client_phone: clientPhone,
     sells: productosSeleccionados.map((item) => ({
       shop_product: item.id,
       quantity: item.cantidad,
@@ -184,52 +396,39 @@ $("#crearVenta").on("click", function () {
     })),
   };
 
+  // Un cliente ya registrado se envia por su id; uno nuevo por nombre/telefono.
+  if (selectedClientId) {
+    payload.client = selectedClientId;
+    delete payload.client_name;
+    delete payload.client_phone;
+  }
+
   axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
   axios
     .post("/business-gestion/sell-groups/", payload)
-    .then((response) => {
-      let html = "<hr><ul style='text-align: left;'>";
-      productosSeleccionados.forEach((item) => {
-        html += `<li>${item.cantidad} - ${item.producto} (Precio: $${item.precio})</li>`;
+    .then(async (response) => {
+      load.hidden = true;
+
+      const comprobanteText = buildComprobanteText({
+        saleId: response.data?.id,
+        productos: productosSeleccionados,
+        clientName,
+        paymentMethod,
+        discount: descuento,
+        extraInfo,
       });
 
-      html += `</ul><hr><h4>Importe Total: $${importe_total}</h4>`;
-      if (descuento > 0) {
-        html += `<h4>Importe Total con Descuento: $${importe_total_con_descuento}</h4><hr>`;
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Venta creada con éxito",
-        html:
-          `<hr>Productos vendidos: \n` +
-          html +
-          `
-        <div class="mt-3">
-          <a href="../clients/" class="btn btn-primary">
-            <i class="fas fa-users"></i> Add Clientes
-          </a>
-        </div>`,
-        confirmButtonText: "Ok",
-      }).then((result) => {
-        productosSeleccionados = [];
-        $("#productosTable tbody").empty();
-        $("#descuento").val("");
-        $("#extra_info").val("");
-        $("#payment_method").val("U"); // Restablecer a USD por defecto
-
-        if (result.isConfirmed) {
-          window.location.reload();
-        }
-      });
+      await mostrarComprobanteConCopia("Venta creada con éxito", comprobanteText);
 
       productosSeleccionados = [];
       $("#productosTable tbody").empty();
       $("#descuento").val("");
       $("#extra_info").val("");
+      $("#client").val("").prop("readonly", false);
+      $("#client_phone").val("").prop("readonly", false);
+      selectedClientId = null;
+      $("#client_select").val("").trigger("change.select2");
       $("#payment_method").val("U"); // Restablecer a USD por defecto
-
-      load.hidden = true;
     })
     .catch((error) => {
       load.hidden = true;
@@ -239,4 +438,28 @@ $("#crearVenta").on("click", function () {
         text: "Error al completar la venta: " + error.message,
       });
     });
+});
+
+// Crear pre-venta (solo comprobante local, sin llamada al backend)
+$("#crearPreVenta").on("click", async function () {
+  if (productosSeleccionados.length === 0) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: `No hay productos seleccionados para pre-vender.`,
+    });
+    return;
+  }
+
+  const descuento = parseInt($("#descuento").val()) || 0;
+  const extraInfo = $("#extra_info").val() || "";
+
+  const comprobanteText = buildComprobanteText({
+    productos: productosSeleccionados,
+    discount: descuento,
+    extraInfo,
+    title: "COMPROBANTE DE PRE-VENTA",
+  });
+
+  await mostrarComprobanteConCopia("Pre-venta generada", comprobanteText);
 });

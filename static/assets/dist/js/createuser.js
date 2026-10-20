@@ -35,11 +35,10 @@ $(document).ready(function () {
       ],
       //Adding server-side processing
       serverSide: true,
-      search: {
-        return: true,
-      },
+      // Live search debounce is handled by serverSideAjax.
+      searchDelay: 0,
       processing: true,
-      ajax: function (data, callback, settings) {
+      ajax: serverSideAjax(function (data, callback, settings) {
         dir = "";
         console.log("✌️data --->", data);
         if (data.order[0].dir == "desc") {
@@ -57,6 +56,7 @@ $(document).ready(function () {
           })
           .then((res) => {
             callback({
+              draw: data.draw,
               recordsTotal: res.data.count,
               recordsFiltered: res.data.count,
               data: res.data.results,
@@ -65,7 +65,7 @@ $(document).ready(function () {
           .catch((error) => {
             alert(error);
           });
-      },
+      }),
       columns: [
         { data: "username", title: "User" },
         { data: "full_name", title: "Name" },
@@ -463,9 +463,11 @@ function mostrarUserConfig(id) {
           .join("");
 
         // Obtener las tiendas del endpoint
-        return axios.get("/business-gestion/shops/").then((shopsResponse) => {
-          const tiendas = shopsResponse.data.results;
-          const opcionesTiendas = tiendas
+        return axios
+          .get("/business-gestion/shops/", { params: { enabled: true } })
+          .then((shopsResponse) => {
+            const tiendas = shopsResponse.data.results;
+            const opcionesTiendas = tiendas
             .map((shop) => {
               const isSelected = tiendaActual === shop.id ? "selected" : "";
               return `<option value="${shop.id}" ${isSelected}>${shop.name}</option>`;

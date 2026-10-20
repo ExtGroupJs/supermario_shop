@@ -283,3 +283,4 @@ git_script.sh
 
 #Static outputfolder
 static_output
+.env.docker

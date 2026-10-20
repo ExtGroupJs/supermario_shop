@@ -96,6 +96,7 @@
             <thead>
                 <tr>
                     <th>Producto</th>
+                    <th>Pallet</th>
                     <th>Cantidad</th>
                     <th>Precio</th>
                     <th>Importe</th>
@@ -107,13 +108,33 @@
 
   <!-- Sección de detalles de venta -->
   <div class="row">
-    <div class="col-md-6 col-sm-6 col-12">
+    <div class="col-md-4 col-sm-6 col-12">
+      <div class="form-group">
+        <label for="client_select">Cliente registrado:</label>
+        <select id="client_select" class="form-control" style="width: 100%;">
+          <option value="">— Nuevo cliente —</option>
+        </select>
+      </div>
+      </div>
+    <div class="col-md-4 col-sm-6 col-12">
+      <div class="form-group">
+        <label for="client">Cliente <span class="text-danger">*</span>:</label>
+        <input type="text" id="client" class="form-control" placeholder="Nombre del cliente" required>
+      </div>
+      </div>
+    <div class="col-md-4 col-sm-6 col-12">
+      <div class="form-group">
+        <label for="client_phone">Teléfono:</label>
+        <input type="tel" id="client_phone" class="form-control" placeholder="Opcional">
+      </div>
+      </div>
+    <div class="col-md-4 col-sm-6 col-12">
       <div class="form-group">
         <label for="descuento">Descuento:</label>
         <input type="number" id="descuento" class="form-control" min="0" placeholder="Opcional">
       </div>
       </div>
-    <div class="col-md-6 col-sm-6 col-12">
+    <div class="col-md-4 col-sm-6 col-12">
       <div class="form-group">
         <label for="payment_method">Método de Pago:</label>
         <select id="payment_method" class="form-control">
@@ -130,7 +151,8 @@
         <textarea id="extra_info" class="form-control" placeholder="Opcional"></textarea>
       </div>
 
-      <button type="button" class="btn btn-success" id="crearVenta">Crear Venta</button>
+      <button type="button" class="btn btn-warning" id="crearPreVenta">Crear Pre-venta</button>
+      <button type="button" class="btn btn-success ml-2" id="crearVenta">Crear Venta</button>
     </div>
     </div>
     </div>

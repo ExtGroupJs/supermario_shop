@@ -22,9 +22,8 @@ from rest_framework.permissions import AllowAny
 from apps.users_app.models.groups import Groups
 from apps.users_app.models.system_user import SystemUser
 from rest_framework.decorators import action
-from django.db.models import F, Value, Q, Sum
+from django.db.models import CharField, F, Value, Q, Sum
 from django.db.models.functions import Concat
-from apps.business_app.models.shop import Shop
 
 
 class ShopProductsViewSet(
@@ -52,15 +51,21 @@ class ShopProductsViewSet(
             Value(" - "),
             F("product__model__name"),
         ),
+        pallet_label=Concat(
+            F("pallet__rack"),
+            F("pallet__section"),
+            F("pallet__number"),
+            output_field=CharField(),
+        ),
         sales_count=Sum("sells__quantity"),
     ).all()
     filterset_fields = {
         "shop": ["exact"],
+        "pallet": ["exact"],
         "product": ["exact"],
         "product__model": ["exact"],
         "product__model__brand": ["exact"],
         "quantity": ["gte", "lte", "exact"],
-        "cost_price": ["gte", "lte", "exact"],
         "sell_price": ["gte", "lte", "exact"],
         "wholesale_price": ["gte", "lte", "exact"],
         "created_timestamp": ["gte", "lte"],
@@ -79,9 +84,10 @@ class ShopProductsViewSet(
         "product_name",
         "model_brand",
         "shop_name",
+        "pallet",
+        "pallet_label",
         "extra_info",
         "quantity",
-        "cost_price",
         "sell_price",
         "wholesale_price",
         "updated_timestamp",
@@ -107,12 +113,13 @@ class ShopProductsViewSet(
             if request_user and not is_admin_or_owner
             else Q()
         )
-        if self.action in ["wholesale_catalog"]:
-            filter_by_shop &= Q(shop=Shop.objects.get(name=Shop.WHOLESALE_SHOP_NAME))
-        elif self.action in ["catalog"]:
-            filter_by_shop &= ~Q(
-                shop=Shop.objects.filter(name=Shop.WHOLESALE_SHOP_NAME).first()
-            )
+        if self.action in ["catalog", "wholesale_catalog"]:
+            # Public catalog must expose only the enabled principal shop
+            # inventory, and never the rows already sold out. This branch is
+            # also reached by admins, who bypass the stock filter on the
+            # management endpoints but must not see empty items published.
+            filter_by_quantity = Q(quantity__gt=0)
+            filter_by_shop &= Q(shop__enabled=True, shop__principal=True)
 
         return queryset.filter(filter_by_quantity, filter_by_shop)
 

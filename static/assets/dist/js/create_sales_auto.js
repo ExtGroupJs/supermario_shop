@@ -6,18 +6,25 @@ axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
 
 const shopProductsUrl = "/business-gestion/shop-products/";
 const sellGroupsUrl = "/business-gestion/sell-groups/";
+const clientsUrl = "/client-gestion/clients/";
 const load = document.getElementById("load");
 const parsedResultsBody = document.getElementById("parsed-results-body");
 const createButton = document.getElementById("btn-create-sales");
+const preventaButton = document.getElementById("btn-create-preventa");
 const thresholdInput = document.getElementById("similarityThreshold");
 const thresholdValue = document.getElementById("similarityValue");
+const saleTotalLabel = document.getElementById("sale-total");
 
 let parsedEntries = [];
 let selectedShopProducts = [];
+let clientesRegistrados = [];
+let selectedClientId = null;
 
 $(function () {
   poblarTiendas();
+  cargarClientesRegistrados();
   bindEvents();
+  renderSaleTotal();
 });
 
 function bindEvents() {
@@ -30,12 +37,38 @@ function bindEvents() {
     await crearVentas();
   });
 
+  $("#btn-create-preventa").on("click", async function () {
+    await crearPreVenta();
+  });
+
   $("#similarityThreshold").on("input", function () {
     thresholdValue.textContent = `${this.value}%`;
   });
 
   $("#shop").on("change", function () {
     localStorage.setItem("selectedShopId", this.value);
+  });
+
+  $("#discount").on("input", function () {
+    renderSaleTotal();
+  });
+
+  $("#client_select").on("change", function () {
+    const selectedId = $(this).val();
+    if (selectedId) {
+      const cliente = clientesRegistrados.find(
+        (c) => String(c.id) === String(selectedId),
+      );
+      selectedClientId = selectedId;
+      $("#client").val(cliente ? cliente.name || "" : "").prop("readonly", true);
+      $("#client_phone")
+        .val(cliente ? cliente.phone || "" : "")
+        .prop("readonly", true);
+    } else {
+      selectedClientId = null;
+      $("#client").val("").prop("readonly", false);
+      $("#client_phone").val("").prop("readonly", false);
+    }
   });
 
   $(document).on("change", ".manual-match-select", function () {
@@ -49,29 +82,38 @@ function bindEvents() {
 
     if (selectedValue === "") {
       entry.status = entry.originalStatus;
-      entry.chosenMatch = entry.matches && entry.matches.length === 1 ? entry.matches[0] : null;
+      entry.chosenMatch =
+        entry.matches && entry.matches.length === 1 ? entry.matches[0] : null;
     } else {
-      const match = selectedShopProducts.find((p) => String(p.id) === String(selectedValue));
+      const match = selectedShopProducts.find(
+        (p) => String(p.id) === String(selectedValue),
+      );
       if (match) {
         entry.chosenMatch = match;
         entry.status = "seleccionado_manualmente";
       }
     }
 
-    const checkbox = document.querySelector(`.entry-check[data-index="${index}"]`);
+    const checkbox = document.querySelector(
+      `.entry-check[data-index="${index}"]`,
+    );
     if (checkbox) {
       checkbox.checked = canCreateEntry(entry);
       checkbox.disabled = !canCreateEntry(entry);
     }
 
-    const statusCell = document.querySelector(`.entry-status[data-index="${index}"]`);
+    const statusCell = document.querySelector(
+      `.entry-status[data-index="${index}"]`,
+    );
     if (statusCell) statusCell.innerHTML = renderStatus(entry);
 
     updateCreateButtonState();
+    renderSaleTotal();
   });
 
   $(document).on("change", ".entry-check", function () {
     updateCreateButtonState();
+    renderSaleTotal();
   });
 }
 
@@ -81,7 +123,7 @@ function poblarTiendas() {
   shopSelect.innerHTML = "";
 
   axios
-    .get("/business-gestion/shops/")
+    .get("/business-gestion/shops/", { params: { enabled: true } })
     .then(function (response) {
       const shops = response.data.results || response.data || [];
       shops.forEach(function (shop) {
@@ -99,7 +141,11 @@ function poblarTiendas() {
       $(shopSelect).trigger("change");
     })
     .catch(function () {
-      Swal.fire({ icon: "error", title: "Error", text: "No se pudieron cargar las tiendas." });
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar las tiendas.",
+      });
     });
 }
 
@@ -116,17 +162,22 @@ async function analizarMensaje() {
   const message = document.getElementById("messageInput").value || "";
 
   if (!shopId) {
-    Swal.fire({ icon: "warning", title: "Selecciona una tienda", text: "Debes seleccionar una tienda antes de analizar el mensaje." });
+    Swal.fire({
+      icon: "warning",
+      title: "Selecciona una tienda",
+      text: "Debes seleccionar una tienda antes de analizar el mensaje.",
+    });
     return;
   }
 
   showLoader();
   createButton.disabled = true;
+  if (preventaButton) preventaButton.disabled = true;
   parsedEntries = [];
 
   try {
     selectedShopProducts = (await cargarShopProducts(shopId)).sort((a, b) =>
-      a.displayName.localeCompare(b.displayName)
+      a.displayName.localeCompare(b.displayName),
     );
 
     const lines = message
@@ -145,7 +196,11 @@ async function analizarMensaje() {
 
     parsedEntries = itemLines.map((line, index) => {
       const parsed = parseLine(line, index + 1);
-      const matches = findMatches(parsed.productText, selectedShopProducts, threshold);
+      const matches = findMatches(
+        parsed.productText,
+        selectedShopProducts,
+        threshold,
+      );
 
       let status;
       let chosenMatch = null;
@@ -165,7 +220,11 @@ async function analizarMensaje() {
     renderParsedResults();
   } catch (error) {
     renderNoResults("Ocurrió un error analizando el mensaje");
-    Swal.fire({ icon: "error", title: "Error", text: "No se pudo analizar el mensaje. Intenta nuevamente." });
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo analizar el mensaje. Intenta nuevamente.",
+    });
   } finally {
     hideLoader();
   }
@@ -175,9 +234,21 @@ function parseLine(line, lineNumber) {
   const regex = /^\s*(\d+)\s*-\s*(.+)\s*$/;
   const match = line.match(regex);
   if (!match) {
-    return { lineNumber, rawLine: line, valid: true, quantity: 1, productText: line.trim() };
+    return {
+      lineNumber,
+      rawLine: line,
+      valid: true,
+      quantity: 1,
+      productText: line.trim(),
+    };
   }
-  return { lineNumber, rawLine: line, valid: true, quantity: Number(match[1]), productText: match[2].trim() };
+  return {
+    lineNumber,
+    rawLine: line,
+    valid: true,
+    quantity: Number(match[1]),
+    productText: match[2].trim(),
+  };
 }
 
 async function cargarShopProducts(shopId) {
@@ -188,7 +259,8 @@ async function cargarShopProducts(shopId) {
   const results = response.data.results || [];
   return results.map((item) => ({
     id: item.id,
-    displayName: item.__repr__ || item.__str__ || item.product?.name || String(item.id),
+    displayName:
+      item.__repr__ || item.__str__ || item.product?.name || String(item.id),
     productName: item.product?.name || "",
     modelBrand: item.product?.model_brand || "",
     stock: item.quantity,
@@ -240,7 +312,9 @@ function levenshteinSimilarity(a, b) {
 }
 
 function levenshteinDistance(a, b) {
-  const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  const matrix = Array.from({ length: a.length + 1 }, () =>
+    Array(b.length + 1).fill(0),
+  );
   for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
   for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
   for (let i = 1; i <= a.length; i++) {
@@ -249,7 +323,7 @@ function levenshteinDistance(a, b) {
       matrix[i][j] = Math.min(
         matrix[i - 1][j] + 1,
         matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost
+        matrix[i - 1][j - 1] + cost,
       );
     }
   }
@@ -262,7 +336,11 @@ function tokenOverlapScore(a, b) {
   if (!aTokens.length || !bTokens.length) return 0;
   let matches = 0;
   for (const token of aTokens) {
-    if (bTokens.some((bt) => bt === token || bt.includes(token) || token.includes(bt))) {
+    if (
+      bTokens.some(
+        (bt) => bt === token || bt.includes(token) || token.includes(bt),
+      )
+    ) {
       matches++;
     }
   }
@@ -307,7 +385,9 @@ function renderParsedResults() {
 function renderMatches(entry) {
   if (entry.status === "no_encontrado") {
     const options = selectedShopProducts
-      .map((p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`)
+      .map(
+        (p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`,
+      )
       .join("");
     return `
       <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(entry)}">
@@ -318,10 +398,15 @@ function renderMatches(entry) {
 
   if (entry.status === "ambiguo") {
     const options = entry.matches
-      .map((m) => `<option value="${m.id}">${escapeHtml(m.displayName)} (${Math.round(m.score * 100)}%)</option>`)
+      .map(
+        (m) =>
+          `<option value="${m.id}">${escapeHtml(m.displayName)} (${Math.round(m.score * 100)}%)</option>`,
+      )
       .join("");
     const allOptions = selectedShopProducts
-      .map((p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`)
+      .map(
+        (p) => `<option value="${p.id}">${escapeHtml(p.displayName)}</option>`,
+      )
       .join("");
     return `
       <select class="form-control form-control-sm manual-match-select" data-index="${parsedEntries.indexOf(entry)}">
@@ -332,34 +417,86 @@ function renderMatches(entry) {
   }
 
   return entry.matches
-    .map((match) => `${escapeHtml(match.displayName)} - ${Math.round(match.score * 100)}%`)
+    .map(
+      (match) =>
+        `${escapeHtml(match.displayName)} - ${Math.round(match.score * 100)}%`,
+    )
     .join("<br>");
 }
 
 function renderStatus(entry) {
-  if (entry.status === "encontrado") return '<span class="badge badge-success">Encontrado</span>';
-  if (entry.status === "seleccionado_manualmente") return '<span class="badge badge-info">Seleccionado</span>';
-  if (entry.status === "ambiguo") return '<span class="badge badge-warning">Ambiguo</span>';
-  if (entry.status === "no_encontrado") return '<span class="badge badge-danger">No encontrado</span>';
+  if (entry.status === "encontrado")
+    return '<span class="badge badge-success">Encontrado</span>';
+  if (entry.status === "seleccionado_manualmente")
+    return '<span class="badge badge-info">Seleccionado</span>';
+  if (entry.status === "ambiguo")
+    return '<span class="badge badge-warning">Ambiguo</span>';
+  if (entry.status === "no_encontrado")
+    return '<span class="badge badge-danger">No encontrado</span>';
   return '<span class="badge badge-secondary">Formato inválido</span>';
 }
 
 function renderNoResults(message) {
   parsedResultsBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">${escapeHtml(message)}</td></tr>`;
   createButton.disabled = true;
+  if (preventaButton) preventaButton.disabled = true;
+  renderSaleTotal();
 }
 
 function canCreateEntry(entry) {
-  return ["encontrado", "seleccionado_manualmente"].includes(entry.status) && Boolean(entry.chosenMatch);
+  return (
+    ["encontrado", "seleccionado_manualmente"].includes(entry.status) &&
+    Boolean(entry.chosenMatch)
+  );
 }
 
 function initializeManualSelects() {
-  $(".manual-match-select").select2({ theme: "bootstrap4", width: "100%", placeholder: "Selecciona un producto" });
+  $(".manual-match-select").select2({
+    theme: "bootstrap4",
+    width: "100%",
+    placeholder: "Selecciona un producto",
+  });
 }
 
 function updateCreateButtonState() {
-  const checkedEntries = Array.from(document.querySelectorAll(".entry-check:checked"));
+  const checkedEntries = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  );
   createButton.disabled = checkedEntries.length === 0;
+  if (preventaButton) preventaButton.disabled = checkedEntries.length === 0;
+}
+
+function getSelectedEntries() {
+  const selectedIndexes = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  ).map((cb) => Number(cb.dataset.index));
+
+  return selectedIndexes
+    .map((index) => parsedEntries[index])
+    .filter((entry) => entry && entry.chosenMatch);
+}
+
+function calculateGrossTotal() {
+  const selectedEntries = getSelectedEntries();
+  return selectedEntries.reduce((sum, entry) => {
+    const price = Number(entry?.chosenMatch?.sellPrice || 0);
+    const quantity = Number(entry?.quantity || 0);
+    return sum + price * quantity;
+  }, 0);
+}
+
+function calculateCurrentTotal() {
+  const grossTotal = calculateGrossTotal();
+  const discount = parseFloat(document.getElementById("discount")?.value) || 0;
+  const netTotal = Math.max(grossTotal - discount, 0);
+
+  return netTotal;
+}
+
+function renderSaleTotal() {
+  if (!saleTotalLabel) return;
+  const total = calculateCurrentTotal();
+  saleTotalLabel.textContent = `Importe total: $${total.toFixed(2)}`;
 }
 
 async function crearVentas() {
@@ -367,12 +504,16 @@ async function crearVentas() {
     return;
   }
 
-  const selectedIndexes = Array.from(document.querySelectorAll(".entry-check:checked")).map(
-    (cb) => Number(cb.dataset.index)
-  );
+  const selectedIndexes = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  ).map((cb) => Number(cb.dataset.index));
 
   if (!selectedIndexes.length) {
-    Swal.fire({ icon: "warning", title: "Sin selección", text: "No hay productos seleccionados para vender." });
+    Swal.fire({
+      icon: "warning",
+      title: "Sin selección",
+      text: "No hay productos seleccionados para vender.",
+    });
     return;
   }
 
@@ -380,6 +521,7 @@ async function crearVentas() {
   const paymentMethod = document.getElementById("payment_method").value;
   const manualExtraInfo = document.getElementById("extra_info").value || "";
   const clientName = (document.getElementById("client").value || "").trim();
+  const clientPhone = (document.getElementById("client_phone").value || "").trim();
   const sellerId = localStorage.getItem("id");
 
   if (!clientName) {
@@ -391,7 +533,7 @@ async function crearVentas() {
     return;
   }
 
-  const composedExtraInfo = `Cliente: ${clientName}${manualExtraInfo ? ` | Nota: ${manualExtraInfo}` : ""}`;
+  const composedExtraInfo = `${manualExtraInfo ? ` ${manualExtraInfo}` : ""}`;
 
   const sells = selectedIndexes
     .map((index) => parsedEntries[index])
@@ -403,13 +545,19 @@ async function crearVentas() {
     }));
 
   if (!sells.length) {
-    Swal.fire({ icon: "warning", title: "Sin ventas válidas", text: "No hay ventas válidas para crear." });
+    Swal.fire({
+      icon: "warning",
+      title: "Sin ventas válidas",
+      text: "No hay ventas válidas para crear.",
+    });
     return;
   }
 
   // Validar stock
   for (const sell of sells) {
-    const shopProduct = selectedShopProducts.find((p) => p.id === sell.shop_product);
+    const shopProduct = selectedShopProducts.find(
+      (p) => p.id === sell.shop_product,
+    );
     if (shopProduct && sell.quantity > shopProduct.stock) {
       Swal.fire({
         icon: "error",
@@ -440,8 +588,18 @@ async function crearVentas() {
     extra_info: composedExtraInfo,
     payment_method: paymentMethod,
     seller: sellerId,
+    // The gross amount, matching the salescar view: the discount is kept apart so the
+    // sell group can report both the subtotal and the net amount.
+    total: Number(calculateGrossTotal()) || 0,
+    client_name: clientName,
+    client_phone: clientPhone,
     sells,
   };
+  if (selectedClientId) {
+    payload.client = selectedClientId;
+    delete payload.client_name;
+    delete payload.client_phone;
+  }
 
   try {
     const response = await axios.post(sellGroupsUrl, payload);
@@ -455,34 +613,8 @@ async function crearVentas() {
       discount,
       extraInfo: composedExtraInfo,
     });
-    const comprobanteHtml = buildComprobanteHtml(comprobanteText);
 
-    const result = await Swal.fire({
-      icon: "success",
-      title: "Venta creada",
-      html: comprobanteHtml,
-      width: 700,
-      showDenyButton: true,
-      confirmButtonText: "Copiar comprobante",
-      denyButtonText: "Cerrar",
-    });
-
-    if (result.isConfirmed) {
-      const copied = await copiarComprobante(comprobanteText);
-      if (copied) {
-        await Swal.fire({
-          icon: "success",
-          title: "Comprobante copiado",
-          text: "El comprobante se copió al portapapeles.",
-        });
-      } else {
-        await Swal.fire({
-          icon: "error",
-          title: "No se pudo copiar",
-          text: "No fue posible copiar el comprobante automáticamente.",
-        });
-      }
-    }
+    await mostrarComprobanteConCopia("Venta creada", comprobanteText);
 
     // Reset
     document.getElementById("form-parse-message").reset();
@@ -491,10 +623,22 @@ async function crearVentas() {
     document.getElementById("discount").value = 0;
     document.getElementById("extra_info").value = "";
     document.getElementById("client").value = "";
+    document.getElementById("client_phone").value = "";
     thresholdValue.textContent = `${thresholdInput.value}%`;
+    // Reset client selection
+    selectedClientId = null;
+    const clientSelect = document.getElementById("client_select");
+    if (clientSelect) {
+      clientSelect.value = "";
+      try {
+        $("#client_select").trigger("change.select2");
+      } catch (e) {}
+    }
   } catch (error) {
     hideLoader();
-    const detail = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+    const detail = error.response?.data
+      ? JSON.stringify(error.response.data)
+      : error.message;
     Swal.fire({ icon: "error", title: "Error al crear venta", text: detail });
   } finally {
     updateCreateButtonState();
@@ -502,7 +646,38 @@ async function crearVentas() {
   }
 }
 
-function buildComprobanteText({ saleId, sells, clientName, paymentMethod, discount, extraInfo }) {
+function cargarClientesRegistrados() {
+  axios
+    .get(clientsUrl)
+    .then(function (response) {
+      clientesRegistrados = response.data.results || response.data || [];
+      const clientSelect = document.getElementById("client_select");
+      if (!clientSelect) return;
+      clientSelect.innerHTML = '<option value="">— Nuevo cliente —</option>';
+      clientesRegistrados.forEach(function (cliente) {
+        const option = document.createElement("option");
+        option.value = cliente.id;
+        option.textContent = cliente.name ? cliente.name : `Cliente #${cliente.id}`;
+        clientSelect.appendChild(option);
+      });
+      try {
+        $("#client_select").select2();
+      } catch (e) {}
+    })
+    .catch(function (error) {
+      console.error("Error al cargar clientes", error);
+    });
+}
+
+function buildComprobanteText({
+  saleId,
+  sells,
+  clientName,
+  paymentMethod,
+  discount,
+  extraInfo,
+  title = "COMPROBANTE DE VENTA",
+}) {
   const paymentMethodName = paymentMethod === "Z" ? "Zelle" : "USD";
 
   const grossTotal = sells.reduce((acc, sell) => {
@@ -527,12 +702,17 @@ function buildComprobanteText({ saleId, sells, clientName, paymentMethod, discou
     })
     .join("\n\n");
 
-  const lines = [
-    "COMPROBANTE DE VENTA",
-    `Nro: ${String(saleId || "N/A")}`,
-    `Fecha: ${dateStr}`,
-    `Cliente: ${clientName}`,
-    `Metodo de pago: ${paymentMethodName}`,
+  const lines = [title, `Nro: ${String(saleId || "N/A")}`, `Fecha: ${dateStr}`];
+
+  if (clientName) {
+    lines.push(`Cliente: ${clientName}`);
+  }
+
+  if (paymentMethod) {
+    lines.push(`Metodo de pago: ${paymentMethodName}`);
+  }
+
+  lines.push(
     "------------------------------",
     "PRODUCTOS:",
     productLines,
@@ -541,7 +721,7 @@ function buildComprobanteText({ saleId, sells, clientName, paymentMethod, discou
     `Descuento: $${Number(discount || 0).toFixed(2)}`,
     `Total: $${netTotal.toFixed(2)}`,
     `Notas: ${extraInfo || ""}`,
-  ];
+  );
 
   return lines.join("\n");
 }
@@ -581,4 +761,96 @@ function escapeHtml(text) {
   const div = document.createElement("div");
   div.innerText = text;
   return div.innerHTML;
+}
+
+async function mostrarComprobanteConCopia(titulo, comprobanteText) {
+  const result = await Swal.fire({
+    icon: "success",
+    title: titulo,
+    html: buildComprobanteHtml(comprobanteText),
+    width: 700,
+    showDenyButton: true,
+    confirmButtonText: "Copiar comprobante",
+    denyButtonText: "Cerrar",
+  });
+
+  if (result.isConfirmed) {
+    const copied = await copiarComprobante(comprobanteText);
+    if (copied) {
+      await Swal.fire({
+        icon: "success",
+        title: "Comprobante copiado",
+        text: "El comprobante se copió al portapapeles.",
+      });
+    } else {
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo copiar",
+        text: "No fue posible copiar el comprobante automáticamente.",
+      });
+    }
+  }
+}
+
+// Create a pre-sale receipt locally, without calling the backend.
+async function crearPreVenta() {
+  const selectedIndexes = Array.from(
+    document.querySelectorAll(".entry-check:checked"),
+  ).map((cb) => Number(cb.dataset.index));
+
+  if (!selectedIndexes.length) {
+    Swal.fire({
+      icon: "warning",
+      title: "Sin selección",
+      text: "No hay productos seleccionados para pre-vender.",
+    });
+    return;
+  }
+
+  const discount = parseFloat(document.getElementById("discount").value) || 0;
+  const manualExtraInfo = document.getElementById("extra_info").value || "";
+  const composedExtraInfo = `${manualExtraInfo ? ` ${manualExtraInfo}` : ""}`;
+
+  const sells = selectedIndexes
+    .map((index) => parsedEntries[index])
+    .filter((entry) => entry && entry.chosenMatch)
+    .map((entry) => ({
+      shop_product: entry.chosenMatch.id,
+      quantity: Number(entry.quantity),
+      extra_info: composedExtraInfo,
+    }));
+
+  if (!sells.length) {
+    Swal.fire({
+      icon: "warning",
+      title: "Sin ventas válidas",
+      text: "No hay ventas válidas para pre-vender.",
+    });
+    return;
+  }
+
+  const clientName = (document.getElementById("client").value || "").trim();
+  const paymentMethod = document.getElementById("payment_method").value;
+
+  const comprobanteText = buildComprobanteText({
+    sells,
+    clientName,
+    paymentMethod,
+    discount,
+    extraInfo: composedExtraInfo,
+    title: "COMPROBANTE DE PRE-VENTA",
+  });
+
+  await mostrarComprobanteConCopia("Pre-venta generada", comprobanteText);
+  // Reset client selection
+  document.getElementById("client").value = "";
+  document.getElementById("client_phone").value = "";
+  selectedClientId = null;
+  const clientSelect = document.getElementById("client_select");
+  if (clientSelect) {
+    clientSelect.value = "";
+    try {
+      $("#client_select").trigger("change.select2");
+    } catch (e) {}
+  }
 }
