@@ -12,6 +12,7 @@ let productosSeleccionados = [];
 let importe_total = 0;
 let clientesRegistrados = [];
 let selectedClientId = null;
+let lastSellGroupId = null;
 const defaultProductImage = document.getElementById("productImagen")?.src || "";
 
 function buildComprobanteText({
@@ -409,6 +410,7 @@ $("#crearVenta").on("click", function () {
     .then(async (response) => {
       load.hidden = true;
 
+      lastSellGroupId = response.data?.id;
       const comprobanteText = buildComprobanteText({
         saleId: response.data?.id,
         productos: productosSeleccionados,
@@ -462,4 +464,69 @@ $("#crearPreVenta").on("click", async function () {
   });
 
   await mostrarComprobanteConCopia("Pre-venta generada", comprobanteText);
+});
+
+$("#comprobanteAlmacen").on("click", async function () {
+  if (!lastSellGroupId) {
+    Swal.fire({
+      icon: "warning",
+      title: "Sin venta reciente",
+      text: "Completa una venta primero para generar el comprobante para almacén.",
+    });
+    return;
+  }
+
+  const button = this;
+  const originalHtml = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+
+  try {
+    axios.defaults.headers.common["X-CSRFToken"] = csrfToken;
+    const response = await axios.get(
+      `/business-gestion/sell-groups/${lastSellGroupId}/warehouse-report/`,
+    );
+    const reportText = (response.data?.report || "").trim();
+    if (!reportText) {
+      throw new Error("El comprobante está vacío");
+    }
+
+    const result = await Swal.fire({
+      icon: "success",
+      title: `Comprobante para almacén de la venta ${lastSellGroupId}`,
+      html: `<div id="sale-comprobante" style="text-align:left;max-height:360px;overflow:auto;"><pre style="white-space:pre-wrap;font-family:monospace;margin:0;">${escapeHtml(reportText)}</pre></div>`,
+      width: 700,
+      showDenyButton: true,
+      confirmButtonText: "Copiar comprobante",
+      denyButtonText: "Cerrar",
+    });
+
+    if (result.isConfirmed) {
+      const copied = await copiarComprobante(reportText);
+      if (copied) {
+        await Swal.fire({
+          icon: "success",
+          title: "Comprobante copiado",
+          text: "El comprobante se copio al portapapeles.",
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "No se pudo copiar",
+          text: "No fue posible copiar el comprobante automaticamente.",
+        });
+      }
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error generando el comprobante para almacén",
+      text:
+        "No fue posible generar el comprobante: " +
+        (error.response?.data?.detail || error.message),
+    });
+  } finally {
+    button.disabled = false;
+    button.innerHTML = originalHtml;
+  }
 });
