@@ -1,11 +1,30 @@
+from functools import wraps
+
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import user_passes_test
 
+from apps.common.utils.geo import get_country_code
 from apps.users_app.models.groups import Groups
 from apps.business_app.models.shop import Shop
 
 
 # Create your views here.
+
+CUBA = "CU"
+
+
+def catalog_visible(view):
+    """Allow public catalog pages to logged users and visitors from abroad."""
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            country = get_country_code(request)
+            if country in ("", CUBA):
+                return redirect("first_login")
+        return view(request, *args, **kwargs)
+
+    return wrapper
 
 
 def is_owner(user):
@@ -71,10 +90,12 @@ def create_products(request):
     return render(request, "products/create_products.html")
 
 
+@catalog_visible
 def catalog(request):
     return render(request, "catalogo/catalogo.html", _get_catalog_context())
 
 
+@catalog_visible
 def root_catalog(request):
     return render(request, "catalogo/catalogo.html", _get_catalog_context())
 
@@ -83,6 +104,7 @@ def catalog_by_shop(request, catalog_url):
     return render(request, "catalogo/catalogo.html", {"catalog_shop_url": catalog_url})
 
 
+@catalog_visible
 def wholesale_catalog(request):
     return render(request, "catalogo_por_mayor/catalogo_por_mayor.html")
 
