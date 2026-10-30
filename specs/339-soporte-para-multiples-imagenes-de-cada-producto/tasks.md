@@ -1,0 +1,7 @@
+- [x] Create Gallery model and migration
+- [x] Create serializer and viewset
+- [x] Register URLs
+- [x] Embed gallery in product serializers
+- [x] Add retrieve serializer and prefetch
+- [x] Run tests and ruff
+- [x] Add frontend input and upload
