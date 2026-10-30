@@ -7,6 +7,7 @@ __all__ = [
     "Model",
     "Brand",
     "Pallet",
+    "Gallery",
 ]
 from .product import Product
 from .shop import Shop
@@ -16,3 +17,4 @@ from .sell_group import SellGroup
 from .model import Model
 from .brand import Brand
 from .pallet import Pallet
+from .gallery import Gallery

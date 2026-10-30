@@ -71,8 +71,16 @@ $(function () {
 
     axios
       .post(`${url}`, data)
-      .then((response) => {
+      .then(async (response) => {
         if (response.status === 201) {
+          const productId = response.data.id;
+          const galleryFiles = document.getElementById("gallery").files;
+          for (let i = 0; i < galleryFiles.length; i++) {
+            const gData = new FormData();
+            gData.append("product", productId);
+            gData.append("image", galleryFiles[i]);
+            await axios.post("/business-gestion/galleries/", gData);
+          }
           Swal.fire({
             icon: "success",
             title: "Producto creado con éxito",

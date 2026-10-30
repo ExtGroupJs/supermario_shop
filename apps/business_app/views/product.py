@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.generics import GenericAPIView
 
+from apps.business_app.models.gallery import Gallery
 from apps.business_app.models.product import Product
 from apps.business_app.models.shop_products import ShopProducts
 from apps.business_app.serializers.product import (
@@ -23,12 +24,14 @@ class ProductViewSet(SerializerMapMixin, viewsets.ModelViewSet, GenericAPIView):
             queryset=ShopProducts.objects.filter(
                 deleted__isnull=True, shop__enabled=True
             ).select_related("shop"),
-        )
+        ),
+        Prefetch("gallery", queryset=Gallery.objects.all()),
     ).annotate(
         model_name=Concat(F("model__brand__name"), Value(" - "), F("model__name"))
     )
     serializer_class = ProductSerializer
     list_serializer_class = ReadProductSerializer
+    retrieve_serializer_class = ReadProductSerializer
     permission_classes = [CommonRolePermission]
     filter_backends = [
         DjangoFilterBackend,

@@ -294,8 +294,15 @@ $(function () {
       if (edit_products) {
         axios
           .patch(`${url}` + selected_id + "/", data)
-          .then((response) => {
+          .then(async (response) => {
             if (response.status === 200) {
+              const galleryFiles = document.getElementById("gallery").files;
+              for (let i = 0; i < galleryFiles.length; i++) {
+                const gData = new FormData();
+                gData.append("product", selected_id);
+                gData.append("image", galleryFiles[i]);
+                await axios.post("/business-gestion/galleries/", gData);
+              }
               $("#modal-crear-products").modal("hide");
               load.hidden = true;
               Swal.fire({
@@ -328,8 +335,16 @@ $(function () {
       } else {
         axios
           .post(`${url}`, data)
-          .then((response) => {
+          .then(async (response) => {
             if (response.status === 201) {
+              const productId = response.data.id;
+              const galleryFiles = document.getElementById("gallery").files;
+              for (let i = 0; i < galleryFiles.length; i++) {
+                const gData = new FormData();
+                gData.append("product", productId);
+                gData.append("image", galleryFiles[i]);
+                await axios.post("/business-gestion/galleries/", gData);
+              }
               load.hidden = true;
               Swal.fire({
                 icon: "success",
