@@ -4,7 +4,28 @@
 
 Django 5.1.1 + DRF 3.15.2 auto parts shop (Geely vehicles). Python 3.11. Session-based auth. Spanish locale (`es-es`). `USE_TZ = False`, timezone `America/Havana`.
 
-## SDD Workflow (Spec-Driven Development)
+## Programming Principles (MANDATORY)
+
+Every change must obey **SOLID, KISS, DRY**. Apply while designing and reviewing; justify any exception in the PR.
+
+- **SOLID**
+  - **S — Single Responsibility:** one reason to change per module/class/function. Split viewsets by resource, serializers by read/write, models by aggregate. No god modules.
+  - **O — Open/Closed:** extend via mixins/inheritance/composition; don't edit stable core or branch inside existing classes. Add a new serializer/viewset instead.
+  - **L — Liskov Substitution:** subclasses must be substitutable; never override to narrow contracts or raise unexpected errors.
+  - **I — Interface Segregation:** small, role-specific permissions/serializers; don't force clients to depend on fields they don't use.
+  - **D — Dependency Inversion:** depend on abstractions (`BaseModel`, `GenericLogMixin`, mixins); inject actors (e.g. seller from request) instead of hard-coding.
+- **KISS:** simplest solution that fully works. No premature abstractions, speculative generality, or new layers unless justified by an existing pattern. Prefer stdlib/Django/DRF over custom code.
+- **DRY:** extract only when duplicated 3+ times or across modules; reuse existing helpers/mixins/serializers. Don't copy-paste; don't create abstractions for a single use.
+
+Rules:
+- Reuse before writing: `search_graph` first (see Codebase Knowledge Graph).
+- No dead code, commented-out code, or "for later" scaffolding.
+- Keep functions small; one level of abstraction per function.
+- Prefer deletion over addition.
+
+Enforce in review: `ruff check .` + tests; reject PRs violating these principles without justification.
+
+## SDD Workflow (Spec-Driven Development)">
 
 When you have a new issue (or feature request) to implement:
 
@@ -17,7 +38,7 @@ When you have a new issue (or feature request) to implement:
 4. **Create design**: `design.md` citing exact existing files as template, detailing models/serializers (write+read), viewsets (mixins, filter_backends, permissions, get_queryset, perform_create), URLs, filters, logging, role-based filtering, tests to add/update, minimal touchpoints.
 5. **Create tasks**: `tasks.md` with atomic executable checkboxes (prefer tests first), verification steps, ruff check.
 6. **Get approval**: STOP and ask the user (human developer) to review and explicitly approve `tasks.md` before writing any implementation code. Do not implement until they answer with an explicit approval.
-7. **Implement**: Do tasks one by one, mark complete, run targeted tests, proceed only if green. Minimal changes, no new layers unless justified by existing pattern.
+7. **Implement**: Do tasks one by one, mark complete, run targeted tests, proceed only if green. Minimal changes, no new layers unless justified by existing pattern. Apply SOLID/KISS/DRY; reuse existing patterns before writing new code.
 8. **Verify**: Run related tests + `ruff check .`, summarize files touched and results.
 
 ## Codebase Knowledge Graph (codebase-memory-mcp)
