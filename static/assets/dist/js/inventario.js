@@ -78,6 +78,7 @@ $(document).ready(function () {
             recordsFiltered: res.data.count,
             data: res.data.results,
           });
+          inicializarCarruselesProducto("#tabla-de-Datos");
         })
         .catch((error) => {
           alert(error);
@@ -90,11 +91,10 @@ $(document).ready(function () {
         data: "id",
         title: "Foto",
         render: (data, type, row) => {
-          if (data) {
-            return `<div style="text-align: center;"><img src="${row.product.image}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${row.product.image}"></div>`;
-          } else {
-            return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+          if (type !== "display") {
+            return row?.product?.image || "";
           }
+          return `<div style="text-align: center;">${carruselProductoHtml(row.product, { altura: 100 })}</div>`;
         },
       },
       { data: "product_name", title: "Producto" },
@@ -133,19 +133,6 @@ $(document).ready(function () {
         $(row).addClass("table-warning"); // Amarillo
       }
     },
-  });
-});
-
-$(document).on("click", ".thumbnail", function () {
-  const fullsizeImage = $(this).data("fullsize");
-
-  Swal.fire({
-    imageUrl: fullsizeImage,
-    imageWidth: 400, // Ajusta el ancho según sea necesario
-    imageHeight: 300, // Ajusta la altura según sea necesario
-    imageAlt: "Image",
-    showCloseButton: false,
-    showConfirmButton: true,
   });
 });
 

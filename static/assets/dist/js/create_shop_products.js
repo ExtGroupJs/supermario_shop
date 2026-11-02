@@ -163,28 +163,26 @@ function cargarProductoEspecifico(id) {
     .get("/business-gestion/products/" + id + "/")
     .then((res) => {
       especificProducto = res.data;
-      var nuevaUrl = especificProducto.image;
-      document.getElementById("productImagen").src = nuevaUrl;
+      mostrarImagenesProducto(especificProducto);
       load.hidden = true;
     })
     .catch((error) => {
+      mostrarImagenesProducto(null);
       load.hidden = true;
       console.error("Error al cargar productos:", error);
     });
 }
 
-$(document).on("click", "#productImagen", function () {
-  load.hidden = false;
-  const fullsizeImage = $(this).attr("src"); // Obtiene la URL de la imagen
-  console.log("✌️fullsizeImage --->", fullsizeImage);
+// Muestra el carrusel con la imagen principal y la galería del producto
+function mostrarImagenesProducto(producto) {
+  const contenedor = document.getElementById("productImagen");
+  if (!contenedor) {
+    return;
+  }
 
-  Swal.fire({
-    imageUrl: fullsizeImage,
-    imageWidth: 400, // Ajusta el ancho según sea necesario
-    imageHeight: 300, // Ajusta la altura según sea necesario
-    imageAlt: "Image",
-    showCloseButton: false,
-    showConfirmButton: true,
+  contenedor.innerHTML = carruselProductoHtml(producto, {
+    altura: 150,
+    imagenPorDefecto: contenedor.dataset.imagenPorDefecto || "",
   });
-  load.hidden = true;
-});
+  inicializarCarruselesProducto(contenedor);
+}

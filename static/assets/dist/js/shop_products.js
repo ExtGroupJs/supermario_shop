@@ -19,11 +19,7 @@ function renderProductImage(data, type, row) {
   const imageUrl = getProductImageUrl(row);
 
   if (type === "display") {
-    if (imageUrl) {
-      return `<div style="text-align: center;"><img src="${imageUrl}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${imageUrl}"></div>`;
-    }
-
-    return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+    return `<div style="text-align: center;">${carruselProductoHtml(row?.product, { altura: 100 })}</div>`;
   }
 
   if (type === "print") {
@@ -354,6 +350,7 @@ $(document).ready(function () {
             recordsFiltered: res.data.count,
             data: res.data.results,
           });
+          inicializarCarruselesProducto("#tabla-de-Datos");
           load.hidden = true;
         })
         .catch((error) => {
@@ -542,9 +539,9 @@ function abrirModalEditarProducto(productId, productName) {
       productForm.elements.model.value = selectedModelId;
 
       return poblarModelosProductoModal(selectedModelId).then(function () {
-        if (product.image) {
-          document.getElementById("product-modal-image-preview").src = product.image;
-        }
+        const preview = document.getElementById("product-modal-image-preview");
+        preview.innerHTML = carruselProductoHtml(product, { altura: 220 });
+        inicializarCarruselesProducto(preview);
         load.hidden = true;
         modal.modal("show");
       });
@@ -567,7 +564,7 @@ $("#modal-crear-products").on("hide.bs.modal", (event) => {
   elements.forEach((elem) => elem.classList.remove("is-invalid"));
   const preview = document.getElementById("product-modal-image-preview");
   if (preview) {
-    preview.src = "";
+    preview.innerHTML = "";
   }
 });
 
@@ -1197,44 +1194,30 @@ function cargarProductoEspecifico(id) {
     .get("/business-gestion/products/" + id + "/")
     .then((res) => {
       especificProducto = res.data;
-      var nuevaUrl = especificProducto.image;
-      document.getElementById("productImagen").src = nuevaUrl;
+      mostrarImagenesProducto(especificProducto);
       load.hidden = true;
     })
     .catch((error) => {
+      mostrarImagenesProducto(null);
       load.hidden = true;
       console.error("Error al cargar productos:", error);
     });
 }
 
-$(document).on("click", "#productImagen", function () {
-  load.hidden = false;
-  const fullsizeImage = $(this).attr("src"); // Obtiene la URL de la imagen
-  console.log("✌️fullsizeImage --->", fullsizeImage);
+// Muestra el carrusel con la imagen principal y la galería del producto
+function mostrarImagenesProducto(producto) {
+  const contenedor = document.getElementById("productImagen");
+  if (!contenedor) {
+    return;
+  }
 
-  Swal.fire({
-    imageUrl: fullsizeImage,
-    imageWidth: 400, // Ajusta el ancho según sea necesario
-    imageHeight: 300, // Ajusta la altura según sea necesario
-    imageAlt: "Image",
-    showCloseButton: false,
-    showConfirmButton: true,
+  contenedor.innerHTML = carruselProductoHtml(producto, {
+    altura: 200,
+    imagenPorDefecto: contenedor.dataset.imagenPorDefecto || "",
   });
-  load.hidden = true;
-});
+  inicializarCarruselesProducto(contenedor);
+}
 
-$(document).on("click", ".thumbnail", function () {
-  const fullsizeImage = $(this).data("fullsize");
-
-  Swal.fire({
-    imageUrl: fullsizeImage,
-    imageWidth: 400, // Ajusta el ancho según sea necesario
-    imageHeight: 300, // Ajusta la altura según sea necesario
-    imageAlt: "Image",
-    showCloseButton: false,
-    showConfirmButton: true,
-  });
-});
 let myDateStart = null;
 let myDateEnd = null;
 $(function () {

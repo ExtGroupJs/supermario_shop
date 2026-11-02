@@ -30,6 +30,11 @@ class Product(SafeDeleteModel, BaseModel):
     def __str__(self):
         return f"{self.name} ({self.model})"
 
+    def delete(self, *args, **kwargs):
+        # Las imágenes de galería no se conservan sin su producto
+        self.gallery.all().delete()
+        return super().delete(*args, **kwargs)
+
     # def save(self, *args, **kwargs):
     #     super().save(*args, **kwargs)
     #     # Abrir imagen

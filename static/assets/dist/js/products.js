@@ -112,6 +112,7 @@ $(document).ready(function () {
             recordsFiltered: res.data.count,
             data: res.data.results,
           });
+          inicializarCarruselesProducto("#tabla-de-Datos");
         })
         .catch((error) => {
           alert(error);
@@ -122,12 +123,11 @@ $(document).ready(function () {
       {
         data: "image",
         title: "Foto",
-        render: (data) => {
-          if (data) {
-            return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
-          } else {
-            return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+        render: (data, type, row) => {
+          if (type !== "display") {
+            return data || "";
           }
+          return `<div style="text-align: center;">${carruselProductoHtml(row, { altura: 100 })}</div>`;
         },
       },
       { data: "model_name", title: "Modelo" },
@@ -153,6 +153,9 @@ $(document).ready(function () {
                             <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-products" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}">
                               <i class="fas fa-edit"></i>
                             </button>  
+                            <button type="button" title="Imágenes" class="btn bg-olive" data-toggle="modal" data-target="#modal-ver-imagenes" data-id="${row.id}">
+                              <i class="fas fa-images"></i>
+                            </button>
                             <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}','${row.model_name}')" >
                               <i class="fas fa-trash"></i>
                             </button>                                          
@@ -188,17 +191,31 @@ $(document).ready(function () {
 
 let selected_id;
 
-$(document).on("click", ".thumbnail", function () {
-  const fullsizeImage = $(this).data("fullsize");
+$("#modal-ver-imagenes").on("show.bs.modal", function (event) {
+  const productId = $(event.relatedTarget).data("id");
+  const modal = $(this);
+  const contenedor = modal.find("#contenedor-imagenes-producto");
+  const mensaje = modal.find("#mensaje-imagenes-producto");
 
-  Swal.fire({
-    imageUrl: fullsizeImage,
-    imageWidth: 400, // Ajusta el ancho según sea necesario
-    imageHeight: 300, // Ajusta la altura según sea necesario
-    imageAlt: "Image",
-    showCloseButton: false,
-    showConfirmButton: true,
-  });
+  contenedor.html("");
+  mensaje.text("");
+
+  axios
+    .get(`${url}${productId}/`)
+    .then(function (response) {
+      const imagenes = imagenesProducto(response.data);
+
+      if (imagenes.length === 0) {
+        mensaje.text("Este producto no tiene imágenes.");
+        return;
+      }
+
+      contenedor.html(carruselProductoHtml(response.data, { altura: 420 }));
+      inicializarCarruselesProducto(contenedor);
+    })
+    .catch(function () {
+      mensaje.text("No se pudieron cargar las imágenes.");
+    });
 });
 
 $("#modal-crear-products").on("hide.bs.modal", (event) => {
@@ -253,6 +270,17 @@ $("#model").val(firstOptionValue).trigger("change");
   }
 });
 
+// Sube las imágenes seleccionadas en el input de galería (una petición por imagen)
+async function subirImagenesGaleria(productId) {
+  const galleryFiles = document.getElementById("gallery").files;
+  for (let i = 0; i < galleryFiles.length; i++) {
+    const gData = new FormData();
+    gData.append("product", productId);
+    gData.append("image", galleryFiles[i]);
+    await axios.post("/business-gestion/galleries/", gData);
+  }
+}
+
 // form validator
 $(function () {
   $.validator.setDefaults({
@@ -296,13 +324,7 @@ $(function () {
           .patch(`${url}` + selected_id + "/", data)
           .then(async (response) => {
             if (response.status === 200) {
-              const galleryFiles = document.getElementById("gallery").files;
-              for (let i = 0; i < galleryFiles.length; i++) {
-                const gData = new FormData();
-                gData.append("product", selected_id);
-                gData.append("image", galleryFiles[i]);
-                await axios.post("/business-gestion/galleries/", gData);
-              }
+              await subirImagenesGaleria(selected_id);
               $("#modal-crear-products").modal("hide");
               load.hidden = true;
               Swal.fire({
@@ -337,14 +359,7 @@ $(function () {
           .post(`${url}`, data)
           .then(async (response) => {
             if (response.status === 201) {
-              const productId = response.data.id;
-              const galleryFiles = document.getElementById("gallery").files;
-              for (let i = 0; i < galleryFiles.length; i++) {
-                const gData = new FormData();
-                gData.append("product", productId);
-                gData.append("image", galleryFiles[i]);
-                await axios.post("/business-gestion/galleries/", gData);
-              }
+              await subirImagenesGaleria(response.data.id);
               load.hidden = true;
               Swal.fire({
                 icon: "success",

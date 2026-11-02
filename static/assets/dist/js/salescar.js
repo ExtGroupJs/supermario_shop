@@ -13,7 +13,6 @@ let importe_total = 0;
 let clientesRegistrados = [];
 let selectedClientId = null;
 let lastSellGroupId = null;
-const defaultProductImage = document.getElementById("productImagen")?.src || "";
 
 function buildComprobanteText({
   saleId,
@@ -244,24 +243,29 @@ function cargarProductoEspecifico(id) {
       $("#productoDescripcionPrec").text(
         `Precio: $${especificProducto.sell_price}`,
       );
-      const imageElement = document.getElementById("productImagen");
-      const nuevaUrl = especificProducto?.product?.image;
-
-      if (imageElement) {
-        imageElement.src =
-          nuevaUrl && nuevaUrl !== "null" ? nuevaUrl : defaultProductImage;
-      }
+      mostrarImagenesProducto(especificProducto?.product);
 
       load.hidden = true;
     })
     .catch((error) => {
-      const imageElement = document.getElementById("productImagen");
-      if (imageElement && defaultProductImage) {
-        imageElement.src = defaultProductImage;
-      }
+      mostrarImagenesProducto(null);
       load.hidden = true;
       console.error("Error al cargar productos:", error);
     });
+}
+
+// Muestra el carrusel con la imagen principal y la galería del producto
+function mostrarImagenesProducto(producto) {
+  const contenedor = document.getElementById("productImagen");
+  if (!contenedor) {
+    return;
+  }
+
+  contenedor.innerHTML = carruselProductoHtml(producto, {
+    altura: 200,
+    imagenPorDefecto: contenedor.dataset.imagenPorDefecto || "",
+  });
+  inicializarCarruselesProducto(contenedor);
 }
 
 // Agregar producto a la lista

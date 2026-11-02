@@ -59,11 +59,10 @@ function renderProducts(products) {
         <div class="col-lg-4 col-md-4 col-sm-6 mt-40">
           <div class="single-product-wrap">
             <div class="product-image">
-              <a>
-                <img src="${product.product.image || "/static_output/assets/dist/img/producto-sin-imagen.jpg"}" 
-                     alt="${product.product.name}"
-                     onerror="this.src='/static_output/assets/dist/img/producto-sin-imagen.jpg'">
-              </a>
+              ${carruselProductoHtml(product.product, {
+                altura: 300,
+                imagenPorDefecto: "/static_output/assets/dist/img/producto-sin-imagen.jpg",
+              })}
               ${product.is_new ? '<span class="sticker">New</span>' : ""}
             </div>
             <div class="product_desc">
@@ -98,11 +97,10 @@ function renderProducts(products) {
         <div class="col-12 mt-40">
           <div class="single-product-wrap d-flex">
             <div class="product-image">
-              <a>
-                <img src="${product.product.image || "/static_output/assets/dist/img/producto-sin-imagen.jpg"}" 
-                     alt="${product.product.name}"
-                     onerror="this.src='/static_output/assets/dist/img/producto-sin-imagen.jpg'">
-              </a>
+              ${carruselProductoHtml(product.product, {
+                altura: 300,
+                imagenPorDefecto: "/static_output/assets/dist/img/producto-sin-imagen.jpg",
+              })}
               ${product.is_new ? '<span class="sticker">New</span>' : ""}
             </div>
             <div class="product_desc flex-grow-1 ml-4">
@@ -134,6 +132,8 @@ function renderProducts(products) {
       productArea.insertAdjacentHTML("beforeend", productHTML);
     }
   });
+
+  inicializarCarruselesProducto(".shop-products-wrapper");
 }
 
 // Función para generar las estrellas basadas en las ventas
@@ -461,7 +461,12 @@ async function showProductDetails(productId) {
     const product = response.data;
     console.log("product", product);
     // Actualizar los elementos de la modal con los datos del producto
-    document.getElementById("modalProductImage").src = product.product.image;
+    const modalImages = document.getElementById("modalProductImage");
+    modalImages.innerHTML = carruselProductoHtml(product.product, {
+      altura: 400,
+      imagenPorDefecto: "/static_output/assets/dist/img/producto-sin-imagen.jpg",
+    });
+    inicializarCarruselesProducto(modalImages);
     document.getElementById("modalProductName").textContent =
       product.product.name;
     document.getElementById("modalBrandName").textContent =
