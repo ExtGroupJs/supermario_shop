@@ -471,35 +471,5 @@ function toggleGroupSells(groupId) {
   });
 }
 
-function deleteGroupSell(id) {
-  Swal.fire({
-    title: "¿Eliminar grupo de venta?",
-    text: "Esta acción eliminará el grupo y devolverá las cantidades al inventario.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-  }).then((result) => {
-    if (!result.isConfirmed) {
-      return;
-    }
-    axios
-      .delete(`${urlSell}${id}/`)
-      .then(() => {
-        Swal.fire({
-          icon: "success",
-          title: "Grupo de venta eliminado",
-          timer: 1200,
-          showConfirmButton: false,
-        });
-        $("#table-sell-groups").DataTable().ajax.reload();
-      })
-      .catch((error) => {
-        Swal.fire({
-          icon: "error",
-          title: "No se pudo eliminar",
-          text: error?.response?.data ? JSON.stringify(error.response.data) : "Error desconocido",
-        });
-      });
-  });
 }
+
