@@ -272,7 +272,7 @@ class TestGroupSellViewSetFunctionalities(BaseTestClass):
         response = self.client.get(reverse("group_sells"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotIn("canDeleteGroupSell", response.content.decode())
-        self.assertNotIn("can_delete_group", response.context.flatten())
+        self.assertNotIn("can_delete_group", response.context)
 
         script = (
             Path(settings.BASE_DIR)
