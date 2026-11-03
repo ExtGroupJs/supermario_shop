@@ -155,9 +155,6 @@ $(document).ready(function () {
                             <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-products" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}">
                               <i class="fas fa-edit"></i>
                             </button>  
-                            <button type="button" title="Imágenes" class="btn bg-olive imagen-producto" data-producto-id="${row.id}">
-                              <i class="fas fa-images"></i>
-                            </button>
                             <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}','${row.model_name}')" >
                               <i class="fas fa-trash"></i>
                             </button>                                          

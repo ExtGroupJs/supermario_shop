@@ -147,7 +147,7 @@ function renderProducts(products) {
           <div class="single-product-wrap d-flex">
             <div class="product-image">
               ${carruselProductoHtml(product.product, {
-                altura: 300,
+                altura: 440,
                 imagenPorDefecto: "/static_output/assets/dist/img/producto-sin-imagen.jpg",
               })}
               ${product.is_new ? '<span class="sticker">New</span>' : ""}

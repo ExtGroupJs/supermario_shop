@@ -19,7 +19,7 @@ function carruselProductoHtml(producto, opciones = {}) {
 
   if (imagenes.length === 0) {
     return imagenPorDefecto
-      ? `<div class="text-center"><img src="${imagenPorDefecto}" alt="producto sin imagen" class="img-fluid"></div>`
+      ? `<div class="text-center"><img src="${imagenPorDefecto}" alt="producto sin imagen" class="d-block w-100" style="height: ${altura}px; object-fit: contain; max-height: none;"></div>`
       : `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
   }
 
@@ -28,9 +28,9 @@ function carruselProductoHtml(producto, opciones = {}) {
   const items = imagenes
     .map(
       (src, index) => `
-        <div class="carousel-item ${index === 0 ? "active" : ""} text-center">
-          <img src="${src}" alt="imagen del producto" class="d-block img-fluid"
-            style="max-height: ${altura}px; object-fit: contain;">
+        <div class="carousel-item text-center ${index === 0 ? "active" : ""}" style="height: ${altura}px;">
+          <img src="${src}" alt="imagen del producto" class="d-block w-100 h-100"
+            style="object-fit: contain; max-height: none;">
         </div>`
     )
     .join("");
