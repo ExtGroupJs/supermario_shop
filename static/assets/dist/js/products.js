@@ -112,7 +112,6 @@ $(document).ready(function () {
             recordsFiltered: res.data.count,
             data: res.data.results,
           });
-          inicializarCarruselesProducto("#tabla-de-Datos");
         })
         .catch((error) => {
           alert(error);
@@ -127,7 +126,10 @@ $(document).ready(function () {
           if (type !== "display") {
             return data || "";
           }
-          return `<div style="text-align: center;">${carruselProductoHtml(row, { altura: 100 })}</div>`;
+          if (!data) {
+            return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+          }
+          return `<div style="text-align: center;"><img src="${data}" alt="imagen principal del producto" class="imagen-producto" style="width: 50px; height: auto;" data-producto-id="${row.id}"></div>`;
         },
       },
       { data: "model_name", title: "Modelo" },
@@ -153,7 +155,7 @@ $(document).ready(function () {
                             <button type="button" title="edit" class="btn bg-olive active" data-toggle="modal" data-target="#modal-crear-products" data-id="${row.id}" data-type="edit" data-name="${row.name}" id="${row.id}">
                               <i class="fas fa-edit"></i>
                             </button>  
-                            <button type="button" title="Imágenes" class="btn bg-olive" data-toggle="modal" data-target="#modal-ver-imagenes" data-id="${row.id}">
+                            <button type="button" title="Imágenes" class="btn bg-olive imagen-producto" data-producto-id="${row.id}">
                               <i class="fas fa-images"></i>
                             </button>
                             <button type="button" title="delete" class="btn bg-olive" onclick="function_delete('${row.id}','${row.name}','${row.model_name}')" >
@@ -190,33 +192,6 @@ $(document).ready(function () {
 });
 
 let selected_id;
-
-$("#modal-ver-imagenes").on("show.bs.modal", function (event) {
-  const productId = $(event.relatedTarget).data("id");
-  const modal = $(this);
-  const contenedor = modal.find("#contenedor-imagenes-producto");
-  const mensaje = modal.find("#mensaje-imagenes-producto");
-
-  contenedor.html("");
-  mensaje.text("");
-
-  axios
-    .get(`${url}${productId}/`)
-    .then(function (response) {
-      const imagenes = imagenesProducto(response.data);
-
-      if (imagenes.length === 0) {
-        mensaje.text("Este producto no tiene imágenes.");
-        return;
-      }
-
-      contenedor.html(carruselProductoHtml(response.data, { altura: 420 }));
-      inicializarCarruselesProducto(contenedor);
-    })
-    .catch(function () {
-      mensaje.text("No se pudieron cargar las imágenes.");
-    });
-});
 
 $("#modal-crear-products").on("hide.bs.modal", (event) => {
   const form = event.currentTarget.querySelector("form");

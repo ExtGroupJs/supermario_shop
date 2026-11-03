@@ -66,3 +66,34 @@ function inicializarCarruselesProducto(contenedor) {
       $(this).carousel({ interval: 5000 });
     });
 }
+
+// Abre el modal con el carrusel de imágenes de un producto
+async function abrirModalImagenesProducto(productId, opciones = {}) {
+  const { altura = 420 } = opciones;
+  const modal = $("#modal-ver-imagenes-producto");
+  const contenedor = modal.find("#contenedor-imagenes-producto");
+  const mensaje = modal.find("#mensaje-imagenes-producto");
+
+  contenedor.html("");
+  mensaje.text("");
+
+  try {
+    const response = await axios.get(`/business-gestion/products/${productId}/`);
+
+    if (imagenesProducto(response.data).length === 0) {
+      mensaje.text("Este producto no tiene imágenes.");
+    } else {
+      contenedor.html(carruselProductoHtml(response.data, { altura }));
+      inicializarCarruselesProducto(contenedor);
+    }
+  } catch (error) {
+    mensaje.text("No se pudieron cargar las imágenes.");
+  }
+
+  modal.modal("show");
+}
+
+// Al hacer clic en la imagen principal se amplían todas las imágenes del producto
+$(document).on("click", ".imagen-producto", function () {
+  abrirModalImagenesProducto($(this).data("producto-id"));
+});

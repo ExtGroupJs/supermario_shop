@@ -18,7 +18,9 @@
   - `imagenesProducto(producto)` → imagen principal + galería.
   - `carruselProductoHtml(producto, opciones)` → HTML de un carrusel Bootstrap 4.
   - `inicializarCarruselesProducto(contenedor)` → inicializa los carruseles renderizados.
-- El carrusel se usa en: lista de productos (`products.js`), lista de shop products
-  (`shop_products.js`), inventario (`inventario.js`), previsualización del producto
-  seleccionado (shop products, create shop products y salescar), catálogo público y
-  catálogo por mayor (tarjetas y modal de detalle).
+  - `abrirModalImagenesProducto(productId)` → abre el modal compartido con el carrusel.
+- Modal compartido `#modal-ver-imagenes-producto` en `templates/index.html`.
+- Columna "Foto" de los listados (`/products/`, `/shop-products/`, `/inventario/`): muestra solo la imagen
+  principal y, al hacer clic, abre el modal con el carrusel de todas las imágenes.
+- Previsualización del producto seleccionado (shop products, create shop products y salescar): carrusel.
+- Catálogo público y catálogo por mayor: carrusel en las tarjetas y en el modal de detalle.

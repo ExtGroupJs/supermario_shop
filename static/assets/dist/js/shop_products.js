@@ -19,7 +19,10 @@ function renderProductImage(data, type, row) {
   const imageUrl = getProductImageUrl(row);
 
   if (type === "display") {
-    return `<div style="text-align: center;">${carruselProductoHtml(row?.product, { altura: 100 })}</div>`;
+    if (!imageUrl) {
+      return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+    }
+    return `<div style="text-align: center;"><img src="${imageUrl}" alt="imagen principal del producto" class="imagen-producto" style="width: 50px; height: auto;" data-producto-id="${row.product.id}"></div>`;
   }
 
   if (type === "print") {
@@ -350,7 +353,6 @@ $(document).ready(function () {
             recordsFiltered: res.data.count,
             data: res.data.results,
           });
-          inicializarCarruselesProducto("#tabla-de-Datos");
           load.hidden = true;
         })
         .catch((error) => {
