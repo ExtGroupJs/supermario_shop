@@ -17,10 +17,21 @@ function carruselProductoHtml(producto, opciones = {}) {
   const { altura = 120, imagenPorDefecto = "" } = opciones;
   const imagenes = imagenesProducto(producto);
 
+  // Marco de tamaño fijo: mantiene la altura constante para que el resto de
+  // la página (textos, precios) no se mueva al cambiar de imagen.
+  const marco = (contenido) => `
+    <div style="height: ${altura}px; width: 100%; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; overflow: hidden;">
+      ${contenido}
+    </div>`;
+
+  const imagen = (src) => `
+    <img src="${src}" alt="imagen del producto" class="d-block"
+      style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;">`;
+
   if (imagenes.length === 0) {
     return imagenPorDefecto
-      ? `<div class="text-center"><img src="${imagenPorDefecto}" alt="producto sin imagen" class="d-block w-100" style="height: ${altura}px; object-fit: contain; max-height: none;"></div>`
-      : `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
+      ? marco(imagen(imagenPorDefecto))
+      : marco(`<i class="nav-icon fas fa-car-crash text-danger"></i>`);
   }
 
   const id = `carrusel-producto-${++contadorCarruselProducto}`;
@@ -29,8 +40,7 @@ function carruselProductoHtml(producto, opciones = {}) {
     .map(
       (src, index) => `
         <div class="carousel-item text-center ${index === 0 ? "active" : ""}" style="height: ${altura}px;">
-          <img src="${src}" alt="imagen del producto" class="d-block w-100 h-100"
-            style="object-fit: contain; max-height: none;">
+          ${marco(imagen(src))}
         </div>`
     )
     .join("");
@@ -55,7 +65,7 @@ function carruselProductoHtml(producto, opciones = {}) {
          </a>`
       : "";
 
-  return `<div id="${id}" class="carousel slide" data-ride="carousel">${indicadores}<div class="carousel-inner">${items}</div>${controles}</div>`;
+  return `<div id="${id}" class="carousel slide" data-ride="carousel" style="height: ${altura}px; width: 100%;">${indicadores}<div class="carousel-inner" style="height: ${altura}px;">${items}</div>${controles}</div>`;
 }
 
 // Inicializa los carruseles generados dentro de un contenedor
