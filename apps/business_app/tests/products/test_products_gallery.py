@@ -42,6 +42,11 @@ class TestProductsGallery(BaseTestClass):
             reverse("products-detail", kwargs={"pk": product.id})
         )
 
+        print("\n--- DEBUG RETRIEVE ---")
+        print("Response Data Keys:", response.data.keys())
+        print("Response Data:", response.data)
+        print("---------------------\n")
+
         assert response.status_code == 200
         assert len(response.data["gallery"]) == 2
         assert all(isinstance(image, str) for image in response.data["gallery"])
