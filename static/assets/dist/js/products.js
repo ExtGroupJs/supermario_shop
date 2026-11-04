@@ -9,10 +9,31 @@ const url = "/business-gestion/products/";
 let load = document.getElementById("load");
 
 $(function () {
- 
+  
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
   poblarListas();
+
+  // Previsualización de imagen principal al seleccionar archivo
+  $("#image").on("change", function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        $("#preview-product-image").html(`<img src="${event.target.result}" style="width: 100%; height: 100%; object-fit: contain;">`);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Previsualización de galería al seleccionar archivos
+  $("#gallery").on("change", function (e) {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const count = files.length;
+      $("#preview-product-gallery").html(`<div class="text-center"><i class="fas fa-images fa-2x text-muted d-block mb-2"></i><small>${count} imágenes seleccionadas</small></div>`);
+    }
+  });
 });
 
 $(document).ready(function () {
@@ -196,8 +217,10 @@ $("#modal-crear-products").on("hide.bs.modal", (event) => {
   edit_products = false;
   const elements = [...form.elements];
   elements.forEach((elem) => elem.classList.remove("is-invalid"));
-
- 
+  
+  // Resetear previsualizaciones
+  $("#preview-product-image").html(`<i class="fas fa-image fa-3x text-muted"></i>`);
+  $("#preview-product-gallery").html(`<i class="fas fa-images fa-3x text-muted"></i>`);
 });
 
 let edit_products = false;
@@ -233,6 +256,23 @@ $("#modal-crear-products").on("show.bs.modal", function (event) {
         if (modelId) {
           $("#model").val(modelId).trigger("change");
           form.elements.model.value = modelId;
+        }
+
+        // Previsualización de Imagen Principal
+        const imgPreview = $("#preview-product-image");
+        if (product.image) {
+          imgPreview.html(`<img src="${product.image}" style="width: 100%; height: 100%; object-fit: contain;">`);
+        } else {
+          imgPreview.html(`<i class="fas fa-image fa-3x text-muted"></i>`);
+        }
+
+        // Previsualización de Galería (Carrusel)
+        const galleryPreview = $("#preview-product-gallery");
+        if (product.gallery && product.gallery.length > 0) {
+          galleryPreview.html(carruselProductoHtml(product, { altura: 150 }));
+          inicializarCarruselesProducto(galleryPreview);
+        } else {
+          galleryPreview.html(`<i class="fas fa-images fa-3x text-muted"></i>`);
         }
       })
       .catch(function (error) {});
