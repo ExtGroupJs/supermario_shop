@@ -211,17 +211,29 @@ $("#modal-crear-products").on("show.bs.modal", function (event) {
     edit_products = true;
 
     modal.find(".modal-title").text("Editar Producto " + dataName);
-
+ 
+    // Obtener el formulario dentro del modal
+    const form = modal.find("form")[0];
+ 
     // Realizar la petición con Axios
     axios
       .get(`${url}` + selected_id + "/")
       .then(function (response) {
         // Recibir la respuesta
         const product = response.data;
-        form.elements.name.value = product.name;
-        form.elements.description.value = product.description;
-        form.elements.model.value = product.model;
-        $("#model").val(product.model).trigger("change");
+        form.elements.name.value = product.name || "";
+        form.elements.description.value = product.description || "";
+        
+        // Establecer el valor del modelo
+        // Como ReadProductSerializer devuelve el modelo como objeto, extraemos el ID
+        const modelId = product.model && typeof product.model === 'object' 
+          ? product.model.id 
+          : product.model;
+
+        if (modelId) {
+          $("#model").val(modelId).trigger("change");
+          form.elements.model.value = modelId;
+        }
       })
       .catch(function (error) {});
   } else {
