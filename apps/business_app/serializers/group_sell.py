@@ -79,6 +79,7 @@ class GroupSellSerializer(serializers.ModelSerializer):
             "extra_info",
             "sells_count",
             "sells",
+            "delivered",
         )
         read_only_fields = fields
 

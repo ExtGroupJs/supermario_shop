@@ -7,6 +7,14 @@ from apps.business_app.serializers.model import (
 )
 
 
+def _gallery_image_urls(obj):
+    return [
+        gallery.image.url
+        for gallery in obj.gallery.all()
+        if getattr(gallery, "image", None)
+    ]
+
+
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -23,6 +31,7 @@ class ReadProductSerializer(ProductSerializer):
     model = ReadModelSerializer()
     model_name = serializers.CharField(read_only=True)
     shop_locations = serializers.SerializerMethodField(read_only=True)
+    gallery = serializers.SerializerMethodField(read_only=True)
 
     class Meta(ProductSerializer.Meta):
         model = Product
@@ -31,6 +40,7 @@ class ReadProductSerializer(ProductSerializer):
             "model_name",
             "__str__",
             "shop_locations",
+            "gallery",
         )
 
     def get_shop_locations(self, obj):
@@ -47,11 +57,18 @@ class ReadProductSerializer(ProductSerializer):
             )
         return locations
 
+    def get_gallery(self, obj):
+        return _gallery_image_urls(obj)
+
 
 class CatalogProductSerializer(ProductSerializer):
     model = CatalogModelSerializer()
     model_name = serializers.CharField(read_only=True)
+    gallery = serializers.SerializerMethodField(read_only=True)
 
     class Meta(ProductSerializer.Meta):
         model = Product
-        fields = ("name", "model", "image", "model_name", "__str__")
+        fields = ("name", "model", "image", "model_name", "__str__", "gallery")
+
+    def get_gallery(self, obj):
+        return _gallery_image_urls(obj)

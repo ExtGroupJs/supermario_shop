@@ -1,0 +1,11 @@
+- [x] Create Gallery model and migration
+- [x] Create serializer and viewset
+- [x] Register URLs
+- [x] Embed gallery in product serializers (lista de URLs de imágenes)
+- [x] Add retrieve serializer and prefetch
+- [x] Delete gallery images when the product is deleted
+- [x] Add frontend input and upload (múltiples imágenes)
+- [x] Add action to view product images in `/products/`
+- [x] Shared carousel helper and usage in every view that shows product images
+- [x] Tests: `apps/business_app/tests/products/test_products_gallery.py`
+- [x] Verification: `ruff check .` and `pytest` green

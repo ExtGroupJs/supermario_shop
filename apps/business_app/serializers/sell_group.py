@@ -48,6 +48,7 @@ class SellGroupSerializer(serializers.ModelSerializer):
             "total",
             "client_name",
             "client_phone",
+            "delivered",
         )
         read_only_fields = ("id",)
 
@@ -153,37 +154,43 @@ class SellGroupSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def _summary_report_lines(sell_groups, period, net_total):
-        """One line per sell group plus the grand total of the whole period.
+        """One line per day with the total of the day and the grand total.
 
         ``sell_groups`` only has to carry the group level data, so the caller can
         feed it a plain values queryset and never load the individual sells.
         """
+        from collections import defaultdict
+
         header = [
             "REPORTE DE VENTAS",
             f"Periodo: {period}",
             "------------------------------",
-            "Ventas específicas:\n",
+            "Totales por día:\n",
         ]
-        body = []
+        daily_totals = defaultdict(Decimal)
         for sell_group in sell_groups:
             net = max(
                 Decimal(sell_group["total"] or 0)
                 - Decimal(sell_group["discount"] or 0),
                 Decimal("0.00"),
             )
-            date_str = sell_group["for_date"].strftime("%d-%b-%Y %I:%M %p")
-            payment_method = _payment_method_label(sell_group["payment_method"])
-            body.append(
-                f"Id: {sell_group['id']} ({date_str}) | "
-                f"Cliente: {sell_group['client_name'] or '-'} | "
-                f"Total: ${net.quantize(two_decimals)} {payment_method}"
-                "\n"
-            )
+            day = sell_group["for_date"]
+            # support both datetime and date
+            if hasattr(day, "date"):
+                day_key = day.date()
+            else:
+                day_key = day
+            daily_totals[day_key] += net
+
+        body = []
+        for day in sorted(daily_totals):
+            date_str = day.strftime("%d-%b-%Y")
+            total_day = daily_totals[day].quantize(two_decimals)
+            body.append(f"{date_str} | Total: ${total_day}")
 
         footer = [
             "------------------------------",
             f"TOTAL: ${net_total.quantize(two_decimals)}",
-            f"Cant. de Ventas: {len(sell_groups)}",
         ]
         return header + (body or ["Sin ventas en el periodo"]) + footer
 

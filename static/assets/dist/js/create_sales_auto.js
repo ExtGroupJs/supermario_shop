@@ -190,7 +190,10 @@ async function analizarMensaje() {
       return;
     }
 
-    const itemLines = lines;
+    const sep = '--------------------------------';
+    const startIdx = lines.findIndex(l => l.startsWith(sep));
+    const endIdx = lines.findIndex((l, i) => i > startIdx && l.startsWith(sep));
+    const itemLines = (startIdx >= 0 && endIdx > startIdx) ? lines.slice(startIdx + 1, endIdx).filter(l => l.length > 0) : lines;
 
     const threshold = Number(thresholdInput.value) / 100;
 
@@ -231,7 +234,7 @@ async function analizarMensaje() {
 }
 
 function parseLine(line, lineNumber) {
-  const regex = /^\s*(\d+)\s*-\s*(.+)\s*$/;
+  const regex = /^\s*(\d+)\s*x\s*(.+)\s*$/i;
   const match = line.match(regex);
   if (!match) {
     return {
@@ -239,15 +242,17 @@ function parseLine(line, lineNumber) {
       rawLine: line,
       valid: true,
       quantity: 1,
-      productText: line.trim(),
+      productText: line.trim().split(' = ')[0].trim(),
     };
   }
+  let productText = match[2].trim();
+  productText = productText.split(' = ')[0].trim();
   return {
     lineNumber,
     rawLine: line,
     valid: true,
     quantity: Number(match[1]),
-    productText: match[2].trim(),
+    productText,
   };
 }
 
@@ -380,6 +385,7 @@ function renderParsedResults() {
   parsedResultsBody.innerHTML = rows;
   initializeManualSelects();
   updateCreateButtonState();
+  renderSaleTotal();
 }
 
 function renderMatches(entry) {
@@ -781,12 +787,16 @@ async function mostrarComprobanteConCopia(titulo, comprobanteText) {
         icon: "success",
         title: "Comprobante copiado",
         text: "El comprobante se copió al portapapeles.",
+        showConfirmButton: false,
+        timer: 4000,
       });
     } else {
       await Swal.fire({
         icon: "error",
         title: "No se pudo copiar",
         text: "No fue posible copiar el comprobante automáticamente.",
+        showConfirmButton: false,
+        timer: 4000,
       });
     }
   }

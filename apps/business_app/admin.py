@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from apps.business_app.models.brand import Brand
+from apps.business_app.models.gallery import Gallery
 from apps.business_app.models.model import Model
 from apps.business_app.models.product import Product
 from apps.business_app.models.sell import Sell
@@ -41,6 +42,11 @@ class ModelAdmin(GenericModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(SafeDeleteTimestampedAdmin):
+    pass
+
+
+@admin.register(Gallery)
+class GalleryAdmin(GenericModelAdmin):
     pass
 
 

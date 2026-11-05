@@ -9,10 +9,31 @@ const url = "/business-gestion/products/";
 let load = document.getElementById("load");
 
 $(function () {
- 
+  
   bsCustomFileInput.init();
   $("#filter-form")[0].reset();
   poblarListas();
+
+  // Previsualización de imagen principal al seleccionar archivo
+  $("#image").on("change", function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        $("#preview-product-image").html(`<img src="${event.target.result}" style="width: 100%; height: 100%; object-fit: contain;">`);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Previsualización de galería al seleccionar archivos
+  $("#gallery").on("change", function (e) {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const count = files.length;
+      $("#preview-product-gallery").html(`<div class="text-center"><i class="fas fa-images fa-2x text-muted d-block mb-2"></i><small>${count} imágenes seleccionadas</small></div>`);
+    }
+  });
 });
 
 $(document).ready(function () {
@@ -122,12 +143,14 @@ $(document).ready(function () {
       {
         data: "image",
         title: "Foto",
-        render: (data) => {
-          if (data) {
-            return `<div style="text-align: center;"><img src="${data}" alt="image" style="width: 50px; height: auto;" class="thumbnail" data-fullsize="${data}"></div>`;
-          } else {
+        render: (data, type, row) => {
+          if (type !== "display") {
+            return data || "";
+          }
+          if (!data) {
             return `<div style="text-align: center;"><i class="nav-icon fas fa-car-crash text-danger"></i></div>`;
           }
+          return `<div style="text-align: center;"><img src="${data}" alt="imagen principal del producto" class="imagen-producto" style="width: 50px; height: auto;" data-producto-id="${row.id}"></div>`;
         },
       },
       { data: "model_name", title: "Modelo" },
@@ -188,27 +211,16 @@ $(document).ready(function () {
 
 let selected_id;
 
-$(document).on("click", ".thumbnail", function () {
-  const fullsizeImage = $(this).data("fullsize");
-
-  Swal.fire({
-    imageUrl: fullsizeImage,
-    imageWidth: 400, // Ajusta el ancho según sea necesario
-    imageHeight: 300, // Ajusta la altura según sea necesario
-    imageAlt: "Image",
-    showCloseButton: false,
-    showConfirmButton: true,
-  });
-});
-
 $("#modal-crear-products").on("hide.bs.modal", (event) => {
   const form = event.currentTarget.querySelector("form");
   form.reset();
   edit_products = false;
   const elements = [...form.elements];
   elements.forEach((elem) => elem.classList.remove("is-invalid"));
-
- 
+  
+  // Resetear previsualizaciones
+  $("#preview-product-image").html(`<i class="fas fa-image fa-3x text-muted"></i>`);
+  $("#preview-product-gallery").html(`<i class="fas fa-images fa-3x text-muted"></i>`);
 });
 
 let edit_products = false;
@@ -222,17 +234,46 @@ $("#modal-crear-products").on("show.bs.modal", function (event) {
     edit_products = true;
 
     modal.find(".modal-title").text("Editar Producto " + dataName);
-
+ 
+    // Obtener el formulario dentro del modal
+    const form = modal.find("form")[0];
+ 
     // Realizar la petición con Axios
     axios
       .get(`${url}` + selected_id + "/")
       .then(function (response) {
         // Recibir la respuesta
         const product = response.data;
-        form.elements.name.value = product.name;
-        form.elements.description.value = product.description;
-        form.elements.model.value = product.model;
-        $("#model").val(product.model).trigger("change");
+        form.elements.name.value = product.name || "";
+        form.elements.description.value = product.description || "";
+        
+        // Establecer el valor del modelo
+        // Como ReadProductSerializer devuelve el modelo como objeto, extraemos el ID
+        const modelId = product.model && typeof product.model === 'object' 
+          ? product.model.id 
+          : product.model;
+
+        if (modelId) {
+          $("#model").val(modelId).trigger("change");
+          form.elements.model.value = modelId;
+        }
+
+        // Previsualización de Imagen Principal
+        const imgPreview = $("#preview-product-image");
+        if (product.image) {
+          imgPreview.html(`<img src="${product.image}" style="width: 100%; height: 100%; object-fit: contain;">`);
+        } else {
+          imgPreview.html(`<i class="fas fa-image fa-3x text-muted"></i>`);
+        }
+
+        // Previsualización de Galería (Carrusel)
+        const galleryPreview = $("#preview-product-gallery");
+        if (product.gallery && product.gallery.length > 0) {
+          galleryPreview.html(carruselProductoHtml(product, { altura: 150 }));
+          inicializarCarruselesProducto(galleryPreview);
+        } else {
+          galleryPreview.html(`<i class="fas fa-images fa-3x text-muted"></i>`);
+        }
       })
       .catch(function (error) {});
   } else {
@@ -252,6 +293,17 @@ const firstOptionText = firstOption.text; // Texto del primer elemento
 $("#model").val(firstOptionValue).trigger("change");
   }
 });
+
+// Sube las imágenes seleccionadas en el input de galería (una petición por imagen)
+async function subirImagenesGaleria(productId) {
+  const galleryFiles = document.getElementById("gallery").files;
+  for (let i = 0; i < galleryFiles.length; i++) {
+    const gData = new FormData();
+    gData.append("product", productId);
+    gData.append("image", galleryFiles[i]);
+    await axios.post("/business-gestion/galleries/", gData);
+  }
+}
 
 // form validator
 $(function () {
@@ -294,8 +346,9 @@ $(function () {
       if (edit_products) {
         axios
           .patch(`${url}` + selected_id + "/", data)
-          .then((response) => {
+          .then(async (response) => {
             if (response.status === 200) {
+              await subirImagenesGaleria(selected_id);
               $("#modal-crear-products").modal("hide");
               load.hidden = true;
               Swal.fire({
@@ -328,8 +381,9 @@ $(function () {
       } else {
         axios
           .post(`${url}`, data)
-          .then((response) => {
+          .then(async (response) => {
             if (response.status === 201) {
+              await subirImagenesGaleria(response.data.id);
               load.hidden = true;
               Swal.fire({
                 icon: "success",

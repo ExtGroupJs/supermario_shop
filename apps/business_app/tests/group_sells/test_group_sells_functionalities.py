@@ -1,6 +1,9 @@
 import pytest
 import re
 from decimal import Decimal
+from pathlib import Path
+
+from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django_filters.filterset import filterset_factory
@@ -260,6 +263,28 @@ class TestGroupSellViewSetFunctionalities(BaseTestClass):
 
         self.assertTrue(sent_params)
         self.assertEqual(set(), sent_params - declared)
+
+    def test_listing_omits_the_unsupported_delete_action(self):
+        """The read-only group-sells listing must not offer a delete action."""
+        self.user.groups.add(Groups.SHOP_OWNER)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("group_sells"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("canDeleteGroupSell", response.content.decode())
+        self.assertNotIn("can_delete_group", response.context)
+
+        script = (
+            Path(settings.BASE_DIR)
+            / "static"
+            / "assets"
+            / "dist"
+            / "js"
+            / "group_sells.js"
+        )
+        script_content = script.read_text()
+        self.assertNotIn("deleteGroupSell", script_content)
+        self.assertNotIn("Borrar", script_content)
 
     def test_listing_can_be_sorted_by_net_total(self):
         """

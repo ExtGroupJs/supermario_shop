@@ -129,12 +129,16 @@ async function mostrarComprobanteConCopia(titulo, comprobanteText) {
         icon: "success",
         title: "Comprobante copiado",
         text: "El comprobante se copio al portapapeles.",
+        showConfirmButton: false,
+        timer: 4000,
       });
     } else {
       await Swal.fire({
         icon: "error",
         title: "No se pudo copiar",
         text: "No fue posible copiar el comprobante automaticamente.",
+        showConfirmButton: false,
+        timer: 4000,
       });
     }
   }
@@ -244,24 +248,29 @@ function cargarProductoEspecifico(id) {
       $("#productoDescripcionPrec").text(
         `Precio: $${especificProducto.sell_price}`,
       );
-      const imageElement = document.getElementById("productImagen");
-      const nuevaUrl = especificProducto?.product?.image;
-
-      if (imageElement) {
-        imageElement.src =
-          nuevaUrl && nuevaUrl !== "null" ? nuevaUrl : defaultProductImage;
-      }
+      mostrarImagenesProducto(especificProducto?.product);
 
       load.hidden = true;
     })
     .catch((error) => {
-      const imageElement = document.getElementById("productImagen");
-      if (imageElement && defaultProductImage) {
-        imageElement.src = defaultProductImage;
-      }
+      mostrarImagenesProducto(null);
       load.hidden = true;
       console.error("Error al cargar productos:", error);
     });
+}
+
+// Muestra el carrusel con la imagen principal y la galería del producto
+function mostrarImagenesProducto(producto) {
+  const contenedor = document.getElementById("productImagen");
+  if (!contenedor) {
+    return;
+  }
+
+  contenedor.innerHTML = carruselProductoHtml(producto, {
+    altura: 200,
+    imagenPorDefecto: contenedor.dataset.imagenPorDefecto || "",
+  });
+  inicializarCarruselesProducto(contenedor);
 }
 
 // Agregar producto a la lista
@@ -431,6 +440,7 @@ $("#crearVenta").on("click", function () {
       selectedClientId = null;
       $("#client_select").val("").trigger("change.select2");
       $("#payment_method").val("U"); // Restablecer a USD por defecto
+      actualizarTabla();
     })
     .catch((error) => {
       load.hidden = true;

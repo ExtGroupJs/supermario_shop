@@ -2,6 +2,7 @@
 from rest_framework_extensions.routers import ExtendedSimpleRouter
 
 from apps.business_app.views.brand import BrandViewSet
+from apps.business_app.views.gallery import GalleryViewSet
 from apps.business_app.views.dashboard import DashboardViewSet
 from apps.business_app.views.model import ModelViewSet
 from apps.business_app.views.product import ProductViewSet
@@ -90,6 +91,16 @@ router.register(
     "pallets",
     PalletViewSet,
     basename="pallets",
+)
+router.register(
+    "galleries",
+    GalleryViewSet,
+    basename="galleries",
+)
+router.register(
+    "gallery",
+    GalleryViewSet,
+    basename="gallery",
 )
 
 urlpatterns = []

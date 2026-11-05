@@ -155,7 +155,11 @@
             </div>
             <div class="col-sm-3" style="display: flex;">
                <div class="info-box">
-                 <img id="productImagen" src="{% static 'assets/dist/img/AdminLTELogo.png' %}" alt="Imagen" class="img-fluid productImagen" style="width: 200px; height: auto;">
+                 <div
+                   id="productImagen"
+                   data-imagen-por-defecto="{% static 'assets/dist/img/AdminLTELogo.png' %}"
+                   class="text-center"
+                 ></div>
                   </div>
             <!-- /.info-box -->
           </div>
@@ -260,9 +264,7 @@
 
           <div class="form-group">
             <label>Previsualización</label>
-            <div class="text-center">
-              <img id="product-modal-image-preview" src="" alt="Previsualización" class="img-fluid" style="max-width: 220px; max-height: 220px; display: block; margin: 0 auto;">
-            </div>
+            <div class="text-center" id="product-modal-image-preview"></div>
           </div>
         </div>
 
