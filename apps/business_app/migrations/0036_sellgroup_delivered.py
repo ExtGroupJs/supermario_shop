@@ -3,6 +3,11 @@
 from django.db import migrations, models
 
 
+def set_delivered_true(apps, schema_editor):
+    SellGroup = apps.get_model('business_app', 'SellGroup')
+    SellGroup.objects.update(delivered=True)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -15,4 +20,5 @@ class Migration(migrations.Migration):
             name='delivered',
             field=models.BooleanField(default=False, verbose_name='Entregado'),
         ),
+        migrations.RunPython(set_delivered_true, reverse_code=migrations.RunPython.noop),
     ]
