@@ -272,12 +272,16 @@ async function generarReporteVentas(startDate, endDate) {
           icon: "success",
           title: "Reporte copiado",
           text: `El reporte por $${total} se copio al portapapeles.`,
+          showConfirmButton: false,
+          timer: 4000,
         });
       } else {
         await Swal.fire({
           icon: "error",
           title: "No se pudo copiar",
           text: "No fue posible copiar el reporte automaticamente.",
+          showConfirmButton: false,
+          timer: 4000,
         });
       }
     }
