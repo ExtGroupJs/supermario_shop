@@ -11,7 +11,7 @@ def set_delivered_true(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('business_app', '0035_add_zero_pallet_for_wholesale'),
+        ('business_app', '0036_gallery'),
     ]
 
     operations = [

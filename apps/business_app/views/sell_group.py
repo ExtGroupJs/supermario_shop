@@ -319,6 +319,47 @@ class SellGroupViewSet(
             }
         )
 
+    @action(detail=False, methods=["GET"], url_path="mark-delivered")
+    def mark_delivered(self, request):
+        today = self._today()
+        start_param = request.query_params.get("start_date")
+        end_param = request.query_params.get("end_date")
+        start_date = self._parse_date(start_param, today)
+        end_date = self._parse_date(end_param, start_date)
+
+        if start_date > end_date:
+            return Response(
+                {
+                    "detail": (
+                        "La fecha 'Ventas Desde' no puede ser mayor que la fecha "
+                        "'Ventas Hasta'."
+                    ),
+                    "start_date": start_date.strftime("%Y-%m-%d"),
+                    "end_date": end_date.strftime("%Y-%m-%d"),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = self._filter_by_period(
+            self._filter_by_shop(
+                self._scope_to_request_user(self.get_queryset(), request),
+                request.query_params.get("shop"),
+            ),
+            start_date,
+            end_date,
+        )
+        # Replicar el filtro de period_report: sin rango de fechas, solo grupos no entregados
+        if not start_param and not end_param:
+            queryset = queryset.filter(delivered=False)
+        updated = queryset.update(delivered=True)
+        return Response(
+            {
+                "updated": updated,
+                "start_date": start_date.strftime("%Y-%m-%d"),
+                "end_date": end_date.strftime("%Y-%m-%d"),
+            }
+        )
+
 
 class PaymentMethodsViewSet(EnumsMixin):
     items = (("payment_methods", SellGroup.PAYMENT_METODS),)
