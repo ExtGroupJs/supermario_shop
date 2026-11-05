@@ -48,6 +48,7 @@ class SellGroupSerializer(serializers.ModelSerializer):
             "total",
             "client_name",
             "client_phone",
+            "delivered",
         )
         read_only_fields = ("id",)
 
