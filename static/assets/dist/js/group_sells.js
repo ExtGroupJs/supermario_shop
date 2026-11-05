@@ -294,37 +294,37 @@ async function generarReporteVentas(startDate, endDate) {
     } else if (result.dismiss === Swal.DismissReason.cancel) {
       await Swal.fire({
         icon: "info",
-        title: "Marcando entregados",
-        text: "Actualizando grupos...",
+        title: "Entregando",
+        text: "Se marcarán los grupos como entregados",
         showConfirmButton: false,
+        timer: 1500,
       });
-      try {
-        const shopId = localStorage.getItem("selectedShopId");
-        const params = {};
-        if (startDate) params.start_date = startDate;
-        if (endDate) params.end_date = endDate;
-        if (shopId) params.shop = shopId;
+      const shopId = localStorage.getItem("selectedShopId");
+      const params = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      if (shopId) params.shop = shopId;
 
-        await axios.get(`${urlSellGroup}mark-delivered/`, { params });
-
-        await Swal.fire({
-          icon: "success",
-          title: "Entregado",
-          text: "Grupos del periodo marcados como entregados",
-          showConfirmButton: false,
-          timer: 4000,
+      axios.get(`${urlSellGroup}mark-delivered/`, { params })
+        .then(() => {
+          Swal.fire({
+            icon: "success",
+            title: "Entregado",
+            text: "Grupos del periodo marcados como entregados",
+            showConfirmButton: false,
+            timer: 4000,
+          });
+          $("#tabla-de-Datos").DataTable().ajax.reload(null, false);
+        })
+        .catch(e => {
+          Swal.fire({
+            icon: "error",
+            title: "Error al marcar entregados",
+            text: e.response?.data?.detail || e.message,
+            showConfirmButton: false,
+            timer: 4000,
+          });
         });
-
-        $("#tabla-de-Datos").DataTable().ajax.reload(null, false);
-      } catch (e) {
-        await Swal.fire({
-          icon: "error",
-          title: "Error al marcar entregados",
-          text: e.response?.data?.detail || e.message,
-          showConfirmButton: false,
-          timer: 4000,
-        });
-      }
     }
   } catch (error) {
     Swal.fire({
