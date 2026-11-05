@@ -942,7 +942,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
     @freeze_time("2026-03-10 12:00:00")
     def test_period_report_lists_one_line_per_sell_group_and_ends_with_the_total(self):
-        """Cada grupo aporta su monto neto y el TOTAL suma esos montos."""
+        """Cada grupo aporta su monto neto y el TOTAL suma esos montos, agrupados por día."""
         self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
         self._make_group_at(
             datetime(2026, 3, 10, 11, 0), total=Decimal("30.00"), discount=5
@@ -950,15 +950,14 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         report = self._period_report().json()["report"]
 
-        self.assertIn("$50.00", report)
-        self.assertIn("$25.00", report)
+        self.assertIn("10-Mar-2026 | Total: $75.00", report)
         self.assertIn("TOTAL: $75.00", report)
         # El monto del reporte es el neto, el descuento no se vuelve a sumar.
         self.assertNotIn("TOTAL: $85.00", report)
 
     @freeze_time("2026-03-10 12:00:00")
-    def test_period_report_shows_the_readable_payment_method_of_each_group(self):
-        """La linea de grupo imprime el medio de pago legible, no el codigo de la choice."""
+    def test_period_report_does_not_show_payment_method_or_client(self):
+        """El reporte por periodo solo muestra totales por día, sin datos de grupo."""
         self._make_group_at(
             datetime(2026, 3, 10, 9, 0),
             total=Decimal("50.00"),
@@ -972,14 +971,14 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
         report = self._period_report().json()["report"]
 
-        self.assertIn("Total: $50.00 Zelle", report)
-        self.assertIn("Total: $30.00 USD", report)
-        # El codigo crudo de la choice ("Z") no llega a quien lee el reporte.
-        self.assertNotIn("$50.00 Z\n", report)
+        self.assertIn("10-Mar-2026 | Total: $80.00", report)
+        self.assertNotIn("Zelle", report)
+        self.assertNotIn("USD", report)
+        self.assertNotIn("Id:", report)
 
     @freeze_time("2026-03-10 12:00:00")
     def test_period_report_shows_the_period_on_the_line_above_the_groups(self):
-        """La fecha va en la linea superior, antes de la lista de grupos."""
+        """La fecha va en la linea superior, antes de la lista de días."""
         self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
 
         lines = (
@@ -991,14 +990,14 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         period_line = next(
             i for i, line in enumerate(lines) if line.startswith("Periodo:")
         )
-        first_group_line = next(
-            i for i, line in enumerate(lines) if line.startswith("Id:")
+        first_day_line = next(
+            i for i, line in enumerate(lines) if " | Total:" in line
         )
         total_line = next(
             i for i, line in enumerate(lines) if line.startswith("TOTAL:")
         )
-        self.assertLess(period_line, first_group_line)
-        self.assertLess(first_group_line, total_line)
+        self.assertLess(period_line, first_day_line)
+        self.assertLess(first_day_line, total_line)
         self.assertIn("01-Mar-2026", lines[period_line])
         self.assertIn("10-Mar-2026", lines[period_line])
 
@@ -1033,7 +1032,8 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         report = self._period_report().json()["report"]
 
         self.assertIn("TOTAL: $100.00", report)
-        self.assertEqual(report.count("Id: "), 2)
+        self.assertIn("10-Mar-2026 | Total: $100.00", report)
+        self.assertNotIn("Id:", report)
 
     @freeze_time("2026-03-10 12:00:00")
     def test_period_report_excludes_the_groups_outside_the_period(self):
