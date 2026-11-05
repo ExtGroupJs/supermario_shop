@@ -111,7 +111,6 @@ $(document).ready(function () {
                     <button type="button" title="Comprobante para almacén" class="btn bg-olive" onclick="generarComprobanteAlmacen('${data}')">
                       <i class="fas fa-warehouse"></i>
                     </button>
-                      <i class="fas fa-trash"></i>
                   </div>`;
         },
       },
@@ -467,6 +466,4 @@ function toggleGroupSells(groupId) {
     showCloseButton: true,
     confirmButtonText: "Cerrar",
   });
-}
-
 }
