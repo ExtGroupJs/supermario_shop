@@ -246,8 +246,10 @@ class SellGroupViewSet(
         after the end date is rejected with a 400 instead of reporting nothing.
         """
         today = self._today()
-        start_date = self._parse_date(request.query_params.get("start_date"), today)
-        end_date = self._parse_date(request.query_params.get("end_date"), start_date)
+        start_param = request.query_params.get("start_date")
+        end_param = request.query_params.get("end_date")
+        start_date = self._parse_date(start_param, today)
+        end_date = self._parse_date(end_param, start_date)
 
         # A period that starts after it ends can never match anything, so it is
         # rejected instead of silently reporting an empty (and misleading) period.
@@ -271,7 +273,12 @@ class SellGroupViewSet(
             ),
             start_date,
             end_date,
-        ).order_by("for_date", "id")
+        )
+        # Por defecto solo reportar grupos no entregados, salvo que se haya
+        # filtrado explícitamente por rango de fechas.
+        if not start_param and not end_param:
+            queryset = queryset.filter(delivered=False)
+        queryset = queryset.order_by("for_date", "id")
 
         # Only the group level fields the report prints are read, so the individual
         # sells are never fetched no matter how many products the groups contain.
