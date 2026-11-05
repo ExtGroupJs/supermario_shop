@@ -1134,6 +1134,27 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             url, allowed_roles=allowed_groups, request_using_protocol=self.client.get
         )
 
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_defaults_to_undelivered_groups(self):
+        """Sin rango de fechas el reporte solo incluye grupos con delivered=False."""
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"), delivered=False)
+        self._make_group_at(datetime(2026, 3, 10, 10, 0), total=Decimal("30.00"), delivered=True)
+
+        response = self._period_report()
+        self.assertEqual(response.json()["groups"], 1)
+        self.assertIn("TOTAL: $50.00", response.json()["report"])
+        self.assertNotIn("30.00", response.json()["report"])
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_includes_delivered_groups_when_date_range_is_specified(self):
+        """Si se especifica rango de fechas, el reporte incluye entregados y no entregados."""
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"), delivered=False)
+        self._make_group_at(datetime(2026, 3, 10, 10, 0), total=Decimal("30.00"), delivered=True)
+
+        response = self._period_report(start_date="2026-03-10", end_date="2026-03-10")
+        self.assertEqual(response.json()["groups"], 2)
+        self.assertIn("TOTAL: $80.00", response.json()["report"])
+
     # ------------------------------------------------------------------
     # Listing: filters, search and ordering declared on the viewset
     # ------------------------------------------------------------------
