@@ -435,6 +435,7 @@ $("#crearVenta").on("click", function () {
       selectedClientId = null;
       $("#client_select").val("").trigger("change.select2");
       $("#payment_method").val("U"); // Restablecer a USD por defecto
+      actualizarTabla();
     })
     .catch((error) => {
       load.hidden = true;
