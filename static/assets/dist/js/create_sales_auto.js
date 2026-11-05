@@ -787,12 +787,16 @@ async function mostrarComprobanteConCopia(titulo, comprobanteText) {
         icon: "success",
         title: "Comprobante copiado",
         text: "El comprobante se copió al portapapeles.",
+        showConfirmButton: false,
+        timer: 4000,
       });
     } else {
       await Swal.fire({
         icon: "error",
         title: "No se pudo copiar",
         text: "No fue posible copiar el comprobante automáticamente.",
+        showConfirmButton: false,
+        timer: 4000,
       });
     }
   }
