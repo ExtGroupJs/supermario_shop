@@ -250,6 +250,7 @@ class SellGroupViewSet(
         end_param = request.query_params.get("end_date")
         start_date = self._parse_date(start_param, today)
         end_date = self._parse_date(end_param, start_date)
+        no_date_filter = not start_param and not end_param
 
         # A period that starts after it ends can never match anything, so it is
         # rejected instead of silently reporting an empty (and misleading) period.
@@ -266,18 +267,15 @@ class SellGroupViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queryset = self._filter_by_period(
-            self._filter_by_shop(
-                self._scope_to_request_user(self.get_queryset(), request),
-                request.query_params.get("shop"),
-            ),
-            start_date,
-            end_date,
+        base_qs = self._filter_by_shop(
+            self._scope_to_request_user(self.get_queryset(), request),
+            request.query_params.get("shop"),
         )
-        # Por defecto solo reportar grupos no entregados, salvo que se haya
-        # filtrado explícitamente por rango de fechas.
-        if not start_param and not end_param:
+        if no_date_filter:
+            queryset = base_qs
             queryset = queryset.filter(delivered=False)
+        else:
+            queryset = self._filter_by_period(base_qs, start_date, end_date)
         queryset = queryset.order_by("for_date", "id")
 
         # Only the group level fields the report prints are read, so the individual
@@ -307,6 +305,17 @@ class SellGroupViewSet(
         )
         net_total = max(net_total, Decimal("0.00"))
 
+        # Si no se filtró por fechas, el periodo debe reflejar el rango real de los grupos obtenidos
+        if no_date_filter and sell_groups:
+            dates = [g["for_date"] for g in sell_groups if g.get("for_date")]
+            if dates:
+                min_date = min(dates)
+                max_date = max(dates)
+                # Normalizar a fecha
+                min_date = min_date.date() if hasattr(min_date, "date") else min_date
+                max_date = max_date.date() if hasattr(max_date, "date") else max_date
+                start_date = min_date
+                end_date = max_date
         serializer = self.get_serializer()
         period = self._format_period(start_date, end_date)
         return Response(
@@ -326,6 +335,7 @@ class SellGroupViewSet(
         end_param = request.query_params.get("end_date")
         start_date = self._parse_date(start_param, today)
         end_date = self._parse_date(end_param, start_date)
+        no_date_filter = not start_param and not end_param
 
         if start_date > end_date:
             return Response(
@@ -340,17 +350,14 @@ class SellGroupViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queryset = self._filter_by_period(
-            self._filter_by_shop(
-                self._scope_to_request_user(self.get_queryset(), request),
-                request.query_params.get("shop"),
-            ),
-            start_date,
-            end_date,
+        base_qs = self._filter_by_shop(
+            self._scope_to_request_user(self.get_queryset(), request),
+            request.query_params.get("shop"),
         )
-        # Replicar el filtro de period_report: sin rango de fechas, solo grupos no entregados
-        if not start_param and not end_param:
-            queryset = queryset.filter(delivered=False)
+        if no_date_filter:
+            queryset = base_qs.filter(delivered=False)
+        else:
+            queryset = self._filter_by_period(base_qs, start_date, end_date)
         updated = queryset.update(delivered=True)
         return Response(
             {
