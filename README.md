@@ -8,15 +8,15 @@ git push -uf origin main
 ```
 
 # STEPS FOR DEVELOPING
-1.  when the code is already cloned, create a python virtual enviroment (using currently python 3.12.3):
-uv venv --python 3.12.3 venv
+1.  when the code is already cloned, create a python virtual enviroment (using currently python 3.11):
+python -m venv venv
 
 2. Activate virtual enviroment:
 source /venv/bin/activate # for linux
 source /venv/Scripts/activate # for windows (there's other ways too)
 
 3. Install required packages running in the console:
-uv sync --active
+pip install -r requirements.txt
 
 4. Make a copy of REFERENCE.env in the same directory and remove the filename. Finally the file should exists with the name: .env
 

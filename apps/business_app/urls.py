@@ -1,4 +1,5 @@
-from rest_framework.routers import SimpleRouter
+# from rest_framework import routers
+from rest_framework_extensions.routers import ExtendedSimpleRouter
 
 from apps.business_app.views.brand import BrandViewSet
 from apps.business_app.views.gallery import GalleryViewSet
@@ -18,7 +19,7 @@ from apps.business_app.views.group_sell import GroupSellViewSet
 from apps.business_app.views.pallet import PalletViewSet
 
 
-router = SimpleRouter()
+router = ExtendedSimpleRouter()
 
 
 router.register(

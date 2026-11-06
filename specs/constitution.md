@@ -41,7 +41,7 @@
 - Parent+children: embed child serializer `many=True`; in view's `create()`, pop children and bulk-create.
 
 ### URLs
-- Register each viewset in app's `urls.py`. `business_app` uses DRF `SimpleRouter`; others use `routers.DefaultRouter`.
+- Register each viewset in app's `urls.py`. `business_app` uses `ExtendedSimpleRouter`; others use `routers.DefaultRouter`.
 - Mount in `project_site/urls.py` under prefixes.
 
 ## Graph Usage (Priority)
