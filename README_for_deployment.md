@@ -31,18 +31,18 @@ Go to the home folder (this way we avoid permission issues with the services)
 
     cd supermario_shop
     
-## Verify that the required version of Python (3.11) is installed on the system.
+## Verify that the required version of Python (3.12.3) is installed on the system.
 You can check by running `python3 --version`. If it’s not installed, you can install it by connecting with:
 
-    sudo apt install python3.11
+    sudo apt install python3.12
 
 y luego 
 
-    apt install python3.11-venv
+    apt install python3.12-venv
 
 ## Create the virtual enviroment for python
 
-     python3.11 -m venv venv
+     uv venv --python 3.12.3 venv
 
 ## Activate virtual enviroment:
 
@@ -50,7 +50,7 @@ y luego
  
 ## Install required packages running in the console:
 
-    pip install -r deploy_requirements.txt
+    uv sync --active --extra deploy
 
 ## Make a copy of REFERENCE.env in the same directory and remove the filename. Finally the file should exists with the name: .env
 
