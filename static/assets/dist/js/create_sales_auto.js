@@ -19,6 +19,7 @@ let parsedEntries = [];
 let selectedShopProducts = [];
 let clientesRegistrados = [];
 let selectedClientId = null;
+let lastSellGroupId = null;
 
 $(function () {
   poblarTiendas();
@@ -39,6 +40,10 @@ function bindEvents() {
 
   $("#btn-create-preventa").on("click", async function () {
     await crearPreVenta();
+  });
+
+  $("#btn-warehouse-receipt").on("click", async function () {
+    await generarComprobanteAlmacen();
   });
 
   $("#similarityThreshold").on("input", function () {
@@ -610,6 +615,7 @@ async function crearVentas() {
   try {
     const response = await axios.post(sellGroupsUrl, payload);
     hideLoader();
+    lastSellGroupId = response.data?.id;
 
     const comprobanteText = buildComprobanteText({
       saleId: response.data?.id,
@@ -798,6 +804,70 @@ async function mostrarComprobanteConCopia(titulo, comprobanteText) {
         showConfirmButton: false,
         timer: 4000,
       });
+    }
+  }
+}
+
+async function generarComprobanteAlmacen() {
+  if (!lastSellGroupId) {
+    Swal.fire({
+      icon: "warning",
+      title: "Sin venta reciente",
+      text: "Completa una venta primero para generar el comprobante para almacén.",
+    });
+    return;
+  }
+
+  const button = document.getElementById("btn-warehouse-receipt");
+  const originalHtml = button ? button.innerHTML : "";
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+  }
+
+  try {
+    const response = await axios.get(`/business-gestion/sell-groups/${lastSellGroupId}/warehouse-report/`);
+    const reportText = (response.data?.report || "").trim();
+    if (!reportText) {
+      throw new Error("El comprobante está vacío");
+    }
+
+    const result = await Swal.fire({
+      icon: "success",
+      title: `Comprobante para almacén de la venta ${lastSellGroupId}`,
+      html: `<div id="sale-comprobante" style="text-align:left;max-height:360px;overflow:auto;"><pre style="white-space:pre-wrap;font-family:monospace;margin:0;">${escapeHtml(reportText)}</pre></div>`,
+      width: 700,
+      showDenyButton: true,
+      confirmButtonText: "Copiar comprobante",
+      denyButtonText: "Cerrar",
+    });
+
+    if (result.isConfirmed) {
+      const copied = await copiarComprobante(reportText);
+      if (copied) {
+        await Swal.fire({
+          icon: "success",
+          title: "Comprobante copiado",
+          text: "El comprobante se copió al portapapeles.",
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "No se pudo copiar",
+          text: "No fue posible copiar el comprobante automáticamente.",
+        });
+      }
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error generando el comprobante para almacén",
+      text: "No fue posible generar el comprobante: " + (error.response?.data?.detail || error.message),
+    });
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = originalHtml;
     }
   }
 }
