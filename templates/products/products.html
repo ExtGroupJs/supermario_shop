@@ -97,7 +97,7 @@
         </button>
       </div>
 
-      <form id="form-create-products">
+      <form id="form-create-products" enctype="multipart/form-data">
         <div class="card-body">
 
           <div class="form-group">
@@ -107,27 +107,27 @@
           <div class="row">
             <div class="form-group col-sm-6">
               <label for="image">Imagen</label>
-              <div class="position-relative" style="cursor: pointer;" onclick="$('#image').click()">
+              <div class="position-relative" style="cursor: pointer;" onclick="document.getElementById('image').click()">
                 <div id="preview-product-image" 
                      style="width: 100%; height: 150px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 5px; background-color: #f8f9fa;">
                   <i class="fas fa-image fa-3x text-muted"></i>
                 </div>
                 <input type="file" class="custom-file-input" id="image" name="image"
                   style="position: absolute; opacity: 0; width: 1px; height: 1px;"
-                  accept="image/jpeg, image/png, image/gif, image/jfif, image/webp, .jfif, .webp">
+                  accept="image/*">
               </div>
             </div>
 
             <div class="form-group col-sm-6">
               <label for="gallery">Imágenes adicionales (galería)</label>
-              <div class="position-relative" style="cursor: pointer;" onclick="$('#gallery').click()">
+              <div class="position-relative" style="cursor: pointer;" onclick="document.getElementById('gallery').click()">
                 <div id="preview-product-gallery" 
                      style="width: 100%; height: 150px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 5px; background-color: #f8f9fa;">
                   <i class="fas fa-images fa-3x text-muted"></i>
                 </div>
                 <input type="file" class="custom-file-input" id="gallery" name="gallery" multiple
                   style="position: absolute; opacity: 0; width: 1px; height: 1px;"
-                  accept="image/jpeg, image/png, image/gif, image/jfif, image/webp, .jfif, .webp">
+                  accept="image/*">
               </div>
             </div>
 
