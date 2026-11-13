@@ -93,6 +93,7 @@ class ReadShopProductsSerializer(ShopProductsSerializer):
 class CatalogShopProductSerializer(ReadShopProductsSerializer):
     one_month_ago = datetime.datetime.now() - timedelta(days=30)
     product = CatalogProductSerializer(read_only=True)
+    pallet = serializers.StringRelatedField(read_only=True)
 
     class Meta(ReadShopProductsSerializer.Meta):
         fields = (
@@ -101,6 +102,8 @@ class CatalogShopProductSerializer(ReadShopProductsSerializer):
             "wholesale_price",
             "sell_price_for_catalog",
             "product",
+            "quantity",
+            "pallet",
             "shop_name",
             "sales_count",
             "extra_info",
