@@ -956,8 +956,8 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertNotIn("TOTAL: $85.00", report)
 
     @freeze_time("2026-03-10 12:00:00")
-    def test_period_report_does_not_show_payment_method_or_client(self):
-        """El reporte por periodo solo muestra totales por día, sin datos de grupo."""
+    def test_period_report_does_not_show_client_or_internal_data(self):
+        """El reporte por periodo solo muestra totales por día, sin datos de cliente o id."""
         self._make_group_at(
             datetime(2026, 3, 10, 9, 0),
             total=Decimal("50.00"),
@@ -975,6 +975,133 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertNotIn("Zelle", report)
         self.assertNotIn("USD", report)
         self.assertNotIn("Id:", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_shows_zelle_amount_in_parentheses(self):
+        """Cuando hay ventas por Zelle, se muestra el monto entre paréntesis."""
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0),
+            total=Decimal("100.00"),
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self._make_group_at(
+            datetime(2026, 3, 10, 11, 0),
+            total=Decimal("50.00"),
+            payment_method=SellGroup.PAYMENT_METODS.USD,
+        )
+
+        report = self._period_report().json()["report"]
+
+        self.assertIn("10-Mar-2026 | Total: $150.00 (100 ZELLE)", report)
+        self.assertIn("TOTAL: $150.00 (100 ZELLE)", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_shows_a_entregar(self):
+        """El total menos Zelle es el monto a entregar."""
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0),
+            total=Decimal("200.00"),
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self._make_group_at(
+            datetime(2026, 3, 10, 11, 0),
+            total=Decimal("300.00"),
+            payment_method=SellGroup.PAYMENT_METODS.USD,
+        )
+
+        report = self._period_report().json()["report"]
+
+        # Total: 200 ZELLE + 300 USD = 500
+        # A ENTREGAR: 500 - 200 = 300
+        self.assertIn("TOTAL: $500.00 (200 ZELLE)", report)
+        self.assertIn("A ENTREGAR: $300.00", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_sums_zelle_per_day(self):
+        """Los montos por Zelle se suman por día."""
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0),
+            total=Decimal("100.00"),
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self._make_group_at(
+            datetime(2026, 3, 10, 10, 0),
+            total=Decimal("50.00"),
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+
+        report = self._period_report().json()["report"]
+
+        # 2 grupos ZELLE: 100 + 50 = 150
+        self.assertIn("10-Mar-2026 | Total: $150.00 (150 ZELLE)", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_zelle_with_discount(self):
+        """El monto ZELLE se calcula neto (restando descuento)."""
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0),
+            total=Decimal("100.00"),
+            discount=10,  # 10% = 10, neto = 90
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self._make_group_at(
+            datetime(2026, 3, 11, 11, 0),
+            total=Decimal("200.00"),
+            payment_method=SellGroup.PAYMENT_METODS.USD,
+        )
+
+        report = self._period_report(start_date="2026-03-10", end_date="2026-03-11").json()["report"]
+
+        # 10-Mar: 90 (zelle neto), 11-Mar: 200 USD
+        # ZELLE total: 90, A ENTREGAR: 290 - 90 = 200
+        self.assertIn("10-Mar-2026 | Total: $90.00 (90 ZELLE)", report)
+        self.assertIn("11-Mar-2026 | Total: $200.00", report)
+        self.assertIn("TOTAL: $290.00 (90 ZELLE)", report)
+        self.assertIn("A ENTREGAR: $200.00", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_multiple_days_with_zelle(self):
+        """Zelle se muestra por día y el total zelle es la suma de todos los días."""
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0),
+            total=Decimal("100.00"),
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self._make_group_at(
+            datetime(2026, 3, 11, 9, 0),
+            total=Decimal("200.00"),
+            payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+        )
+        self._make_group_at(
+            datetime(2026, 3, 10, 11, 0),
+            total=Decimal("50.00"),
+            payment_method=SellGroup.PAYMENT_METODS.USD,
+        )
+
+        report = self._period_report(start_date="2026-03-10", end_date="2026-03-11").json()["report"]
+
+        # 10-Mar: 100 ZELLE + 50 USD = 150 total, (100 ZELLE)
+        # 11-Mar: 200 ZELLE total, (200 ZELLE)
+        # TOTAL: 350, ZELLE: 300, A ENTREGAR: 50
+        self.assertIn("10-Mar-2026 | Total: $150.00 (100 ZELLE)", report)
+        self.assertIn("11-Mar-2026 | Total: $200.00 (200 ZELLE)", report)
+        self.assertIn("TOTAL: $350.00 (300 ZELLE)", report)
+        self.assertIn("A ENTREGAR: $50.00", report)
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_no_zelle_shows_without_parentheses(self):
+        """Sin ventas Zelle, no se muestra el segmento entre paréntesis."""
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0),
+            total=Decimal("100.00"),
+            payment_method=SellGroup.PAYMENT_METODS.USD,
+        )
+
+        report = self._period_report().json()["report"]
+
+        self.assertIn("10-Mar-2026 | Total: $100.00", report)
+        self.assertNotIn("ZELLE", report)
+        self.assertIn("A ENTREGAR: $100.00", report)
 
     @freeze_time("2026-03-10 12:00:00")
     def test_period_report_shows_the_period_on_the_line_above_the_groups(self):
