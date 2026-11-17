@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import Value
+from django.db.models import Case, DecimalField, F, Value, When
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -285,6 +285,12 @@ class SellGroupViewSet(
                 client_name=Coalesce("client__name", Value("")),
                 # ``payment_method`` viaja porque la linea del reporte lo imprime; si no
                 # estuviera en el values() el dict no lo trae y la linea revienta.
+                # NUEVO: anotar el neto zelle (total - discount) solo para grupos ZELLE
+                zelle_amount=Case(
+                    When(payment_method=SellGroup.PAYMENT_METODS.ZELLE, then=F("total") - F("discount")),
+                    default=Value(0),
+                    output_field=DecimalField(),
+                ),
             ).values(
                 "id",
                 "for_date",
@@ -292,6 +298,7 @@ class SellGroupViewSet(
                 "discount",
                 "payment_method",
                 "client_name",
+                "zelle_amount",
             )
         )
         # ``sum`` starts at the int 0, so the empty period is coerced back to Decimal
