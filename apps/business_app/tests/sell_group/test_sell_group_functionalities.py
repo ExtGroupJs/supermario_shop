@@ -930,17 +930,17 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
 
     @freeze_time("2026-03-10 12:00:00")
     def test_period_report_defaults_to_today_when_no_date_is_sent(self):
-        """Sin fechas el reporte trae los grupos de HOY, no los de todo el historico."""
+        """Sin fechas el reporte trae TODOS los grupos no entregados, sin filtrar por fecha."""
         self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
         self._make_group_at(datetime(2026, 3, 9, 9, 0), total=Decimal("999.00"))
 
         response = self._period_report()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["start_date"], "2026-03-10")
-        self.assertEqual(response.json()["end_date"], "2026-03-10")
-        self.assertEqual(response.json()["groups"], 1)
-        self.assertNotIn("$999.00", response.json()["report"])
+        # Sin filtro de fechas, se muestran TODOS los grupos no entregados
+        self.assertEqual(response.json()["groups"], 2)
+        self.assertIn("$50.00", response.json()["report"])
+        self.assertIn("$999.00", response.json()["report"])
 
     @freeze_time("2026-03-10 12:00:00")
     def test_period_report_lists_one_line_per_sell_group_and_ends_with_the_total(self):
