@@ -311,6 +311,15 @@ class SellGroupViewSet(
         )
         net_total = max(net_total, Decimal("0.00"))
 
+        # Si no hubo filtro de fechas pero hay grupos, ajustar el período al rango real
+        if no_date_filter and sell_groups:
+            dates = [g["for_date"] for g in sell_groups if g.get("for_date")]
+            if dates:
+                min_date = min(dates).date() if hasattr(dates[0], "date") else dates[0]
+                max_date = max(dates).date() if hasattr(dates[-1], "date") else dates[-1]
+                start_date = min_date
+                end_date = max_date
+
         serializer = self.get_serializer()
         period = self._format_period(start_date, end_date)
         return Response(
