@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import Value
+from django.db.models import Case, DecimalField, F, Value, When
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -272,8 +272,10 @@ class SellGroupViewSet(
             request.query_params.get("shop"),
         )
         if no_date_filter:
-            queryset = base_qs
-            queryset = queryset.filter(delivered=False)
+            queryset = base_qs.filter(delivered=False, for_date__date=today)
+            # Cuando no hay filtro de fechas, usar el día actual como período
+            start_date = today
+            end_date = today
         else:
             queryset = self._filter_by_period(base_qs, start_date, end_date)
         queryset = queryset.order_by("for_date", "id")
@@ -285,6 +287,12 @@ class SellGroupViewSet(
                 client_name=Coalesce("client__name", Value("")),
                 # ``payment_method`` viaja porque la linea del reporte lo imprime; si no
                 # estuviera en el values() el dict no lo trae y la linea revienta.
+                # NUEVO: anotar el neto zelle (total - discount) solo para grupos ZELLE
+                zelle_amount=Case(
+                    When(payment_method=SellGroup.PAYMENT_METODS.ZELLE, then=F("total") - F("discount")),
+                    default=Value(0),
+                    output_field=DecimalField(),
+                ),
             ).values(
                 "id",
                 "for_date",
@@ -292,6 +300,7 @@ class SellGroupViewSet(
                 "discount",
                 "payment_method",
                 "client_name",
+                "zelle_amount",
             )
         )
         # ``sum`` starts at the int 0, so the empty period is coerced back to Decimal
@@ -305,17 +314,6 @@ class SellGroupViewSet(
         )
         net_total = max(net_total, Decimal("0.00"))
 
-        # Si no se filtró por fechas, el periodo debe reflejar el rango real de los grupos obtenidos
-        if no_date_filter and sell_groups:
-            dates = [g["for_date"] for g in sell_groups if g.get("for_date")]
-            if dates:
-                min_date = min(dates)
-                max_date = max(dates)
-                # Normalizar a fecha
-                min_date = min_date.date() if hasattr(min_date, "date") else min_date
-                max_date = max_date.date() if hasattr(max_date, "date") else max_date
-                start_date = min_date
-                end_date = max_date
         serializer = self.get_serializer()
         period = self._format_period(start_date, end_date)
         return Response(
