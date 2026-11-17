@@ -168,6 +168,7 @@ class SellGroupSerializer(serializers.ModelSerializer):
             "Totales por día:\n",
         ]
         daily_totals = defaultdict(Decimal)
+        daily_zelle = defaultdict(Decimal)
         for sell_group in sell_groups:
             net = max(
                 Decimal(sell_group["total"] or 0)
@@ -182,16 +183,39 @@ class SellGroupSerializer(serializers.ModelSerializer):
                 day_key = day
             daily_totals[day_key] += net
 
+            # NUEVO: calcular zelle por día (usar zelle_amount que ya es neto del grupo si es ZELLE)
+            if sell_group["payment_method"] == "Z":
+                daily_zelle[day_key] += Decimal(sell_group.get("zelle_amount") or 0)
+
         body = []
         for day in sorted(daily_totals):
             date_str = day.strftime("%d-%b-%Y")
             total_day = daily_totals[day].quantize(two_decimals)
-            body.append(f"{date_str} | Total: ${total_day}")
+            zelle_day = daily_zelle[day].quantize(two_decimals)
+            # NUEVO: agregar zelle al lado si hay
+            if zelle_day > 0:
+                body.append(f"{date_str} | Total: ${total_day} ({zelle_day} ZELLE)")
+            else:
+                body.append(f"{date_str} | Total: ${total_day}")
 
-        footer = [
-            "------------------------------",
-            f"TOTAL: ${net_total.quantize(two_decimals)}",
-        ]
+        # NUEVO: calcular a_entregar
+        total_zelle = sum(daily_zelle.values(), Decimal("0.00"))
+        a_entregar = max(net_total - total_zelle, Decimal("0.00"))
+
+        # NUEVO: agregar ZELLE al footer si hay
+        total_zelle_quantized = Decimal(str(total_zelle)).quantize(two_decimals)
+        if total_zelle > 0:
+            footer = [
+                "------------------------------",
+                f"TOTAL: ${net_total.quantize(two_decimals)} ({total_zelle_quantized} ZELLE)",
+                f"A ENTREGAR: ${a_entregar.quantize(two_decimals)}",
+            ]
+        else:
+            footer = [
+                "------------------------------",
+                f"TOTAL: ${net_total.quantize(two_decimals)}",
+                f"A ENTREGAR: ${a_entregar.quantize(two_decimals)}",
+            ]
         return header + (body or ["Sin ventas en el periodo"]) + footer
 
     def get_summary_report(self, sell_groups, period, net_total):
