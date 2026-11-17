@@ -199,14 +199,15 @@ class SellGroupSerializer(serializers.ModelSerializer):
                 body.append(f"{date_str} | Total: ${total_day}")
 
         # NUEVO: calcular a_entregar
-        total_zelle = sum(daily_zelle.values())
+        total_zelle = sum(daily_zelle.values(), Decimal("0.00"))
         a_entregar = max(net_total - total_zelle, Decimal("0.00"))
 
         # NUEVO: agregar ZELLE al footer si hay
+        total_zelle_quantized = Decimal(str(total_zelle)).quantize(two_decimals)
         if total_zelle > 0:
             footer = [
                 "------------------------------",
-                f"TOTAL: ${net_total.quantize(two_decimals)} ({total_zelle} ZELLE)",
+                f"TOTAL: ${net_total.quantize(two_decimals)} ({total_zelle_quantized} ZELLE)",
                 f"A ENTREGAR: ${a_entregar.quantize(two_decimals)}",
             ]
         else:

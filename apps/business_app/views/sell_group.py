@@ -272,8 +272,10 @@ class SellGroupViewSet(
             request.query_params.get("shop"),
         )
         if no_date_filter:
-            queryset = base_qs
-            queryset = queryset.filter(delivered=False)
+            queryset = base_qs.filter(delivered=False, for_date__date=today)
+            # Cuando no hay filtro de fechas, usar el día actual como período
+            start_date = today
+            end_date = today
         else:
             queryset = self._filter_by_period(base_qs, start_date, end_date)
         queryset = queryset.order_by("for_date", "id")
@@ -312,17 +314,6 @@ class SellGroupViewSet(
         )
         net_total = max(net_total, Decimal("0.00"))
 
-        # Si no se filtró por fechas, el periodo debe reflejar el rango real de los grupos obtenidos
-        if no_date_filter and sell_groups:
-            dates = [g["for_date"] for g in sell_groups if g.get("for_date")]
-            if dates:
-                min_date = min(dates)
-                max_date = max(dates)
-                # Normalizar a fecha
-                min_date = min_date.date() if hasattr(min_date, "date") else min_date
-                max_date = max_date.date() if hasattr(max_date, "date") else max_date
-                start_date = min_date
-                end_date = max_date
         serializer = self.get_serializer()
         period = self._format_period(start_date, end_date)
         return Response(
