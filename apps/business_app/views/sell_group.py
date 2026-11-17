@@ -272,10 +272,7 @@ class SellGroupViewSet(
             request.query_params.get("shop"),
         )
         if no_date_filter:
-            queryset = base_qs.filter(delivered=False, for_date__date=today)
-            # Cuando no hay filtro de fechas, usar el día actual como período
-            start_date = today
-            end_date = today
+            queryset = base_qs.filter(delivered=False)
         else:
             queryset = self._filter_by_period(base_qs, start_date, end_date)
         queryset = queryset.order_by("for_date", "id")
