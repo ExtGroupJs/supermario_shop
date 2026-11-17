@@ -173,13 +173,9 @@ class TestMigration0023FixSwappedBrandModel:
         # impide repetir nombre con el mismo modelo, así que el duplicado comparte
         # nombre pero cuelga de otro modelo invertido.
         samsung_brand_2 = baker.make(Brand, name="Samsung4L")
-        teléfonos_model_2 = baker.make(
-            Model, name="Teléfonos4L", brand=samsung_brand_2
-        )
+        teléfonos_model_2 = baker.make(Model, name="Teléfonos4L", brand=samsung_brand_2)
         teléfonos_brand_2 = baker.make(Brand, name="Teléfonos4L")
-        samsung_model_2 = baker.make(
-            Model, name="Samsung4L", brand=teléfonos_brand_2
-        )
+        samsung_model_2 = baker.make(Model, name="Samsung4L", brand=teléfonos_brand_2)
 
         # Crear múltiples productos con el mismo nombre (case real en BD)
         product1 = baker.make(Product, name="Galaxy A06", model=samsung_model)

@@ -83,9 +83,10 @@ class SellViewSet(
         with transaction.atomic():
             # ``exclude`` asks the database for the real remaining sells of the
             # group instead of trusting the instance loaded with the sell.
-            is_last_sell = sell_group is not None and not sell_group.sells.exclude(
-                pk=instance.pk
-            ).exists()
+            is_last_sell = (
+                sell_group is not None
+                and not sell_group.sells.exclude(pk=instance.pk).exists()
+            )
             if not is_last_sell:
                 serializer.mark_deleted_sell(instance)
             self.perform_destroy(instance)

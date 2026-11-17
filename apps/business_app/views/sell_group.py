@@ -225,11 +225,7 @@ class SellGroupViewSet(
         """
         sell_group = self.get_object()
         return Response(
-            {
-                "report": self.get_serializer(sell_group).get_warehouse_report(
-                    sell_group
-                )
-            }
+            {"report": self.get_serializer(sell_group).get_warehouse_report(sell_group)}
         )
 
     @action(detail=False, methods=["GET"], url_path="period-report")
@@ -286,7 +282,10 @@ class SellGroupViewSet(
                 # estuviera en el values() el dict no lo trae y la linea revienta.
                 # NUEVO: anotar el neto zelle (total - discount) solo para grupos ZELLE
                 zelle_amount=Case(
-                    When(payment_method=SellGroup.PAYMENT_METODS.ZELLE, then=F("total") - F("discount")),
+                    When(
+                        payment_method=SellGroup.PAYMENT_METODS.ZELLE,
+                        then=F("total") - F("discount"),
+                    ),
                     default=Value(0),
                     output_field=DecimalField(),
                 ),
@@ -316,7 +315,9 @@ class SellGroupViewSet(
             dates = [g["for_date"] for g in sell_groups if g.get("for_date")]
             if dates:
                 min_date = min(dates).date() if hasattr(dates[0], "date") else dates[0]
-                max_date = max(dates).date() if hasattr(dates[-1], "date") else dates[-1]
+                max_date = (
+                    max(dates).date() if hasattr(dates[-1], "date") else dates[-1]
+                )
                 start_date = min_date
                 end_date = max_date
 

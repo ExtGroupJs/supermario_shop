@@ -25,15 +25,15 @@ class BaseTestClass(TestCase):
                 **{"verbosity": 0},
             )
 
-        self.user = baker.prepare(
-            SystemUser
-        )  # User.objects.create_user(
+        self.user = baker.prepare(SystemUser)  # User.objects.create_user(
         self.user.save()
         # Create shop manually to bypass Django 4.2 + TextChoices bug in full_clean()
         from apps.business_app.models.shop import Shop
-        self.shop = Shop.objects.bulk_create([
-            Shop(name="Test Shop", type="M", enabled=True, principal=False)
-        ], ignore_conflicts=True)[0]
+
+        self.shop = Shop.objects.bulk_create(
+            [Shop(name="Test Shop", type="M", enabled=True, principal=False)],
+            ignore_conflicts=True,
+        )[0]
         # Get the actual saved shop with ID
         self.shop = Shop.objects.get(name="Test Shop")
         self.user.shop = self.shop

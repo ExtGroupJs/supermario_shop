@@ -26,7 +26,9 @@ def anonymous_country(monkeypatch, client):
         ("wholesale", "/wholesale_catalog/", CATALOG_TEMPLATE),
     ],
 )
-def test_foreign_visitor_sees_catalog(anonymous_country, url_name, url, expected_template):
+def test_foreign_visitor_sees_catalog(
+    anonymous_country, url_name, url, expected_template
+):
     client = anonymous_country("US")
     response = client.get(url)
     assert response.status_code == 200

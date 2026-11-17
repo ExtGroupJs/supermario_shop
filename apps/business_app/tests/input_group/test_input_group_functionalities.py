@@ -376,12 +376,8 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         self.assertEqual(updated_logs_sp1.count(), 2)
         self.assertEqual(updated_logs_sp2.count(), 2)
 
-        expected_entry_log = (
-            f"(Entrada {created_group.id})"
-        )
-        expected_cancel_log = (
-            f"(Entrada {created_group.id} cancelada)"
-        )
+        expected_entry_log = f"(Entrada {created_group.id})"
+        expected_cancel_log = f"(Entrada {created_group.id} cancelada)"
 
         self.assertEqual(updated_logs_sp1.first().extra_log_info, expected_entry_log)
         self.assertEqual(updated_logs_sp2.first().extra_log_info, expected_entry_log)
@@ -539,9 +535,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         self.assertEqual(shop_product_1.quantity, initial_quantity_1 + input_quantity_1)
         self.assertEqual(shop_product_2.quantity, initial_quantity_2 + input_quantity_2)
 
-        expected_entry_log = (
-            f"(Entrada {input_group.id})"
-        )
+        expected_entry_log = f"(Entrada {input_group.id})"
         created_logs = GenericLog.objects.filter(
             performed_action=GenericLog.ACTION.UPDATED,
             created_by=self.user,
@@ -567,9 +561,7 @@ class TestInputGroupViewSetFunctionalities(BaseTestClass):
         self.assertEqual(shop_product_1.quantity, initial_quantity_1)
         self.assertEqual(shop_product_2.quantity, initial_quantity_2 + input_quantity_2)
 
-        expected_cancel_log = (
-            f"(Entrada {input_group.id} cancelada)"
-        )
+        expected_cancel_log = f"(Entrada {input_group.id} cancelada)"
         cancel_logs = GenericLog.objects.filter(
             performed_action=GenericLog.ACTION.UPDATED,
             created_by=self.user,

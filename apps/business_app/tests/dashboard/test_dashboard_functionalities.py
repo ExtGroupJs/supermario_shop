@@ -30,9 +30,7 @@ class TestDashboardViewSetFunctionalities(BaseTestClass):
         )  # this is because in migrations 0021 and 0022 we create ShopProducts
         # Migrations 0028/0032 already create the wholesale shop, so reuse it
         # instead of hitting the unique name constraint.
-        wholesale_shop, _ = Shop.objects.get_or_create(
-            name=Shop.WHOLESALE_SHOP_NAME
-        )
+        wholesale_shop, _ = Shop.objects.get_or_create(name=Shop.WHOLESALE_SHOP_NAME)
         shop_products_to_create = baker.random_gen.gen_integer(min_int=1, max_int=10)
         baker.make(
             ShopProducts,

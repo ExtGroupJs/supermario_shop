@@ -4,21 +4,22 @@ from django.db import migrations, models
 
 
 def set_delivered_true(apps, schema_editor):
-    SellGroup = apps.get_model('business_app', 'SellGroup')
+    SellGroup = apps.get_model("business_app", "SellGroup")
     SellGroup.objects.update(delivered=True)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('business_app', '0036_gallery'),
+        ("business_app", "0036_gallery"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sellgroup',
-            name='delivered',
-            field=models.BooleanField(default=False, verbose_name='Entregado'),
+            model_name="sellgroup",
+            name="delivered",
+            field=models.BooleanField(default=False, verbose_name="Entregado"),
         ),
-        migrations.RunPython(set_delivered_true, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(
+            set_delivered_true, reverse_code=migrations.RunPython.noop
+        ),
     ]

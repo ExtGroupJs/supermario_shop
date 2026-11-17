@@ -433,9 +433,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertEqual(updated_logs_sp2.count(), 2)
 
         expected_sell_log = f"(Venta {created_group.id})"
-        expected_cancel_log = (
-            f"(Venta {created_group.id} cancelada)"
-        )
+        expected_cancel_log = f"(Venta {created_group.id} cancelada)"
 
         self.assertEqual(updated_logs_sp1.first().extra_log_info, expected_sell_log)
         self.assertEqual(updated_logs_sp2.first().extra_log_info, expected_sell_log)
@@ -646,7 +644,9 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.user.groups.add(Groups.SHOP_SELLER)
         self.client.force_login(self.user)
         client_name = self.faker.name()
-        existing_client = baker.make(Client, name=client_name, phone=None, shop=self.user.shop)
+        existing_client = baker.make(
+            Client, name=client_name, phone=None, shop=self.user.shop
+        )
 
         url = reverse("sell-groups-list")
         response = self.client.post(
@@ -661,7 +661,10 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(
-            Client.objects.filter(name__iexact=client_name, shop=self.user.shop).count(), 1
+            Client.objects.filter(
+                name__iexact=client_name, shop=self.user.shop
+            ).count(),
+            1,
         )
         created_group = SellGroup.objects.get(id=response.json()["id"])
         self.assertEqual(created_group.client, existing_client)
@@ -836,9 +839,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.user.groups.add(Groups.SHOP_OWNER)
         self.client.force_login(self.user)
 
-        url = reverse(
-            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
-        )
+        url = reverse("sell-groups-warehouse-report", kwargs={"pk": sell_group.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -868,9 +869,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.user.groups.add(Groups.SHOP_OWNER)
         self.client.force_login(self.user)
 
-        url = reverse(
-            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
-        )
+        url = reverse("sell-groups-warehouse-report", kwargs={"pk": sell_group.id})
         report = self.client.get(url).json()["report"]
         self.assertNotIn("Cliente:", report)
         self.assertNotIn("Juan Perez", report)
@@ -897,9 +896,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         self.user.groups.add(Groups.SHOP_OWNER)
         self.client.force_login(self.user)
 
-        url = reverse(
-            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
-        )
+        url = reverse("sell-groups-warehouse-report", kwargs={"pk": sell_group.id})
         report = self.client.get(url).json()["report"]
 
         self.assertIn("   Cantidad: 3\n   Pallet: 1A2", report)
@@ -910,9 +907,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         viewset, asi que SHOP_SELLER tambien puede generarlo.
         """
         sell_group = self._make_group_for_report(total=Decimal("30.00"))
-        url = reverse(
-            "sell-groups-warehouse-report", kwargs={"pk": sell_group.id}
-        )
+        url = reverse("sell-groups-warehouse-report", kwargs={"pk": sell_group.id})
 
         allowed_groups = [Groups.SUPER_ADMIN, Groups.SHOP_OWNER, Groups.SHOP_SELLER]
         self._test_permissions(
@@ -1052,7 +1047,9 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             payment_method=SellGroup.PAYMENT_METODS.USD,
         )
 
-        report = self._period_report(start_date="2026-03-10", end_date="2026-03-11").json()["report"]
+        report = self._period_report(
+            start_date="2026-03-10", end_date="2026-03-11"
+        ).json()["report"]
 
         # 10-Mar: 90 (zelle neto), 11-Mar: 200 USD
         # ZELLE total: 90, A ENTREGAR: 290 - 90 = 200
@@ -1080,7 +1077,9 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
             payment_method=SellGroup.PAYMENT_METODS.USD,
         )
 
-        report = self._period_report(start_date="2026-03-10", end_date="2026-03-11").json()["report"]
+        report = self._period_report(
+            start_date="2026-03-10", end_date="2026-03-11"
+        ).json()["report"]
 
         # 10-Mar: 100 ZELLE + 50 USD = 150 total, (100.00 ZELLE)
         # 11-Mar: 200 ZELLE total, (200.00 ZELLE)
@@ -1119,9 +1118,7 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
         period_line = next(
             i for i, line in enumerate(lines) if line.startswith("Periodo:")
         )
-        first_day_line = next(
-            i for i, line in enumerate(lines) if " | Total:" in line
-        )
+        first_day_line = next(i for i, line in enumerate(lines) if " | Total:" in line)
         total_line = next(
             i for i, line in enumerate(lines) if line.startswith("TOTAL:")
         )
@@ -1268,8 +1265,12 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
     @freeze_time("2026-03-10 12:00:00")
     def test_period_report_defaults_to_undelivered_groups(self):
         """Sin rango de fechas el reporte solo incluye grupos con delivered=False."""
-        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"), delivered=False)
-        self._make_group_at(datetime(2026, 3, 10, 10, 0), total=Decimal("30.00"), delivered=True)
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"), delivered=False
+        )
+        self._make_group_at(
+            datetime(2026, 3, 10, 10, 0), total=Decimal("30.00"), delivered=True
+        )
 
         response = self._period_report()
         self.assertEqual(response.json()["groups"], 1)
@@ -1279,12 +1280,36 @@ class TestSellGroupsViewSetFunctionalities(BaseTestClass):
     @freeze_time("2026-03-10 12:00:00")
     def test_period_report_includes_delivered_groups_when_date_range_is_specified(self):
         """Si se especifica rango de fechas, el reporte incluye entregados y no entregados."""
-        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"), delivered=False)
-        self._make_group_at(datetime(2026, 3, 10, 10, 0), total=Decimal("30.00"), delivered=True)
+        self._make_group_at(
+            datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"), delivered=False
+        )
+        self._make_group_at(
+            datetime(2026, 3, 10, 10, 0), total=Decimal("30.00"), delivered=True
+        )
 
         response = self._period_report(start_date="2026-03-10", end_date="2026-03-10")
         self.assertEqual(response.json()["groups"], 2)
         self.assertIn("TOTAL: $80.00", response.json()["report"])
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_formats_period_correctly_for_single_day_without_filter(self):
+        """Sin filtro y solo un día, el período muestra solo la fecha, sin 'al'."""
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
+
+        report = self._period_report().json()["report"]
+
+        self.assertIn("Periodo: 10-Mar-2026", report)
+        self.assertNotIn("al", report.split("Periodo:")[1].split("\n")[0])
+
+    @freeze_time("2026-03-10 12:00:00")
+    def test_period_report_formats_period_correctly_for_multi_day_without_filter(self):
+        """Sin filtro y múltiples días, el período muestra el rango completo."""
+        self._make_group_at(datetime(2026, 3, 8, 9, 0), total=Decimal("100.00"))
+        self._make_group_at(datetime(2026, 3, 10, 9, 0), total=Decimal("50.00"))
+
+        report = self._period_report().json()["report"]
+
+        self.assertIn("Periodo: 08-Mar-2026 al 10-Mar-2026", report)
 
     # ------------------------------------------------------------------
     # Listing: filters, search and ordering declared on the viewset

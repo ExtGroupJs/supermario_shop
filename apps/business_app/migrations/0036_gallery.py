@@ -5,22 +5,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('business_app', '0035_add_zero_pallet_for_wholesale'),
+        ("business_app", "0035_add_zero_pallet_for_wholesale"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Gallery',
+            name="Gallery",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(blank=True, null=True, upload_to='', verbose_name='Imagen')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='gallery', to='business_app.product', verbose_name='Producto')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "image",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="", verbose_name="Imagen"
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="gallery",
+                        to="business_app.product",
+                        verbose_name="Producto",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Galería',
-                'verbose_name_plural': 'Galerías',
+                "verbose_name": "Galería",
+                "verbose_name_plural": "Galerías",
             },
         ),
     ]

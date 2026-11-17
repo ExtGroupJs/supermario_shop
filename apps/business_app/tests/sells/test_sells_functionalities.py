@@ -283,9 +283,7 @@ class TestSellViewSetFunctionalities(BaseTestClass):
         self.assertFalse(SellGroup.objects.filter(id=sell_group.id).exists())
         # The inventory restore still happens for the cancelled sell.
         shop_product.refresh_from_db()
-        self.assertEqual(
-            shop_product.quantity, quantity_after_selling + sell.quantity
-        )
+        self.assertEqual(shop_product.quantity, quantity_after_selling + sell.quantity)
 
     def test_destroy_sell_without_group_does_not_break(self):
         """Una venta sin grupo se borra sin intentar anotar nada."""

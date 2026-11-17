@@ -49,10 +49,7 @@ class SellGroup(BaseModel):
     for_date = models.DateTimeField(
         verbose_name=_("For date timestamp"), default=timezone.now
     )
-    delivered = models.BooleanField(
-        verbose_name=_("Entregado"),
-        default=False
-    )
+    delivered = models.BooleanField(verbose_name=_("Entregado"), default=False)
 
     class Meta:
         verbose_name = "Grupo de Venta"

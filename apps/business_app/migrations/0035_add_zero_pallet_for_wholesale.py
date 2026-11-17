@@ -29,7 +29,6 @@ def remove_zero_pallet(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("business_app", "0034_backfill_sellgroup_total_from_sells"),
     ]

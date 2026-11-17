@@ -45,9 +45,11 @@ class ReadProductSerializer(ProductSerializer):
 
     def get_shop_locations(self, obj):
         locations = []
-        shopproducts = obj.shopproducts_set.filter(
-            deleted__isnull=True, shop__enabled=True
-        ).select_related("shop").order_by("shop__name")
+        shopproducts = (
+            obj.shopproducts_set.filter(deleted__isnull=True, shop__enabled=True)
+            .select_related("shop")
+            .order_by("shop__name")
+        )
         for sp in shopproducts:
             locations.append(
                 {
